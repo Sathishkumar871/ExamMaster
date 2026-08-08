@@ -226,7 +226,7 @@ export default function StaffRegister() {
 
       const response =
       await fetch(
-        "http://localhost:5000/api/staff/register",
+        "https://exammaster-backend-up1y.onrender.com/api/staff/register",
         {
 
           method:"POST",

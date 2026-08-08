@@ -78,7 +78,7 @@ export default function StudentRegister() {
 
 
       const response = await fetch(
-        "http://localhost:5000/api/student/register",
+        "https://exammaster-backend-up1y.onrender.com/api/student/register",
         {
           method: "POST",
 

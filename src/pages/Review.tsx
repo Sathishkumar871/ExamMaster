@@ -69,7 +69,7 @@ try{
 
 const response = await fetch(
 
-`http://localhost:5000/api/result/${id}`
+`https://exammaster-backend-up1y.onrender.com/api/result/${id}`
 
 );
 

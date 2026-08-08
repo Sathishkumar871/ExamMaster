@@ -56,7 +56,7 @@ export default function ProgressCard({
     try {
       const token = localStorage.getItem("staffToken") || localStorage.getItem("teacherToken");
       const response = await axios.get(
-        `http://localhost:5000/api/mentor/student/${studentId}`,
+        `https://exammaster-backend-up1y.onrender.com/api/mentor/student/${studentId}`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }

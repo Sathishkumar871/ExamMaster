@@ -26,7 +26,7 @@ export default function StudentComplaints() {
 
   const fetchMyComplaints = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/complaints/student/complaints/${studentId}`);
+      const response = await fetch(`https://exammaster-backend-up1y.onrender.com/api/complaints/student/complaints/${studentId}`);
       const data = await response.json();
       if (data.success) {
         setMyComplaints(data.complaints || []);
@@ -39,7 +39,7 @@ export default function StudentComplaints() {
   const handleDelete = async (id: string) => {
     if (!window.confirm("Are you sure you want to delete this request?")) return;
     try {
-      const response = await fetch(`http://localhost:5000/api/complaints/student/complaint/${id}`, {
+      const response = await fetch(`https://exammaster-backend-up1y.onrender.com/api/complaints/student/complaint/${id}`, {
         method: "DELETE",
       });
       const data = await response.json();
@@ -62,7 +62,7 @@ export default function StudentComplaints() {
       setLoading(true);
       setMessage({ text: "", type: "" });
 
-      const response = await fetch(`http://localhost:5000/api/complaints/student/complaint`, {
+      const response = await fetch(`https://exammaster-backend-up1y.onrender.com/api/complaints/student/complaint`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

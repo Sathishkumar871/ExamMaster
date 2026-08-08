@@ -46,8 +46,7 @@ export default function AnswerReview() {
       const response =
         await fetch(
 
-          `http://localhost:5000/api/result/latest/${studentId}`
-
+           `https://exammaster-backend-up1y.onrender.com/api/result/latest/${studentId}`
         );
 
       const data =

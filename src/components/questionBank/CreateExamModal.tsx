@@ -21,8 +21,7 @@ interface Question {
   isPublished?: boolean;
 }
 
-const API = "http://localhost:5000/api";
-
+const API = "https://exammaster-backend-up1y.onrender.com/api";
 const SUBJECTS = [
   "Physics",
   "Chemistry",

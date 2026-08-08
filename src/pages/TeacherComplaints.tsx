@@ -27,7 +27,7 @@ export default function TeacherComplaints() {
       const token = localStorage.getItem("teacherToken");
 
       const response = await fetch(
-        `http://localhost:5000/api/teacher/complaints`,
+        `https://exammaster-backend-up1y.onrender.com/api/teacher/complaints`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -51,7 +51,7 @@ export default function TeacherComplaints() {
   // 🛠️ Mark as Resolved Function
   const handleResolve = async (id: string) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/teacher/complaint/${id}`, {
+      const response = await fetch(`https://exammaster-backend-up1y.onrender.com/api/teacher/complaint/${id}`, {
         method: "PUT",
       });
       const data = await response.json();

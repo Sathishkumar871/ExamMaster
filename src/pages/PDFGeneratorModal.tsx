@@ -31,7 +31,7 @@ export default function PDFGeneratorModal({ onQuestionsGenerated }: { onQuestion
 
       // 1. Send PDF to Backend for Cloudinary upload & AI Question Generation
       setUploadProgress("🤖 Reading PDF & Generating Questions using AI...");
-      const res = await fetch("http://localhost:5000/api/generate-from-pdf", {
+      const res = await fetch("https://exammaster-backend-up1y.onrender.com/api/generate-from-pdf", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,

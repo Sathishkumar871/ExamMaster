@@ -45,7 +45,7 @@ export default function StudentManagement() {
     try {
       const token = localStorage.getItem("teacherToken");
       const response = await fetch(
-        `http://localhost:5000/api/teacher/students?classId=${teacher.classId}`,
+        `https://exammaster-backend-up1y.onrender.com/api/teacher/students?classId=${teacher.classId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

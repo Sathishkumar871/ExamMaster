@@ -76,7 +76,7 @@ return;
 const response = await axios.get(
 
 
-"http://localhost:5000/api/mentor/dashboard",
+"https://exammaster-backend-up1y.onrender.com/api/mentor/dashboard",
 
 
 {

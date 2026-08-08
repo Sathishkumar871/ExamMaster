@@ -63,7 +63,7 @@ export default function HeadDashboard() {
     try {
       const token = getToken();
 
-      const dashResponse = await fetch("http://localhost:5000/api/head/dashboard", {
+      const dashResponse = await fetch("https://exammaster-backend-up1y.onrender.com/api/head/dashboard", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const dashData = await dashResponse.json();
@@ -77,7 +77,7 @@ export default function HeadDashboard() {
         setFeedback(dashData.feedback || []);
       }
 
-      const staffResponse = await fetch("http://localhost:5000/api/head/pending-staff", {
+      const staffResponse = await fetch("https://exammaster-backend-up1y.onrender.com/api/head/pending-staff", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const staffData = await staffResponse.json();
@@ -112,7 +112,7 @@ export default function HeadDashboard() {
 
   const rejectStaff = async (id: string) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/head/reject/${id}`, {
+      const response = await fetch(`https://exammaster-backend-up1y.onrender.com/api/head/reject/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${getToken()}` },
       });
@@ -128,7 +128,7 @@ export default function HeadDashboard() {
 
   const resolveComplaint = async (id: string) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/head/resolve-complaint/${id}`, {
+      const response = await fetch(`https://exammaster-backend-up1y.onrender.com/api/head/resolve-complaint/${id}`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${getToken()}`,

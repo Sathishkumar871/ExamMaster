@@ -58,7 +58,7 @@ export default function MentorActionPlan() {
 
       // Backend API call (replace endpoint as per your project)
       await axios.put(
-        "http://localhost:5000/api/mentor/weekly-feedback",
+        "https://exammaster-backend-up1y.onrender.com/api/mentor/weekly-feedback",
         {
           studentId,
           actionPlan: planData,

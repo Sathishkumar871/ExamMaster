@@ -71,7 +71,7 @@ const DailyTest: React.FC = () => {
         setError("");
         const token = localStorage.getItem("studentToken");
 
-        const response = await axios.get("http://localhost:5000/api/daily-tests", {
+        const response = await axios.get("https://exammaster-backend-up1y.onrender.com/api/daily-tests", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -194,7 +194,7 @@ const DailyTest: React.FC = () => {
         submittedAnswers,
       };
 
-      const response = await axios.post("http://localhost:5000/api/student/submit-exam", payload, {
+      const response = await axios.post("https://exammaster-backend-up1y.onrender.com/api/student/submit-exam", payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

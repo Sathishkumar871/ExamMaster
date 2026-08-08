@@ -4,7 +4,7 @@ import { Plus, Search, Eye, Rocket, Trash2 } from "lucide-react";
 
 import CreateExamModal from "../components/questionBank/CreateExamModal";
 
-const API = "http://localhost:5000/api";
+const API = "https://exammaster-backend-up1y.onrender.com/api";
 
 interface Exam {
 

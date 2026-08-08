@@ -83,7 +83,7 @@ export default function MockTests() {
 
     try {
       const response = await fetch(
-        "http://localhost:5000/api/exam/start",
+        "https://exammaster-backend-up1y.onrender.com/api/exam/start",
         {
           method: "POST",
           headers: {
@@ -146,7 +146,7 @@ export default function MockTests() {
       });
 
       const response = await fetch(
-        "http://localhost:5000/api/exam/submit",
+        "https://exammaster-backend-up1y.onrender.com/api/exam/submit",
         {
           method: "POST",
           headers: {

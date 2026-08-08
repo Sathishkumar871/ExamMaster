@@ -155,7 +155,7 @@ try{
 
 const response = await fetch(
 
-`http://localhost:5000/api/daily-tests/test/${id}`
+`https://exammaster-backend-up1y.onrender.com/api/daily-tests/test/${id}`
 
 );
 
@@ -448,7 +448,7 @@ try{
 
 const response = await fetch(
 
-"http://localhost:5000/api/result/submit",
+"https://exammaster-backend-up1y.onrender.com/api/result/submit",
 
 {
 

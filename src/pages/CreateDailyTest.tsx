@@ -51,7 +51,7 @@ export default function CreateDailyTest() {
     try {
       const token = localStorage.getItem("teacherToken");
       const res = await fetch(
-        `http://localhost:5000/api/question-bank?subject=${encodeURIComponent(assignedSubject)}`,
+        `https://exammaster-backend-up1y.onrender.com/api/question-bank?subject=${encodeURIComponent(assignedSubject)}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -417,7 +417,7 @@ export default function CreateDailyTest() {
                                 <input
                                   type="checkbox"
                                   checked={isSelected}
-                                  onChange={(e) => toggleSelectQuestion(qId, e)}
+                                  onChange={(e) => toggleSelectQuestion(qId, )}
                                 />
                                 <span className="q-num">Q{qIdx + 1}</span>
                                 <span className={`diff-badge ${difficultyClass}`}>

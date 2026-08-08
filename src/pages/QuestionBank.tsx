@@ -94,7 +94,7 @@ export default function QuestionBank() {
         return;
       }
 
-      const res = await fetch("http://localhost:5000/api/questions", {
+      const res = await fetch("https://exammaster-backend-up1y.onrender.com/api/questions", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -272,7 +272,7 @@ export default function QuestionBank() {
       setPdfLoading(true);
       setMessage("⏳ Extracting data from PDF & publishing test...");
 
-      const res = await fetch("http://localhost:5000/api/questions/generate-from-pdf", {
+      const res = await fetch("https://exammaster-backend-up1y.onrender.com/api/questions/generate-from-pdf", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -325,7 +325,7 @@ export default function QuestionBank() {
     try {
       let successCount = 0;
       for (const item of parsedQuestions) {
-        const res = await fetch("http://localhost:5000/api/questions", {
+        const res = await fetch("https://exammaster-backend-up1y.onrender.com/api/questions", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -355,7 +355,7 @@ export default function QuestionBank() {
     if (!token) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/questions/${qId}`, {
+      const res = await fetch(`https://exammaster-backend-up1y.onrender.com/api/questions/${qId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -374,7 +374,7 @@ export default function QuestionBank() {
     if (!token) return;
 
     try {
-      const res = await fetch("http://localhost:5000/api/questions/all", {
+      const res = await fetch("https://exammaster-backend-up1y.onrender.com/api/questions/all", {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -400,7 +400,7 @@ export default function QuestionBank() {
     if (!token) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/questions/${editingQuestionId}`, {
+      const res = await fetch(`https://exammaster-backend-up1y.onrender.com/api/questions/${editingQuestionId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

@@ -180,7 +180,7 @@ setLoading(true);
 
 await axios.put(
 
-"http://localhost:5000/api/mentor/weekly-feedback",
+"https://exammaster-backend-up1y.onrender.com/api/mentor/weekly-feedback",
 
 {
 

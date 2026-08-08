@@ -69,7 +69,7 @@ export default function Profile() {
       const token = localStorage.getItem("token") || localStudentData?.token;
 
       const response = await fetch(
-        `http://localhost:5000/api/student/profile/${activeId}`,
+        `https://exammaster-backend-up1y.onrender.com/api/student/profile/${activeId}`,
         {
           method: "GET",
           headers: {

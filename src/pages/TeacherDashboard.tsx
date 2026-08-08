@@ -135,7 +135,7 @@ return;
 const response =
 await fetch(
 
-"http://localhost:5000/api/teacher/students",
+"https://exammaster-backend-up1y.onrender.com/api/teacher/students",
 
 {
 headers:{
@@ -216,7 +216,7 @@ try{
 const response =
 await fetch(
 
-"http://localhost:5000/api/head/pending-staff",
+"https://exammaster-backend-up1y.onrender.com/api/head/pending-staff",
 
 {
 
@@ -276,7 +276,7 @@ try{
 
 await fetch(
 
-`http://localhost:5000/api/head/approve/${id}`,
+`https://exammaster-backend-up1y.onrender.com/api/head/approve/${id}`,
 
 {
 
@@ -328,7 +328,7 @@ try{
 
 await fetch(
 
-`http://localhost:5000/api/head/reject/${id}`,
+`https://exammaster-backend-up1y.onrender.com/api/head/reject/${id}`,
 
 {
 

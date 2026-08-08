@@ -40,10 +40,10 @@ export default function TeacherLogin() {
       let apiURL;
 
       if (portalType === "management") {
-        apiURL = "http://localhost:5000/api/teacher/login";
+        apiURL = "https://exammaster-backend-up1y.onrender.com/api/teacher/login";
         requestBody = { teacherId, accessCode };
       } else {
-        apiURL = "http://localhost:5000/api/staff/login";
+        apiURL = "https://exammaster-backend-up1y.onrender.com/api/staff/login";
         if (staffRole === "head") {
           requestBody = { teacherId, accessCode };
         } else {

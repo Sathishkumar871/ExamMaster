@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:5000/api/student";
+const API_URL = "https://exammaster-backend-up1y.onrender.com/api/student";
 
 
 export const registerStudent = async(data:any)=>{
