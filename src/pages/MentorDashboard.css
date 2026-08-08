@@ -1,0 +1,292 @@
+.mentor-container {
+
+  min-height:100vh;
+
+  padding:30px;
+
+  background:#f8f5ef;
+
+  font-family:Arial, sans-serif;
+
+}
+
+
+/* HEADER */
+
+.mentor-header {
+
+  background:linear-gradient(
+    135deg,
+    #6b3e1e,
+    #b87333
+  );
+
+  color:white;
+
+  padding:25px;
+
+  border-radius:18px;
+
+  margin-bottom:25px;
+
+  box-shadow:0 8px 20px rgba(0,0,0,0.15);
+
+}
+
+
+.mentor-header h1 {
+
+  margin:0;
+
+  font-size:32px;
+
+  font-weight:800;
+
+}
+
+
+.mentor-header p {
+
+  font-size:18px;
+
+  margin:8px 0;
+
+}
+
+
+
+
+
+/* SEARCH */
+
+.mentor-search-box {
+
+  margin-bottom:25px;
+
+}
+
+
+
+.mentor-search-box input {
+
+
+  width:100%;
+
+  max-width:500px;
+
+  padding:14px 18px;
+
+  border-radius:12px;
+
+  border:1px solid #ccc;
+
+  font-size:16px;
+
+  outline:none;
+
+  background:white;
+
+}
+
+
+.mentor-search-box input:focus {
+
+  border-color:#b87333;
+
+  box-shadow:0 0 8px rgba(184,115,51,0.3);
+
+}
+
+
+
+
+
+/* TITLE */
+
+
+.mentor-container h2 {
+
+  color:#5a3518;
+
+  margin-bottom:20px;
+
+}
+
+
+
+
+
+/* STUDENT GRID */
+
+
+.mentor-student-grid {
+
+
+  display:grid;
+
+  grid-template-columns:
+
+  repeat(auto-fit,minmax(260px,1fr));
+
+  gap:20px;
+
+
+}
+
+
+
+
+
+/* STUDENT CARD */
+
+
+.mentor-student-card {
+
+
+  background:white;
+
+  padding:22px;
+
+  border-radius:18px;
+
+  cursor:pointer;
+
+  border:1px solid #eee;
+
+  transition:0.3s;
+
+
+  box-shadow:
+
+  0 5px 15px rgba(0,0,0,0.08);
+
+
+}
+
+
+
+
+
+.mentor-student-card:hover {
+
+
+  transform:translateY(-6px);
+
+
+  box-shadow:
+
+  0 12px 25px rgba(0,0,0,0.18);
+
+
+}
+
+
+
+
+.mentor-student-card h3 {
+
+
+  color:#7a450f;
+
+  margin-bottom:15px;
+
+  font-size:22px;
+
+
+}
+
+
+
+
+
+.mentor-student-card p {
+
+
+  margin:8px 0;
+
+  color:#444;
+
+  font-size:16px;
+
+
+}
+
+
+
+
+
+/* BUTTON */
+
+
+.mentor-student-card button {
+
+
+  margin-top:15px;
+
+  width:100%;
+
+  padding:12px;
+
+  border:none;
+
+  border-radius:10px;
+
+  background:#b87333;
+
+  color:white;
+
+  font-size:16px;
+
+  font-weight:700;
+
+  cursor:pointer;
+
+}
+
+
+
+.mentor-student-card button:hover {
+
+
+  background:#8b4f1d;
+
+
+}
+
+
+
+
+
+
+
+/* MOBILE */
+
+
+@media(max-width:600px){
+
+
+.mentor-container {
+
+  padding:15px;
+
+}
+
+
+
+.mentor-header h1 {
+
+  font-size:24px;
+
+}
+
+
+
+.mentor-student-grid {
+
+  grid-template-columns:1fr;
+
+}
+
+
+
+}

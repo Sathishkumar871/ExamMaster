@@ -1,0 +1,35 @@
+.timer-box{
+
+display:flex;
+
+justify-content:center;
+
+align-items:center;
+
+padding:12px 25px;
+
+background:#0b6623;
+
+color:white;
+
+border-radius:12px;
+
+font-size:20px;
+
+font-weight:bold;
+
+box-shadow:0 5px 20px rgba(0,0,0,.15);
+
+}
+
+@media(max-width:768px){
+
+.timer-box{
+
+width:100%;
+
+font-size:18px;
+
+}
+
+}

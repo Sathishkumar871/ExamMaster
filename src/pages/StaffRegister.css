@@ -1,0 +1,220 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+.staff-register-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* Premium 3-color mixing gradient theme */
+  background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 50%, #a1c4fd 100%);
+  background-size: 200% 200%;
+  animation: gradientShift 10s ease infinite;
+  padding: 20px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.staff-register-card {
+  width: 410px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: 40px 30px;
+  border-radius: 22px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: cardEntrance 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes cardEntrance {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.staff-register-card h1 {
+  text-align: center;
+  font-size: 28px;
+  color: #1a1a1a;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin-bottom: -5px;
+}
+
+.staff-register-card p {
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+/* Glassy Typing Boxes - Completely Fixed without jumping/moving */
+.staff-register-card input,
+.staff-register-card select {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(255, 255, 255, 0.6);
+  font-size: 15px;
+  outline: none;
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #222;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.staff-register-card input:hover,
+.staff-register-card select:hover {
+  background: rgba(255, 255, 255, 0.75);
+  border-color: rgba(255, 255, 255, 0.9);
+}
+
+.staff-register-card input:focus,
+.staff-register-card select:focus {
+  border-color: #ee7707;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0 0 4px rgba(238, 119, 7, 0.15);
+  /* Removed translateY & scale to make the box completely fix and steady */
+}
+
+.section-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.section-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #444;
+  margin-left: 2px;
+}
+
+.staff-register-card button {
+  padding: 15px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ee7707 0%, #ff8c1a 100%);
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(238, 119, 7, 0.3);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  margin-top: 5px;
+}
+
+.staff-register-card button:hover {
+  background: linear-gradient(135deg, #d86900 0%, #ee7707 100%);
+  box-shadow: 0 8px 25px rgba(238, 119, 7, 0.4);
+  transform: translateY(-2px);
+}
+
+.staff-register-card button:active {
+  transform: translateY(1px) scale(0.97);
+  box-shadow: 0 3px 10px rgba(238, 119, 7, 0.3);
+}
+
+.staff-register-card button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none;
+}
+
+.staff-register-card p:last-of-type {
+  font-size: 14px;
+  font-weight: 600;
+  color: #ee7707;
+  text-align: center;
+}
+/* Searchable Department Dropdown Styling */
+.searchable-dropdown-container {
+  position: relative;
+  width: 100%;
+}
+
+.dropdown-list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1.5px solid rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  max-height: 180px;
+  overflow-y: auto;
+  z-index: 100;
+  animation: fadeInList 0.2s ease forwards;
+}
+
+@keyframes fadeInList {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-item {
+  padding: 12px 16px;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.dropdown-item:hover {
+  background: rgba(238, 119, 7, 0.12);
+  color: #ee7707;
+  font-weight: 600;
+}
+
+.dropdown-item.no-result {
+  color: #888;
+  cursor: default;
+  text-align: center;
+}

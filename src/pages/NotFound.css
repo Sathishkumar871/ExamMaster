@@ -1,0 +1,93 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
+
+.notfound-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background: radial-gradient(circle at top right, #1a1025 0%, #0d0a12 50%, #08060a 100%);
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.notfound-card {
+  text-align: center;
+  background: linear-gradient(145deg, rgba(30, 20, 38, 0.85) 0%, rgba(16, 12, 22, 0.95) 100%);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  padding: 40px 30px;
+  border-radius: 28px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 150, 113, 0.25);
+  max-width: 440px;
+  width: 100%;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+}
+
+.notfound-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, #ff6f91, #ff9671, #ffc75f, #f9f871);
+}
+
+.error-code {
+  font-size: 80px;
+  font-weight: 900;
+  background: linear-gradient(135deg, #ffc75f 0%, #ff6f91 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1;
+  margin-bottom: 16px;
+  letter-spacing: -0.03em;
+}
+
+.notfound-card h1 {
+  font-size: 22px;
+  font-weight: 900;
+  color: #f8fafc;
+  margin-bottom: 10px;
+  letter-spacing: -0.01em;
+}
+
+.notfound-card p {
+  font-size: 14px;
+  color: #ff9671;
+  font-weight: 600;
+  margin-bottom: 24px;
+  opacity: 0.9;
+  line-height: 1.5;
+}
+
+.home-btn {
+  display: inline-block;
+  background: linear-gradient(135deg, #ff9671 0%, #ffc75f 100%);
+  color: #15111b;
+  text-decoration: none;
+  padding: 14px 28px;
+  border-radius: 14px;
+  font-weight: 900;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  box-shadow: 0 10px 25px rgba(255, 150, 113, 0.35);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-sizing: border-box;
+}
+
+.home-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 30px rgba(255, 199, 95, 0.5);
+  filter: brightness(1.05);
+}
+
+.home-btn:active {
+  transform: translateY(0);
+}

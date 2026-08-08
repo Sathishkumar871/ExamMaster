@@ -1,0 +1,198 @@
+/* Import Google Font */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+* {
+  box-sizing: border-box;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* Light Warm Brown / Latte Background */
+.teacher-login-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: 
+    radial-gradient(circle at 15% 15%, rgba(217, 145, 89, 0.25) 0%, transparent 50%),
+    radial-gradient(circle at 85% 85%, rgba(184, 115, 51, 0.2) 0%, transparent 50%),
+    linear-gradient(135deg, #f5f0eb 0%, #e8decb 50%, #d8c8b0 100%);
+  padding: 20px;
+}
+
+/* Ultra Glass Card with Soft Warm Tint */
+.teacher-login-card {
+  width: 440px;
+  padding: 45px 35px;
+  border-radius: 28px;
+  background: rgba(255, 252, 249, 0.82);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(160, 120, 90, 0.2);
+  box-shadow: 
+    0 30px 60px rgba(90, 60, 40, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  text-align: center;
+  animation: cardAnimation .7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Rich Deep Brown Heading */
+.teacher-login-card h1 {
+  font-size: 32px;
+  background: linear-gradient(135deg, #3d2410 30%, #784822 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 8px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.teacher-login-card p {
+  color: #7a6352;
+  font-size: 14.5px;
+  margin-bottom: 28px;
+  letter-spacing: 0.2px;
+}
+
+/* Tab Switcher Styling */
+.login-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 24px;
+  background: rgba(235, 225, 215, 0.7);
+  padding: 6px;
+  border-radius: 16px;
+  border: 1px solid rgba(160, 120, 90, 0.15);
+}
+
+.tab-btn {
+  flex: 1;
+  height: 44px;
+  background: transparent;
+  color: #7a6352;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  transition: all 0.3s ease;
+}
+
+.tab-btn.active {
+  background: linear-gradient(135deg, #5c3a1e 0%, #3d2410 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 15px rgba(92, 58, 30, 0.35);
+}
+
+/* Input Fields */
+.teacher-login-card input {
+  width: 100%;
+  height: 55px;
+  padding: 0 20px;
+  margin-bottom: 18px;
+  border: 1px solid rgba(160, 120, 90, 0.25);
+  outline: none;
+  border-radius: 16px;
+  font-size: 15px;
+  background: rgba(255, 255, 255, 0.85);
+  color: #3d2410;
+  transition: all .3s ease;
+}
+
+.teacher-login-card input::placeholder {
+  color: #a38d7c;
+}
+
+.teacher-login-card input:focus {
+  border-color: #784822;
+  background: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 0 0 4px rgba(120, 72, 34, 0.15), 0 10px 25px rgba(90, 60, 40, 0.1);
+}
+
+/* Thick Rich Brown Primary Button */
+.teacher-login-card button[type="submit"],
+.teacher-login-card button:not(.tab-btn):not(.register-link-btn) {
+  width: 100%;
+  height: 55px;
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  background: linear-gradient(135deg, #5c3a1e 0%, #3d2410 100%);
+  transition: all .3s ease;
+  box-shadow: 0 10px 25px rgba(92, 58, 30, 0.35);
+  margin-top: 4px;
+}
+
+.teacher-login-card button[type="submit"]:hover:not(:disabled),
+.teacher-login-card button:not(.tab-btn):not(.register-link-btn):hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 30px rgba(92, 58, 30, 0.5);
+  background: linear-gradient(135deg, #784822 0%, #5c3a1e 100%);
+}
+
+.teacher-login-card button:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Secondary Register Button */
+.register-link-btn {
+  width: 100%;
+  height: 50px;
+  background: transparent;
+  color: #7a6352;
+  border: 1px dashed rgba(160, 120, 90, 0.35);
+  border-radius: 16px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  margin-top: 15px;
+  transition: all .3s ease;
+}
+
+.register-link-btn:hover {
+  background: rgba(92, 58, 30, 0.06);
+  color: #3d2410;
+  border-color: rgba(120, 72, 34, 0.6);
+}
+
+/* Error Message */
+.error {
+  color: #991b1b;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.22);
+  padding: 12px;
+  border-radius: 14px;
+  margin-bottom: 18px;
+  font-size: 14px;
+  text-align: center;
+}
+
+/* Smooth Animation */
+@keyframes cardAnimation {
+  from {
+    opacity: 0;
+    transform: translateY(40px) scale(.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Responsive Design */
+@media(max-width: 500px) {
+  .teacher-login-card {
+    width: 100%;
+    padding: 35px 22px;
+  }
+
+  .teacher-login-card h1 {
+    font-size: 26px;
+  }
+}
