@@ -503,7 +503,7 @@ const DailyTest: React.FC = () => {
                   onClick={() => handleToggleBookmark(currentQuestion._id)}
                   style={{
                     display: "flex",
-                    alignItem: "center",
+                    alignItems: "center",
                     gap: "6px",
                     padding: "6px 12px",
                     borderRadius: "10px",
