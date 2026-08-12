@@ -1,0 +1,1303 @@
+/* =========================================================
+   STG PRE-UNIVERSITY COLLEGE
+   ADMISSION PAGE
+   PREMIUM ESPRESSO • CHAMPAGNE • DARK NAVY
+   Desktop + Mobile Premium Responsive
+========================================================= */
+
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap");
+
+/* =========================================================
+   ROOT
+========================================================= */
+
+:root {
+  --ad-bg: #f7f4ef;
+  --ad-white: #ffffff;
+
+  --ad-dark: #15120f;
+  --ad-navy: #172033;
+
+  --ad-brown: #5a321e;
+  --ad-brown-2: #7b4a2b;
+
+  --ad-gold: #b78b45;
+  --ad-gold-light: #e8d1a5;
+
+  --ad-muted: #716b63;
+  --ad-border: rgba(90, 50, 30, 0.12);
+
+  --ad-shadow:
+    0 25px 70px rgba(42, 28, 18, 0.09);
+
+  --ad-radius: 24px;
+}
+
+/* =========================================================
+   RESET
+========================================================= */
+
+.admission-page,
+.admission-page * {
+  box-sizing: border-box;
+}
+
+.admission-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(
+      circle at 8% 15%,
+      rgba(183, 139, 69, 0.08),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 92% 55%,
+      rgba(90, 50, 30, 0.045),
+      transparent 30%
+    ),
+    var(--ad-bg);
+
+  color: var(--ad-dark);
+  font-family: "DM Sans", sans-serif;
+}
+
+/* =========================================================
+   HERO
+========================================================= */
+
+.admission-hero {
+  position: relative;
+  min-height: 510px;
+
+  display: flex;
+  align-items: center;
+
+  overflow: hidden;
+
+  background:
+    linear-gradient(
+      120deg,
+      #11151e 0%,
+      #191a20 42%,
+      #382217 100%
+    );
+}
+
+.admission-hero::before {
+  content: "";
+
+  position: absolute;
+
+  width: 620px;
+  height: 620px;
+
+  right: -230px;
+  top: -280px;
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(214, 176, 100, 0.22),
+      rgba(183, 139, 69, 0.04) 48%,
+      transparent 70%
+    );
+
+  filter: blur(2px);
+}
+
+.admission-hero::after {
+  content: "";
+
+  position: absolute;
+
+  width: 400px;
+  height: 400px;
+
+  left: -220px;
+  bottom: -230px;
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(183, 139, 69, 0.14),
+      transparent 68%
+    );
+}
+
+.admission-hero .college-hero-overlay {
+  position: absolute;
+  inset: 0;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.25),
+      transparent 60%
+    );
+}
+
+.admission-hero .college-hero-content {
+  position: relative;
+  z-index: 3;
+
+  width: min(1180px, calc(100% - 40px));
+
+  margin: auto;
+
+  padding: 85px 0;
+}
+
+/* =========================================================
+   BACK BUTTON
+========================================================= */
+
+.admission-hero .college-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 10px 15px;
+
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+
+  background: rgba(255, 255, 255, 0.055);
+
+  color: rgba(255, 255, 255, 0.92);
+
+  backdrop-filter: blur(15px);
+
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition: 0.25s ease;
+}
+
+.admission-hero .college-back-btn:hover {
+  background: rgba(255, 255, 255, 0.11);
+  transform: translateX(-3px);
+}
+
+/* =========================================================
+   HERO ICON
+========================================================= */
+
+.admission-hero .college-hero-icon {
+  width: 68px;
+  height: 68px;
+
+  margin-top: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 20px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #dfbf7c,
+      #93672e
+    );
+
+  color: white;
+
+  box-shadow:
+    0 18px 45px rgba(0, 0, 0, 0.3);
+
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+/* =========================================================
+   HERO TEXT
+========================================================= */
+
+.admission-hero .college-eyebrow {
+  display: block;
+
+  margin-top: 27px;
+
+  color: #e5c988;
+
+  font-size: 11px;
+  font-weight: 800;
+
+  letter-spacing: 0.2em;
+}
+
+.admission-hero h1 {
+  margin: 12px 0 16px;
+
+  color: white;
+
+  font-family: "Playfair Display", serif;
+
+  font-size: clamp(46px, 7vw, 76px);
+
+  line-height: 0.98;
+
+  letter-spacing: -0.025em;
+}
+
+.admission-hero h1 span {
+  color: #d9b56e;
+}
+
+.admission-hero p {
+  max-width: 690px;
+
+  margin: 0;
+
+  color: rgba(255, 255, 255, 0.7);
+
+  font-size: 16px;
+
+  line-height: 1.8;
+}
+
+/* =========================================================
+   MAIN CONTAINER
+========================================================= */
+
+.admission-page .college-page-container {
+  width: min(1180px, calc(100% - 40px));
+
+  margin: auto;
+
+  padding: 90px 0 110px;
+}
+
+/* =========================================================
+   MAIN LAYOUT
+========================================================= */
+
+.admission-layout {
+  display: grid;
+
+  grid-template-columns:
+    330px
+    minmax(0, 1fr);
+
+  gap: 30px;
+
+  align-items: start;
+}
+
+/* =========================================================
+   LEFT INFORMATION
+========================================================= */
+
+.admission-info {
+  position: sticky;
+  top: 25px;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 16px;
+}
+
+/* =========================================================
+   INFO CARD
+========================================================= */
+
+.info-card {
+  padding: 25px;
+
+  border: 1px solid var(--ad-border);
+
+  border-radius: var(--ad-radius);
+
+  background:
+    rgba(255, 255, 255, 0.9);
+
+  box-shadow:
+    0 18px 50px rgba(45, 30, 18, 0.07);
+
+  backdrop-filter: blur(18px);
+}
+
+/* =========================================================
+   PREMIUM INFO CARD
+========================================================= */
+
+.premium-info-card {
+  position: relative;
+
+  overflow: hidden;
+
+  padding: 30px;
+
+  color: white;
+
+  background:
+    linear-gradient(
+      145deg,
+      #17130f,
+      #2d1c12 55%,
+      #402516
+    );
+
+  border: 1px solid rgba(214, 177, 102, 0.18);
+
+  box-shadow:
+    0 25px 60px rgba(36, 22, 12, 0.2);
+}
+
+.premium-info-card::before {
+  content: "";
+
+  position: absolute;
+
+  width: 220px;
+  height: 220px;
+
+  right: -100px;
+  top: -110px;
+
+  border-radius: 50%;
+
+  background:
+    rgba(215, 178, 101, 0.11);
+}
+
+.premium-info-card > * {
+  position: relative;
+  z-index: 2;
+}
+
+.info-card-icon {
+  width: 52px;
+  height: 52px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 16px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(224, 190, 124, 0.28),
+      rgba(183, 139, 69, 0.13)
+    );
+
+  color: #e3c47f;
+
+  border: 1px solid rgba(226, 192, 124, 0.15);
+}
+
+.info-label {
+  display: block;
+
+  margin-top: 22px;
+
+  color: #d9b66d;
+
+  font-size: 10px;
+  font-weight: 800;
+
+  letter-spacing: 0.17em;
+}
+
+.premium-info-card h2 {
+  margin: 9px 0 13px;
+
+  font-family: "Playfair Display", serif;
+
+  font-size: 27px;
+
+  line-height: 1.2;
+}
+
+.premium-info-card p {
+  margin: 0;
+
+  color: rgba(255, 255, 255, 0.65);
+
+  font-size: 13px;
+
+  line-height: 1.75;
+}
+
+/* =========================================================
+   INFO ROWS
+========================================================= */
+
+.info-card:not(.premium-info-card) {
+  display: flex;
+  flex-direction: column;
+
+  gap: 19px;
+}
+
+.info-row {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 13px;
+}
+
+.info-small-icon {
+  width: 39px;
+  height: 39px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 11px;
+
+  background: #f1e5d3;
+
+  color: var(--ad-brown);
+}
+
+.info-row span {
+  display: block;
+
+  margin-bottom: 4px;
+
+  color: var(--ad-muted);
+
+  font-size: 10px;
+  font-weight: 700;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.08em;
+}
+
+.info-row strong {
+  display: block;
+
+  color: var(--ad-dark);
+
+  font-size: 13px;
+
+  line-height: 1.55;
+}
+
+/* =========================================================
+   WHATSAPP
+========================================================= */
+
+.quick-whatsapp {
+  display: flex;
+  align-items: center;
+
+  gap: 13px;
+
+  padding: 18px;
+
+  border-radius: 18px;
+
+  text-decoration: none;
+
+  color: white;
+
+  background:
+    linear-gradient(
+      135deg,
+      #173f31,
+      #1d5943
+    );
+
+  border: 1px solid rgba(80, 170, 125, 0.25);
+
+  box-shadow:
+    0 18px 40px rgba(20, 72, 49, 0.14);
+
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.quick-whatsapp:hover {
+  transform: translateY(-3px);
+
+  box-shadow:
+    0 25px 50px rgba(20, 72, 49, 0.2);
+}
+
+.quick-whatsapp > svg {
+  flex-shrink: 0;
+
+  color: #8fe0b3;
+}
+
+.quick-whatsapp strong {
+  display: block;
+
+  font-size: 13px;
+}
+
+.quick-whatsapp span {
+  display: block;
+
+  margin-top: 3px;
+
+  color: rgba(255, 255, 255, 0.62);
+
+  font-size: 10px;
+}
+
+/* =========================================================
+   FORM CARD
+========================================================= */
+
+.admission-form-card {
+  position: relative;
+
+  padding: 38px;
+
+  border: 1px solid var(--ad-border);
+
+  border-radius: 30px;
+
+  background:
+    rgba(255, 255, 255, 0.95);
+
+  box-shadow:
+    0 30px 75px rgba(43, 29, 18, 0.09);
+
+  backdrop-filter: blur(20px);
+}
+
+/* =========================================================
+   FORM HEADING
+========================================================= */
+
+.form-heading {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 15px;
+
+  padding-bottom: 30px;
+
+  margin-bottom: 28px;
+
+  border-bottom: 1px solid var(--ad-border);
+}
+
+.form-heading-icon {
+  width: 48px;
+  height: 48px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 14px;
+
+  color: var(--ad-brown);
+
+  background:
+    linear-gradient(
+      145deg,
+      #f2e5d1,
+      #e6cfa5
+    );
+}
+
+.form-heading span {
+  display: block;
+
+  color: var(--ad-gold);
+
+  font-size: 10px;
+  font-weight: 800;
+
+  letter-spacing: 0.15em;
+}
+
+.form-heading h2 {
+  margin: 5px 0 5px;
+
+  font-family: "Playfair Display", serif;
+
+  font-size: 32px;
+
+  line-height: 1.2;
+}
+
+.form-heading p {
+  margin: 0;
+
+  color: var(--ad-muted);
+
+  font-size: 12px;
+
+  line-height: 1.6;
+}
+
+/* =========================================================
+   FORM SECTION TITLE
+========================================================= */
+
+.form-section-title {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  margin: 30px 0 17px;
+
+  color: var(--ad-brown);
+
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.form-section-title svg {
+  color: var(--ad-gold);
+}
+
+/* =========================================================
+   FORM GRID
+========================================================= */
+
+.form-grid {
+  display: grid;
+
+  grid-template-columns: repeat(2, 1fr);
+
+  gap: 18px;
+}
+
+/* =========================================================
+   FORM GROUP
+========================================================= */
+
+.form-group {
+  min-width: 0;
+}
+
+.form-group label {
+  display: block;
+
+  margin-bottom: 7px;
+
+  color: #42372f;
+
+  font-size: 11px;
+  font-weight: 800;
+}
+
+/* =========================================================
+   INPUTS
+========================================================= */
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+
+  border: 1px solid #dfd7cc;
+
+  border-radius: 13px;
+
+  background: #fbfaf8;
+
+  color: #1c1713;
+
+  padding: 13px 14px;
+
+  outline: none;
+
+  font-family: inherit;
+
+  font-size: 13px;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: #a29a91;
+}
+
+.form-group input:hover,
+.form-group select:hover,
+.form-group textarea:hover {
+  border-color: #cdbb9f;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: var(--ad-gold);
+
+  background: white;
+
+  box-shadow:
+    0 0 0 4px rgba(183, 139, 69, 0.09);
+}
+
+.form-group select {
+  cursor: pointer;
+}
+
+.form-group textarea {
+  resize: vertical;
+
+  min-height: 125px;
+
+  line-height: 1.65;
+}
+
+/* =========================================================
+   FULL WIDTH MESSAGE
+========================================================= */
+
+.admission-form-card form > .form-group {
+  margin-top: 22px;
+}
+
+/* =========================================================
+   SUBMIT BUTTON
+========================================================= */
+
+.admission-submit-btn {
+  width: 100%;
+
+  min-height: 54px;
+
+  margin-top: 27px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 9px;
+
+  border: 0;
+
+  border-radius: 14px;
+
+  color: white;
+
+  background:
+    linear-gradient(
+      135deg,
+      #5a321e,
+      #7d4a29
+    );
+
+  box-shadow:
+    0 15px 35px rgba(90, 50, 30, 0.2);
+
+  font-family: inherit;
+
+  font-size: 13px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    background 0.25s ease;
+}
+
+.admission-submit-btn:hover {
+  transform: translateY(-2px);
+
+  background:
+    linear-gradient(
+      135deg,
+      #6b3b22,
+      #8d5630
+    );
+
+  box-shadow:
+    0 20px 42px rgba(90, 50, 30, 0.26);
+}
+
+.admission-submit-btn:active {
+  transform: translateY(0);
+}
+
+/* =========================================================
+   FORM NOTE
+========================================================= */
+
+.form-note {
+  margin: 12px 0 0;
+
+  text-align: center;
+
+  color: #8b837b;
+
+  font-size: 10px;
+
+  line-height: 1.6;
+}
+
+/* =========================================================
+   SUCCESS
+========================================================= */
+
+.admission-success {
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  margin-top: 20px;
+
+  padding: 16px 17px;
+
+  border: 1px solid rgba(57, 137, 93, 0.2);
+
+  border-radius: 14px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #eefaf3,
+      #e7f6ed
+    );
+
+  color: #25633f;
+
+  animation: admissionSuccess 0.35s ease;
+}
+
+.admission-success > svg {
+  flex-shrink: 0;
+}
+
+.admission-success strong {
+  display: block;
+
+  font-size: 12px;
+}
+
+.admission-success span {
+  display: block;
+
+  margin-top: 3px;
+
+  color: #62806e;
+
+  font-size: 10px;
+}
+
+@keyframes admissionSuccess {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 1000px) {
+
+  .admission-layout {
+    grid-template-columns: 280px minmax(0, 1fr);
+
+    gap: 22px;
+  }
+
+  .admission-form-card {
+    padding: 30px;
+  }
+
+  .form-grid {
+    gap: 15px;
+  }
+
+  .premium-info-card {
+    padding: 25px;
+  }
+
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 720px) {
+
+  .admission-page {
+    background:
+      radial-gradient(
+        circle at 50% 0%,
+        rgba(183, 139, 69, 0.07),
+        transparent 25%
+      ),
+      #f7f4ef;
+  }
+
+  /* =======================================================
+     HERO MOBILE
+  ======================================================= */
+
+  .admission-hero {
+    min-height: 455px;
+
+    border-radius: 0 0 28px 28px;
+  }
+
+  .admission-hero::before {
+    width: 430px;
+    height: 430px;
+
+    right: -220px;
+    top: -210px;
+  }
+
+  .admission-hero .college-hero-content {
+    width: calc(100% - 28px);
+
+    padding: 58px 0 65px;
+  }
+
+  .admission-hero .college-back-btn {
+    padding: 9px 13px;
+
+    border-radius: 11px;
+
+    font-size: 11px;
+  }
+
+  .admission-hero .college-hero-icon {
+    width: 57px;
+    height: 57px;
+
+    margin-top: 27px;
+
+    border-radius: 17px;
+  }
+
+  .admission-hero .college-eyebrow {
+    margin-top: 20px;
+
+    font-size: 8px;
+
+    letter-spacing: 0.16em;
+  }
+
+  .admission-hero h1 {
+    margin-top: 10px;
+
+    font-size: 43px;
+
+    line-height: 1.02;
+
+    letter-spacing: -0.035em;
+  }
+
+  .admission-hero p {
+    max-width: 100%;
+
+    font-size: 13px;
+
+    line-height: 1.7;
+  }
+
+  /* =======================================================
+     CONTAINER
+  ======================================================= */
+
+  .admission-page .college-page-container {
+    width: calc(100% - 24px);
+
+    padding: 38px 0 65px;
+  }
+
+  /* =======================================================
+     LAYOUT
+  ======================================================= */
+
+  .admission-layout {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 17px;
+  }
+
+  /* =======================================================
+     INFO
+  ======================================================= */
+
+  .admission-info {
+    position: static;
+
+    width: 100%;
+
+    gap: 12px;
+  }
+
+  .premium-info-card {
+    padding: 24px;
+
+    border-radius: 21px;
+  }
+
+  .info-card-icon {
+    width: 46px;
+    height: 46px;
+
+    border-radius: 14px;
+  }
+
+  .info-label {
+    margin-top: 17px;
+
+    font-size: 9px;
+  }
+
+  .premium-info-card h2 {
+    font-size: 25px;
+
+    line-height: 1.18;
+  }
+
+  .premium-info-card p {
+    font-size: 12px;
+
+    line-height: 1.7;
+  }
+
+  /* =======================================================
+     INFO CONTACT CARD
+  ======================================================= */
+
+  .info-card:not(.premium-info-card) {
+    padding: 20px;
+
+    gap: 16px;
+
+    border-radius: 19px;
+  }
+
+  .info-small-icon {
+    width: 37px;
+    height: 37px;
+
+    border-radius: 10px;
+  }
+
+  .info-row strong {
+    font-size: 12px;
+  }
+
+  .quick-whatsapp {
+    padding: 16px;
+
+    border-radius: 16px;
+  }
+
+  /* =======================================================
+     FORM
+  ======================================================= */
+
+  .admission-form-card {
+    width: 100%;
+
+    padding: 22px 17px;
+
+    border-radius: 22px;
+
+    box-shadow:
+      0 18px 50px rgba(43, 29, 18, 0.075);
+  }
+
+  .form-heading {
+    gap: 11px;
+
+    padding-bottom: 22px;
+
+    margin-bottom: 20px;
+  }
+
+  .form-heading-icon {
+    width: 43px;
+    height: 43px;
+
+    border-radius: 12px;
+  }
+
+  .form-heading span {
+    font-size: 8px;
+  }
+
+  .form-heading h2 {
+    margin-top: 4px;
+
+    font-size: 25px;
+  }
+
+  .form-heading p {
+    font-size: 10px;
+
+    line-height: 1.55;
+  }
+
+  /* =======================================================
+     SECTION TITLES
+  ======================================================= */
+
+  .form-section-title {
+    margin: 23px 0 13px;
+
+    font-size: 12px;
+  }
+
+  /* =======================================================
+     FORM GRID MOBILE
+  ======================================================= */
+
+  .form-grid {
+    display: grid;
+
+    grid-template-columns: 1fr;
+
+    gap: 14px;
+  }
+
+  .form-group label {
+    margin-bottom: 6px;
+
+    font-size: 10px;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    min-height: 46px;
+
+    padding: 12px 13px;
+
+    border-radius: 11px;
+
+    font-size: 12px;
+  }
+
+  .form-group textarea {
+    min-height: 115px;
+  }
+
+  .admission-form-card form > .form-group {
+    margin-top: 18px;
+  }
+
+  /* =======================================================
+     SUBMIT
+  ======================================================= */
+
+  .admission-submit-btn {
+    min-height: 52px;
+
+    margin-top: 22px;
+
+    border-radius: 13px;
+
+    font-size: 12px;
+
+    box-shadow:
+      0 12px 28px rgba(90, 50, 30, 0.18);
+  }
+
+  .form-note {
+    padding: 0 10px;
+
+    font-size: 9px;
+  }
+
+  /* =======================================================
+     SUCCESS
+  ======================================================= */
+
+  .admission-success {
+    align-items: flex-start;
+
+    padding: 14px;
+
+    border-radius: 13px;
+  }
+
+}
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 390px) {
+
+  .admission-hero .college-hero-content {
+    width: calc(100% - 24px);
+
+    padding-top: 52px;
+  }
+
+  .admission-hero h1 {
+    font-size: 39px;
+  }
+
+  .admission-hero p {
+    font-size: 12px;
+  }
+
+  .admission-page .college-page-container {
+    width: calc(100% - 20px);
+  }
+
+  .admission-form-card {
+    padding: 19px 14px;
+  }
+
+  .premium-info-card {
+    padding: 21px;
+  }
+
+  .premium-info-card h2 {
+    font-size: 23px;
+  }
+
+}
+
+/* =========================================================
+   REDUCE MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .admission-page *,
+  .admission-page *::before,
+  .admission-page *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+
+}

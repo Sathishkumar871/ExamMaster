@@ -1,0 +1,948 @@
+/* ============================================================
+   STG PRE-UNIVERSITY COLLEGE
+   PRIVACY POLICY — PREMIUM GLASS UI
+   Desktop + Tablet + Mobile
+   Brown / Amber / Dark Navy
+============================================================ */
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap");
+
+:root {
+  --pp-bg: #f7f4ef;
+  --pp-surface: rgba(255, 255, 255, 0.88);
+  --pp-surface-solid: #ffffff;
+
+  --pp-navy: #111827;
+  --pp-navy-2: #1f2937;
+
+  --pp-brown: #6f4328;
+  --pp-brown-dark: #4d2d1c;
+  --pp-brown-soft: #8b5e3c;
+
+  --pp-gold: #c18a45;
+  --pp-gold-light: #e8c58f;
+
+  --pp-text: #1f2937;
+  --pp-muted: #667085;
+  --pp-border: rgba(111, 67, 40, 0.12);
+
+  --pp-shadow:
+    0 20px 60px rgba(38, 27, 19, 0.08),
+    0 4px 15px rgba(38, 27, 19, 0.04);
+}
+
+/* ============================================================
+   PAGE
+============================================================ */
+
+.privacy-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(
+      circle at 8% 8%,
+      rgba(193, 138, 69, 0.13),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 92% 18%,
+      rgba(111, 67, 40, 0.09),
+      transparent 30%
+    ),
+    linear-gradient(
+      180deg,
+      #fbfaf8 0%,
+      #f7f4ef 50%,
+      #f2eee8 100%
+    );
+
+  color: var(--pp-text);
+  font-family: "Inter", sans-serif;
+  padding: 54px 20px 80px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Decorative glow */
+
+.privacy-page::before {
+  content: "";
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  background: rgba(193, 138, 69, 0.08);
+  filter: blur(80px);
+  top: -180px;
+  left: -150px;
+  pointer-events: none;
+}
+
+.privacy-page::after {
+  content: "";
+  position: absolute;
+  width: 360px;
+  height: 360px;
+  border-radius: 50%;
+  background: rgba(111, 67, 40, 0.07);
+  filter: blur(90px);
+  bottom: -160px;
+  right: -120px;
+  pointer-events: none;
+}
+
+/* ============================================================
+   CONTAINER
+============================================================ */
+
+.privacy-container {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+}
+
+/* ============================================================
+   HERO
+============================================================ */
+
+.privacy-hero {
+  position: relative;
+  overflow: hidden;
+
+  padding: 54px 52px;
+
+  border-radius: 30px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.95),
+      rgba(250, 246, 240, 0.9)
+    );
+
+  border: 1px solid rgba(111, 67, 40, 0.12);
+
+  box-shadow: var(--pp-shadow);
+
+  margin-bottom: 28px;
+}
+
+.privacy-hero::before {
+  content: "";
+  position: absolute;
+
+  width: 230px;
+  height: 230px;
+
+  border-radius: 50%;
+
+  background: rgba(193, 138, 69, 0.09);
+
+  filter: blur(15px);
+
+  right: -70px;
+  top: -90px;
+}
+
+.privacy-hero::after {
+  content: "";
+  position: absolute;
+
+  width: 150px;
+  height: 150px;
+
+  border-radius: 50%;
+
+  border: 1px solid rgba(193, 138, 69, 0.16);
+
+  right: 80px;
+  bottom: -85px;
+}
+
+/* ============================================================
+   HERO BADGE
+============================================================ */
+
+.privacy-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 9px 14px;
+
+  border-radius: 999px;
+
+  background: rgba(111, 67, 40, 0.08);
+
+  color: var(--pp-brown);
+
+  font-size: 12px;
+  font-weight: 800;
+
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+
+  margin-bottom: 20px;
+
+  position: relative;
+  z-index: 2;
+}
+
+.privacy-badge svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ============================================================
+   HERO TITLE
+============================================================ */
+
+.privacy-hero h1 {
+  margin: 0;
+
+  font-family: "Plus Jakarta Sans", sans-serif;
+
+  font-size: clamp(32px, 5vw, 58px);
+
+  line-height: 1.04;
+
+  letter-spacing: -0.045em;
+
+  color: var(--pp-navy);
+
+  position: relative;
+  z-index: 2;
+}
+
+.privacy-hero h1 span {
+  color: var(--pp-brown);
+}
+
+.privacy-hero p {
+  max-width: 760px;
+
+  margin: 18px 0 0;
+
+  color: var(--pp-muted);
+
+  font-size: 16px;
+
+  line-height: 1.75;
+
+  position: relative;
+  z-index: 2;
+}
+
+/* ============================================================
+   UPDATED DATE
+============================================================ */
+
+.privacy-updated {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  margin-top: 24px;
+
+  color: #7b6f65;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  position: relative;
+  z-index: 2;
+}
+
+.privacy-updated svg {
+  color: var(--pp-gold);
+}
+
+/* ============================================================
+   CONTENT LAYOUT
+============================================================ */
+
+.privacy-layout {
+  display: grid;
+
+  grid-template-columns: 260px minmax(0, 1fr);
+
+  gap: 26px;
+
+  align-items: start;
+}
+
+/* ============================================================
+   SIDE NAV
+============================================================ */
+
+.privacy-sidebar {
+  position: sticky;
+  top: 24px;
+
+  padding: 20px;
+
+  border-radius: 24px;
+
+  background: rgba(255, 255, 255, 0.78);
+
+  border: 1px solid var(--pp-border);
+
+  box-shadow: 0 12px 35px rgba(38, 27, 19, 0.06);
+
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.privacy-sidebar-title {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  color: var(--pp-navy);
+
+  font-family: "Plus Jakarta Sans", sans-serif;
+
+  font-size: 13px;
+  font-weight: 800;
+
+  margin-bottom: 14px;
+}
+
+.privacy-sidebar-title svg {
+  color: var(--pp-brown);
+}
+
+.privacy-sidebar a {
+  display: block;
+
+  padding: 10px 12px;
+
+  border-radius: 11px;
+
+  text-decoration: none;
+
+  color: #667085;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.privacy-sidebar a:hover {
+  color: var(--pp-brown);
+
+  background: rgba(111, 67, 40, 0.07);
+
+  transform: translateX(3px);
+}
+
+/* ============================================================
+   MAIN CONTENT
+============================================================ */
+
+.privacy-content {
+  min-width: 0;
+
+  padding: 38px;
+
+  border-radius: 28px;
+
+  background: rgba(255, 255, 255, 0.88);
+
+  border: 1px solid var(--pp-border);
+
+  box-shadow: var(--pp-shadow);
+
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+/* ============================================================
+   SECTION
+============================================================ */
+
+.privacy-section {
+  padding: 0 0 34px;
+
+  margin-bottom: 34px;
+
+  border-bottom: 1px solid rgba(111, 67, 40, 0.1);
+}
+
+.privacy-section:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+/* ============================================================
+   SECTION HEADER
+============================================================ */
+
+.privacy-section-heading {
+  display: flex;
+
+  align-items: flex-start;
+
+  gap: 15px;
+
+  margin-bottom: 18px;
+}
+
+.privacy-section-number {
+  flex: 0 0 auto;
+
+  width: 38px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 12px;
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--pp-brown),
+      var(--pp-brown-dark)
+    );
+
+  color: #fff;
+
+  font-family: "Plus Jakarta Sans", sans-serif;
+
+  font-size: 13px;
+  font-weight: 800;
+
+  box-shadow:
+    0 8px 20px rgba(111, 67, 40, 0.2);
+}
+
+.privacy-section h2 {
+  margin: 4px 0 0;
+
+  color: var(--pp-navy);
+
+  font-family: "Plus Jakarta Sans", sans-serif;
+
+  font-size: 22px;
+
+  line-height: 1.25;
+
+  letter-spacing: -0.025em;
+}
+
+/* ============================================================
+   TEXT
+============================================================ */
+
+.privacy-section p {
+  margin: 0 0 14px;
+
+  color: #5f6876;
+
+  font-size: 14px;
+
+  line-height: 1.85;
+}
+
+.privacy-section p:last-child {
+  margin-bottom: 0;
+}
+
+/* ============================================================
+   LIST
+============================================================ */
+
+.privacy-section ul {
+  margin: 15px 0 0;
+
+  padding-left: 20px;
+}
+
+.privacy-section li {
+  margin-bottom: 10px;
+
+  color: #5f6876;
+
+  font-size: 14px;
+
+  line-height: 1.75;
+}
+
+.privacy-section li::marker {
+  color: var(--pp-gold);
+}
+
+/* ============================================================
+   HIGHLIGHT BOX
+============================================================ */
+
+.privacy-highlight {
+  margin: 20px 0;
+
+  padding: 20px 22px;
+
+  border-radius: 18px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(111, 67, 40, 0.07),
+      rgba(193, 138, 69, 0.06)
+    );
+
+  border: 1px solid rgba(111, 67, 40, 0.1);
+}
+
+.privacy-highlight strong {
+  display: block;
+
+  margin-bottom: 7px;
+
+  color: var(--pp-brown);
+
+  font-family: "Plus Jakarta Sans", sans-serif;
+
+  font-size: 14px;
+}
+
+.privacy-highlight p {
+  margin: 0;
+
+  font-size: 13px;
+}
+
+/* ============================================================
+   CONTACT CARD
+============================================================ */
+
+.privacy-contact-card {
+  display: grid;
+
+  grid-template-columns: repeat(3, 1fr);
+
+  gap: 14px;
+
+  margin-top: 20px;
+}
+
+.privacy-contact-item {
+  padding: 18px;
+
+  border-radius: 18px;
+
+  background: #faf8f5;
+
+  border: 1px solid rgba(111, 67, 40, 0.09);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.privacy-contact-item:hover {
+  transform: translateY(-3px);
+
+  box-shadow: 0 12px 25px rgba(38, 27, 19, 0.07);
+}
+
+.privacy-contact-icon {
+  width: 36px;
+  height: 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 11px;
+
+  background: rgba(111, 67, 40, 0.09);
+
+  color: var(--pp-brown);
+
+  margin-bottom: 12px;
+}
+
+.privacy-contact-item span {
+  display: block;
+
+  color: #8a9099;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.08em;
+
+  margin-bottom: 5px;
+}
+
+.privacy-contact-item strong {
+  display: block;
+
+  color: var(--pp-navy);
+
+  font-size: 13px;
+
+  word-break: break-word;
+}
+
+/* ============================================================
+   BOTTOM NOTICE
+============================================================ */
+
+.privacy-bottom-notice {
+  margin-top: 30px;
+
+  padding: 22px;
+
+  border-radius: 20px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #211711,
+      #3b2418
+    );
+
+  color: #fff;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  box-shadow:
+    0 18px 40px rgba(48, 28, 18, 0.16);
+}
+
+.privacy-bottom-notice div {
+  min-width: 0;
+}
+
+.privacy-bottom-notice strong {
+  display: block;
+
+  font-family: "Plus Jakarta Sans", sans-serif;
+
+  font-size: 15px;
+
+  margin-bottom: 5px;
+}
+
+.privacy-bottom-notice span {
+  display: block;
+
+  color: rgba(255, 255, 255, 0.68);
+
+  font-size: 12px;
+
+  line-height: 1.6;
+}
+
+.privacy-bottom-icon {
+  flex: 0 0 auto;
+
+  width: 44px;
+  height: 44px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 14px;
+
+  background: rgba(255, 255, 255, 0.1);
+
+  color: #e8c58f;
+}
+
+/* ============================================================
+   LINKS
+============================================================ */
+
+.privacy-content a {
+  color: var(--pp-brown);
+
+  font-weight: 700;
+
+  text-decoration: none;
+
+  transition: color 0.2s ease;
+}
+
+.privacy-content a:hover {
+  color: var(--pp-gold);
+}
+
+/* ============================================================
+   TABLET
+============================================================ */
+
+@media (max-width: 900px) {
+  .privacy-page {
+    padding: 35px 16px 60px;
+  }
+
+  .privacy-hero {
+    padding: 42px 34px;
+    border-radius: 26px;
+  }
+
+  .privacy-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .privacy-sidebar {
+    position: relative;
+    top: auto;
+
+    display: flex;
+    flex-wrap: wrap;
+
+    gap: 5px;
+  }
+
+  .privacy-sidebar-title {
+    width: 100%;
+    margin-bottom: 5px;
+  }
+
+  .privacy-sidebar a {
+    flex: 0 0 auto;
+  }
+
+  .privacy-content {
+    padding: 30px;
+  }
+
+  .privacy-contact-card {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* ============================================================
+   MOBILE
+============================================================ */
+
+@media (max-width: 600px) {
+  .privacy-page {
+    padding: 18px 11px 45px;
+  }
+
+  .privacy-hero {
+    padding: 30px 22px;
+
+    border-radius: 22px;
+
+    margin-bottom: 16px;
+  }
+
+  .privacy-badge {
+    padding: 8px 11px;
+
+    font-size: 10px;
+
+    margin-bottom: 15px;
+  }
+
+  .privacy-hero h1 {
+    font-size: 34px;
+
+    letter-spacing: -0.04em;
+  }
+
+  .privacy-hero p {
+    margin-top: 14px;
+
+    font-size: 13px;
+
+    line-height: 1.7;
+  }
+
+  .privacy-updated {
+    margin-top: 18px;
+
+    font-size: 11px;
+  }
+
+  .privacy-sidebar {
+    padding: 14px;
+
+    border-radius: 18px;
+
+    overflow-x: auto;
+
+    flex-wrap: nowrap;
+
+    scrollbar-width: none;
+  }
+
+  .privacy-sidebar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .privacy-sidebar-title {
+    width: auto;
+
+    flex: 0 0 auto;
+
+    margin-right: 4px;
+  }
+
+  .privacy-sidebar a {
+    white-space: nowrap;
+
+    padding: 8px 10px;
+
+    font-size: 11px;
+  }
+
+  .privacy-content {
+    padding: 22px 18px;
+
+    border-radius: 21px;
+  }
+
+  .privacy-section {
+    padding-bottom: 27px;
+
+    margin-bottom: 27px;
+  }
+
+  .privacy-section-heading {
+    gap: 11px;
+
+    margin-bottom: 13px;
+  }
+
+  .privacy-section-number {
+    width: 33px;
+    height: 33px;
+
+    border-radius: 10px;
+
+    font-size: 11px;
+  }
+
+  .privacy-section h2 {
+    font-size: 18px;
+
+    margin-top: 3px;
+  }
+
+  .privacy-section p {
+    font-size: 13px;
+
+    line-height: 1.75;
+  }
+
+  .privacy-section ul {
+    padding-left: 18px;
+  }
+
+  .privacy-section li {
+    font-size: 13px;
+
+    line-height: 1.7;
+
+    margin-bottom: 8px;
+  }
+
+  .privacy-highlight {
+    padding: 16px;
+
+    border-radius: 15px;
+  }
+
+  .privacy-highlight strong {
+    font-size: 13px;
+  }
+
+  .privacy-highlight p {
+    font-size: 12px;
+  }
+
+  .privacy-contact-card {
+    grid-template-columns: 1fr;
+
+    gap: 10px;
+  }
+
+  .privacy-contact-item {
+    padding: 15px;
+
+    border-radius: 15px;
+  }
+
+  .privacy-bottom-notice {
+    padding: 18px;
+
+    border-radius: 17px;
+
+    align-items: flex-start;
+  }
+
+  .privacy-bottom-notice strong {
+    font-size: 13px;
+  }
+
+  .privacy-bottom-notice span {
+    font-size: 11px;
+  }
+
+  .privacy-bottom-icon {
+    width: 38px;
+    height: 38px;
+
+    border-radius: 11px;
+  }
+}
+
+/* ============================================================
+   SMALL MOBILE
+============================================================ */
+
+@media (max-width: 380px) {
+  .privacy-page {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .privacy-hero {
+    padding: 26px 18px;
+  }
+
+  .privacy-hero h1 {
+    font-size: 30px;
+  }
+
+  .privacy-content {
+    padding: 19px 15px;
+  }
+
+  .privacy-section h2 {
+    font-size: 17px;
+  }
+}
+
+/* ============================================================
+   REDUCED MOTION
+============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .privacy-sidebar a,
+  .privacy-contact-item,
+  .privacy-content a {
+    transition: none;
+  }
+}

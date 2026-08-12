@@ -16,6 +16,13 @@ import Subjects from "./pages/Subjects";
 import MockTests from "./pages/MockTests";
 import DailyTest from "./pages/DailyTest";
 import StudentComplaints from "./pages/StudentComplaints";
+import Gallery from "./components/Gallery";
+import AboutCollege from "./components/college/AboutCollege";
+import Admission from "./components/college/Admissions";
+import Faculty from "./components/college/Faculty";
+import FAQ from "./components/college/FAQ";
+import PrivacyPolicy from "./components/college/PrivacyPolicy";
+import TermsConditions from "./components/college/TermsConditions";
 
 // ================= TEACHER PAGES =================
 import MentorDashboard from "./pages/MentorDashboard";
@@ -56,6 +63,13 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/student/register" element={<StudentRegister />} />
         <Route path="/staff/register" element={<StaffRegister />} />
+        <Route path="/gallery" element={<Gallery />} />
+        <Route path="/about" element={<AboutCollege />} />
+        <Route path="/admissions" element={<Admission />} />
+        <Route path="/faculty" element={<Faculty />} />
+        <Route path="/faq" element={<FAQ />} />
+         <Route path="/privacy" element={<PrivacyPolicy />} />
+         <Route path="/terms" element={<TermsConditions />} />
 
         {/* ================= STUDENT ROUTES ================= */}
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
@@ -63,7 +77,7 @@ function App() {
         <Route path="/subjects" element={<ProtectedRoute><Subjects /></ProtectedRoute>} />
         <Route path="/student/daily-test" element={<ProtectedRoute><DailyTest /></ProtectedRoute>} />
         <Route path="/student/complaints" element={<ProtectedRoute><StudentComplaints /></ProtectedRoute>} />
-
+         
         {/* MENTOR / STUDENT EVALUATION ROUTES */}
         <Route path="/mentor/student/:studentId/history" element={<ProtectedRoute><StudentHistory /></ProtectedRoute>} />
         <Route path="/mentor/evaluation/:studentId/health" element={<ProtectedRoute><HealthEvaluation /></ProtectedRoute>} />

@@ -1875,300 +1875,876 @@ img {
 /* ============================================================
    MOBILE
 ============================================================ */
+/* ============================================================
+   STG ACADEMY — MOBILE ONLY PREMIUM DESIGN
+   Desktop design untouched
+   ============================================================ */
 
 @media (max-width: 768px) {
-  .navbar {
-    top: 10px;
 
-    width: calc(100% - 20px);
-
-    min-height: 62px;
-
-    padding: 0 15px;
-
-    border-radius: 17px;
-  }
+  /* =========================
+     MOBILE HERO
+     ========================= */
 
   .hero {
-    min-height: 720px;
-
+    min-height: 570px;
     height: auto;
 
-    padding:
-      120px 16px
-      85px;
+    padding: 82px 14px 42px;
+
+    align-items: center;
+
+    overflow: hidden;
   }
 
+  /* =========================
+     MOBILE HERO IMAGE
+     ========================= */
+
   .hero-custom-img {
-    opacity: 0.72;
+    object-fit: cover;
+
+    /*
+      LEFT + SLIGHTLY DOWN
+    */
+    object-position: 40% 44%;
+
+    opacity: 0.96;
+
+    filter:
+      brightness(1.10)
+      contrast(1.05)
+      saturate(1.06);
+
+    transform: scale(1.02);
 
     animation: none;
   }
 
+  /* =========================
+     MOBILE IMAGE OVERLAY
+     ========================= */
+
   .hero-gradient-overlay {
     background:
+
+      linear-gradient(
+        90deg,
+        rgba(3, 8, 19, 0.25),
+        rgba(3, 8, 19, 0.04),
+        rgba(3, 8, 19, 0.27)
+      ),
+
       linear-gradient(
         180deg,
-        rgba(5, 8, 22, 0.65),
-        rgba(5, 8, 22, 0.82)
+        rgba(3, 8, 19, 0.62) 0%,
+        rgba(3, 8, 19, 0.06) 28%,
+        rgba(3, 8, 19, 0.10) 52%,
+        rgba(3, 8, 19, 0.90) 100%
+      ),
+
+      radial-gradient(
+        ellipse at center,
+        transparent 12%,
+        rgba(3, 8, 19, 0.20) 72%,
+        rgba(3, 8, 19, 0.38) 100%
       );
   }
 
+
+  /* =========================
+     MOBILE HERO CONTENT
+     ========================= */
+
   .hero-content {
-    padding: 0;
+    width: 100%;
+    max-width: 380px;
+
+    padding: 0 5px;
+
+    margin: 0 auto;
   }
 
+
+  /* =========================
+     STG ACADEMY BADGE
+     ========================= */
+
   .stg-animated-badge {
+
+    display: inline-flex;
+
+    padding: 6px 11px;
+
+    margin-bottom: 17px;
+
     gap: 7px;
 
-    padding: 9px 16px;
+    border-radius: 999px;
 
-    margin-bottom: 20px;
+    background:
+      rgba(5, 12, 24, 0.76);
+
+    border:
+      1px solid rgba(231, 198, 111, 0.30);
+
+    box-shadow:
+      0 8px 25px rgba(0, 0, 0, 0.28),
+      inset 0 1px 0 rgba(255,255,255,0.08);
+
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+
+    animation:
+      mobileBadgeFloat 5s ease-in-out infinite;
   }
 
   .stg-glow-text {
-    font-size: 0.88rem;
 
-    letter-spacing: 0.2px;
+    font-size: 8px;
+
+    font-weight: 700;
+
+    letter-spacing: 0.55px;
+
+    white-space: nowrap;
+
+    background:
+      linear-gradient(
+        90deg,
+        #ffffff,
+        #e7c66f,
+        #ffffff,
+        #d9b65c
+      );
+
+    background-size: 220% auto;
+
+    -webkit-background-clip: text;
+    background-clip: text;
+
+    -webkit-text-fill-color: transparent;
+
+    animation:
+      mobileBadgeShine 4s linear infinite;
   }
 
+  .stg-animated-badge svg {
+
+    width: 11px;
+    height: 11px;
+
+    color: #e5c46f;
+
+    filter:
+      drop-shadow(
+        0 0 5px rgba(229,196,111,0.55)
+      );
+  }
+
+  @keyframes mobileBadgeFloat {
+
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(-2px);
+    }
+  }
+
+  @keyframes mobileBadgeShine {
+
+    from {
+      background-position: 0%;
+    }
+
+    to {
+      background-position: 220%;
+    }
+  }
+
+
+  /* =========================
+     MOBILE TITLE
+     ========================= */
+
   .hero-content h1 {
-    font-size: clamp(2rem, 10vw, 3rem);
+
+    max-width: 340px;
+
+    margin:
+      0 auto 14px;
+
+    font-family: "Sora", sans-serif;
+
+    font-size:
+      clamp(1.95rem, 8.8vw, 2.45rem);
+
+    font-weight: 800;
 
     line-height: 1.08;
 
-    margin-bottom: 18px;
+    letter-spacing: -0.05em;
+
+    text-shadow:
+      0 4px 18px rgba(0,0,0,0.58);
   }
 
+
+  .hero-content h1 span {
+
+    background:
+      linear-gradient(
+        135deg,
+        #f8e8b0,
+        #d8b35b,
+        #f5dfa0
+      );
+
+    -webkit-background-clip: text;
+    background-clip: text;
+
+    -webkit-text-fill-color: transparent;
+  }
+
+
+  /* =========================
+     MOBILE DESCRIPTION
+     ========================= */
+
   .hero-content p {
-    font-size: 0.94rem;
+
+    max-width: 310px;
+
+    margin:
+      0 auto 21px;
+
+    color:
+      rgba(241,245,249,0.86);
+
+    font-size: 0.74rem;
 
     line-height: 1.65;
 
-    margin-bottom: 26px;
+    text-shadow:
+      0 2px 9px rgba(0,0,0,0.65);
   }
+
+
+  /* =========================
+     MOBILE BUTTON AREA
+     ========================= */
 
   .hero-buttons {
+
     width: 100%;
+
+    max-width: 292px;
+
+    margin: 0 auto;
+
+    display: flex;
 
     flex-direction: column;
-
-    gap: 10px;
-  }
-
-  .start-btn,
-  .browse-btn,
-  .locked-hero-btn {
-    width: 100%;
-
-    min-height: 52px;
-
-    justify-content: center;
-  }
-
-  .stats {
-    width: calc(100% - 24px);
-
-    margin: -30px auto 0;
-
-    grid-template-columns:
-      repeat(3, minmax(0, 1fr));
 
     gap: 8px;
   }
 
+
+  /* =========================
+     ALL MOBILE BUTTONS
+     ========================= */
+
+  .hero-buttons
+  .start-btn,
+
+  .hero-buttons
+  .browse-btn,
+
+  .hero-buttons
+  .locked-hero-btn {
+
+    width: 100%;
+
+    min-width: 0;
+
+    height: 43px;
+
+    min-height: 43px;
+
+    padding: 0 14px;
+
+    border-radius: 12px;
+
+    font-size: 0.74rem;
+
+    font-weight: 700;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 7px;
+
+    transition:
+      transform .18s ease,
+      box-shadow .18s ease,
+      border-color .18s ease;
+  }
+
+
+  /* =========================
+     PRIMARY MOBILE BUTTON
+     ========================= */
+
+  .hero-buttons .start-btn {
+
+    color: #101722;
+
+    background:
+      linear-gradient(
+        135deg,
+        #f3dda0,
+        #d8b35d 55%,
+        #bd9139
+      );
+
+    border:
+      1px solid rgba(255,238,180,0.50);
+
+    box-shadow:
+      0 8px 20px rgba(178,133,45,0.24),
+      inset 0 1px 0 rgba(255,255,255,0.42);
+  }
+
+  .hero-buttons .start-btn:active {
+
+    transform: scale(0.975);
+  }
+
+
+  /* =========================
+     SECONDARY MOBILE BUTTON
+     ========================= */
+
+  .hero-buttons .browse-btn {
+
+    color: #f1f5f9;
+
+    background:
+      rgba(7,17,31,0.70);
+
+    border:
+      1px solid rgba(255,255,255,0.14);
+
+    box-shadow:
+      0 6px 18px rgba(0,0,0,0.18),
+      inset 0 1px 0 rgba(255,255,255,0.06);
+
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+  }
+
+  .hero-buttons .browse-btn:active {
+
+    transform: scale(0.975);
+  }
+
+
+  /* =========================
+     LOCKED MOBILE BUTTON
+     ========================= */
+
+  .hero-buttons .locked-hero-btn {
+
+    color: #e8c875;
+
+    background:
+      rgba(7,16,29,0.76);
+
+    border:
+      1px solid rgba(226,190,91,0.27);
+
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+
+
+  .hero-buttons svg {
+
+    width: 14px;
+    height: 14px;
+
+    flex-shrink: 0;
+  }
+
+
+  /* =========================
+     MOBILE STATS
+     ========================= */
+
+  .stats {
+
+    width:
+      calc(100% - 22px);
+
+    margin:
+      -20px auto 0;
+
+    grid-template-columns:
+      repeat(3, 1fr);
+
+    gap: 6px;
+
+    z-index: 20;
+  }
+
   .stat-card {
-    min-height: 110px;
 
-    padding: 14px 6px;
+    min-height: 92px;
 
-    border-radius: 17px;
+    padding:
+      11px 5px;
+
+    border-radius: 15px;
+
+    box-shadow:
+      0 15px 35px rgba(0,0,0,0.16);
   }
 
   .stat-card h2 {
-    font-size: 1.45rem;
+
+    font-size: 1.1rem;
   }
 
   .stat-card p {
-    font-size: 0.7rem;
+
+    font-size: 0.58rem;
   }
 
-  .stat-icon {
-    margin-bottom: 4px;
-  }
+
+  /* =========================
+     MOBILE CATEGORIES
+     ========================= */
 
   .categories-section {
+
     padding:
-      70px 14px
-      60px;
+      58px 15px 58px;
+
+    background:
+      linear-gradient(
+        180deg,
+        #f8fafc,
+        #eef2f7
+      );
   }
 
   .section-header {
-    margin-bottom: 30px;
+
+    margin-bottom: 27px;
   }
 
   .section-header h2 {
-    font-size: 1.9rem;
+
+    font-size: 1.55rem;
+
+    line-height: 1.18;
+
+    letter-spacing: -0.03em;
   }
 
   .section-header p {
-    font-size: 0.9rem;
+
+    max-width: 315px;
+
+    font-size: 0.75rem;
+
+    line-height: 1.65;
   }
+
+
+  /* =========================
+     MOBILE CATEGORY GRID
+     ========================= */
 
   .category-grid {
-    grid-template-columns: 1fr;
 
-    gap: 14px;
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    gap: 10px;
   }
 
+
+  /* =========================
+     MOBILE CATEGORY CARD
+     ========================= */
+
   .category-card {
-    min-height: 250px;
 
-    padding: 22px;
+    min-height: 225px;
 
-    border-radius: 20px;
+    padding: 17px;
+
+    border-radius: 17px;
+
+    background:
+      linear-gradient(
+        145deg,
+        #121c2d,
+        #080f1c
+      );
+
+    border:
+      1px solid rgba(255,255,255,0.07);
+
+    box-shadow:
+      0 12px 28px rgba(0,0,0,0.22);
   }
 
   .cat-icon {
-    width: 56px;
-    height: 56px;
 
-    margin-bottom: 17px;
+    width: 43px;
+    height: 43px;
 
-    border-radius: 16px;
+    margin-bottom: 13px;
+
+    border-radius: 12px;
   }
 
   .category-card h3 {
-    font-size: 1.2rem;
+
+    margin-bottom: 6px;
+
+    font-size: 0.92rem;
+
+    color: #e5c36d;
   }
 
   .category-card p {
-    font-size: 0.88rem;
 
-    margin-bottom: 18px;
+    margin-bottom: 12px;
+
+    font-size: 0.69rem;
+
+    line-height: 1.55;
+
+    color: #94a3b8;
   }
 
+  .cat-link {
+
+    font-size: 0.69rem;
+
+    color: #d7b55d;
+  }
+
+
+  /* =========================
+     MOBILE FEATURES
+     ========================= */
+
   .features {
+
+    width: 100%;
+
     padding:
-      65px 14px
-      80px;
+      58px 15px 70px;
   }
 
   .feature-grid {
-    grid-template-columns: 1fr;
 
-    gap: 14px;
+    grid-template-columns:
+      1fr;
+
+    gap: 10px;
   }
 
   .feature-card {
-    padding: 24px 20px;
 
-    border-radius: 19px;
+    padding: 19px;
+
+    border-radius: 17px;
+
+    background:
+      linear-gradient(
+        145deg,
+        #111a2a,
+        #080f1b
+      );
+
+    border:
+      1px solid rgba(255,255,255,0.07);
+
+    box-shadow:
+      0 12px 28px rgba(0,0,0,0.22);
   }
 
+  .feat-icon-box {
+
+    width: 42px;
+    height: 42px;
+
+    margin-bottom: 12px;
+
+    border-radius: 11px;
+
+    background:
+      linear-gradient(
+        135deg,
+        #f2dc99,
+        #c49a43
+      );
+
+    color: #101722;
+  }
+
+  .feature-card h3 {
+
+    font-size: 0.95rem;
+
+    margin-bottom: 6px;
+  }
+
+  .feature-card p {
+
+    font-size: 0.72rem;
+
+    line-height: 1.6;
+  }
+
+
+  /* =========================
+     MODAL MOBILE
+     ========================= */
+
   .exam-modal-backdrop {
-    padding: 12px;
+
+    padding: 13px;
   }
 
   .exam-modal-content {
-    padding: 22px;
+
+    width: 100%;
+
+    padding: 20px;
 
     border-radius: 20px;
+
+    background:
+      linear-gradient(
+        145deg,
+        #101b2c,
+        #070d18
+      );
+
+    border:
+      1px solid rgba(224,188,91,0.20);
   }
 
-  .timer-grid {
-    gap: 5px;
+  .alert-title-wrapper strong {
+
+    font-size: 0.92rem;
+  }
+
+  .schedule-info {
+
+    font-size: 0.76rem;
   }
 
   .timer-box {
-    min-width: 58px;
+
+    min-width: 60px;
 
     padding: 10px 7px;
+
+    border-radius: 12px;
   }
 
   .timer-box .digit {
+
     font-size: 1.45rem;
   }
 
   .timer-box .label {
-    font-size: 0.6rem;
+
+    font-size: 0.58rem;
   }
 
-  .colon {
-    font-size: 1.2rem;
+  .start-exam-now-btn {
+
+    min-height: 45px;
+
+    border-radius: 12px;
+
+    font-size: 0.78rem;
   }
 }
 
-/* ============================================================
-   SMALL PHONES
-============================================================ */
 
-@media (max-width: 380px) {
+/* ============================================================
+   SMALL PHONE
+   ============================================================ */
+
+@media (max-width: 480px) {
+
   .hero {
-    padding-top: 110px;
+
+    min-height: 550px;
+
+    padding:
+      78px 12px 38px;
+  }
+
+  .hero-custom-img {
+
+    /*
+      LEFT + DOWN
+    */
+    object-position: 38% 45%;
+
+    opacity: 0.97;
+
+    filter:
+      brightness(1.11)
+      contrast(1.04)
+      saturate(1.07);
   }
 
   .hero-content h1 {
-    font-size: 1.9rem;
+
+    max-width: 325px;
+
+    font-size: 1.86rem;
   }
 
   .hero-content p {
-    font-size: 0.88rem;
+
+    max-width: 295px;
+
+    font-size: 0.71rem;
   }
 
-  .stats {
-    width: calc(100% - 16px);
+  .hero-buttons {
 
-    gap: 6px;
+    max-width: 280px;
+
+    gap: 7px;
   }
 
-  .stat-card {
-    min-height: 100px;
+  .hero-buttons
+  .start-btn,
 
-    padding: 10px 4px;
+  .hero-buttons
+  .browse-btn,
+
+  .hero-buttons
+  .locked-hero-btn {
+
+    height: 41px;
+
+    min-height: 41px;
+
+    border-radius: 11px;
+
+    font-size: 0.71rem;
   }
 
-  .stat-card h2 {
-    font-size: 1.25rem;
-  }
+  .category-grid {
 
-  .stat-card p {
-    font-size: 0.62rem;
+    gap: 8px;
   }
 
   .category-card {
-    padding: 19px;
+
+    min-height: 215px;
+
+    padding: 15px;
+  }
+
+  .category-card h3 {
+
+    font-size: 0.88rem;
+  }
+
+  .category-card p {
+
+    font-size: 0.66rem;
   }
 }
+
 
 /* ============================================================
-   TOUCH DEVICES
-   Disable expensive hover transformations
-============================================================ */
+   VERY SMALL PHONE
+   ============================================================ */
 
-@media (hover: none) {
-  .category-card:hover,
-  .feature-card:hover,
-  .stat-card:hover,
-  .start-btn:hover,
-  .browse-btn:hover,
-  .locked-hero-btn:hover {
-    transform: none;
+@media (max-width: 360px) {
+
+  .hero {
+
+    min-height: 525px;
+
+    padding:
+      73px 10px 34px;
+  }
+
+  .hero-custom-img {
+
+    object-position: 35% 45%;
+  }
+
+  .hero-content h1 {
+
+    max-width: 300px;
+
+    font-size: 1.70rem;
+  }
+
+  .hero-content p {
+
+    max-width: 275px;
+
+    font-size: 0.67rem;
+  }
+
+  .hero-buttons {
+
+    max-width: 270px;
+  }
+
+  .hero-buttons
+  .start-btn,
+
+  .hero-buttons
+  .browse-btn,
+
+  .hero-buttons
+  .locked-hero-btn {
+
+    height: 39px;
+
+    min-height: 39px;
+
+    border-radius: 10px;
+
+    font-size: 0.67rem;
+  }
+
+  .category-grid {
+
+    grid-template-columns: 1fr;
+  }
+
+  .category-card {
+
+    min-height: 190px;
   }
 }
-
-/* ============================================================
-   REDUCED MOTION
-============================================================ */
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
+/* =========================================================
+   HOME PAGE FOOTER VISIBILITY FIX
+   ========================================================= */

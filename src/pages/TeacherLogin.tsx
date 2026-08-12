@@ -129,7 +129,7 @@ export default function TeacherLogin() {
               transition: "all 0.3s ease",
             }}
           >
-            Management
+            👑Management
           </button>
 
           <button
@@ -151,7 +151,7 @@ export default function TeacherLogin() {
               transition: "all 0.3s ease",
             }}
           >
-            Staff Portal
+           🎓 Staff Portal
           </button>
         </div>
 
@@ -189,7 +189,7 @@ export default function TeacherLogin() {
                   transition: "all 0.2s ease",
                 }}
               >
-                👑 Head (ID & Code)
+               Director
               </button>
 
               <button
@@ -212,7 +212,7 @@ export default function TeacherLogin() {
                   transition: "all 0.2s ease",
                 }}
               >
-                🎓 Mentor (Email & Mobile)
+                 Mentor
               </button>
             </div>
           </div>

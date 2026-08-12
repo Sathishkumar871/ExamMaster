@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -21,83 +20,128 @@ export default function Navbar() {
 
   const [user, setUser] = useState<User | null>(null);
 
-  // ==========================================
+  // ============================================================
   // LOAD LOGGED-IN USER
-  // ==========================================
+  // ============================================================
+
   useEffect(() => {
-    const student = localStorage.getItem("student");
-    const teacher = localStorage.getItem("teacher");
-    const staff = localStorage.getItem("staff");
+    const loadUser = () => {
+      const student = localStorage.getItem("student");
+      const teacher = localStorage.getItem("teacher");
+      const staff = localStorage.getItem("staff");
 
-    // ==============================
-    // STUDENT
-    // ==============================
-    if (student) {
-      try {
-        const studentData = JSON.parse(student);
+      // ========================================================
+      // STUDENT
+      // ========================================================
 
-        setUser({
-          ...studentData,
-          role: "student",
-        });
-      } catch (error) {
-        console.error("Student data parse error:", error);
+      if (student) {
+        try {
+          const studentData = JSON.parse(student);
+
+          setUser({
+            ...studentData,
+            role: "student",
+          });
+
+          return;
+        } catch (error) {
+          console.error("Student data parse error:", error);
+        }
       }
-    }
 
-    // ==============================
-    // TEACHER / MANAGEMENT
-    // ==============================
-    else if (teacher) {
-      try {
-        const teacherData = JSON.parse(teacher);
+      // ========================================================
+      // TEACHER
+      // ========================================================
 
-        setUser({
-          ...teacherData,
-          role: teacherData.role || "teacher",
-        });
-      } catch (error) {
-        console.error("Teacher data parse error:", error);
+      if (teacher) {
+        try {
+          const teacherData = JSON.parse(teacher);
+
+          setUser({
+            ...teacherData,
+            role: teacherData.role || "teacher",
+          });
+
+          return;
+        } catch (error) {
+          console.error("Teacher data parse error:", error);
+        }
       }
-    }
 
-    // ==============================
-    // STAFF / MENTOR / HEAD
-    // ==============================
-    else if (staff) {
-      try {
-        const staffData = JSON.parse(staff);
+      // ========================================================
+      // STAFF / MENTOR / HEAD / MANAGER
+      // ========================================================
 
-        setUser({
-          ...staffData,
+      if (staff) {
+        try {
+          const staffData = JSON.parse(staff);
 
-          // IMPORTANT:
-          // Use backend role if available.
-          // Mentor will remain mentor.
-          role: staffData.role || "staff",
-        });
-      } catch (error) {
-        console.error("Staff data parse error:", error);
+          setUser({
+            ...staffData,
+            role: staffData.role || "staff",
+          });
+
+          return;
+        } catch (error) {
+          console.error("Staff data parse error:", error);
+        }
       }
-    }
+
+      // ========================================================
+      // NO USER
+      // ========================================================
+
+      setUser(null);
+    };
+
+    loadUser();
+
+    // ==========================================================
+    // UPDATE NAVBAR WHEN LOGIN STATE CHANGES
+    // ==========================================================
+
+    const handleStorageChange = () => {
+      loadUser();
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
   }, []);
 
-  // ==========================================
+  // ============================================================
   // LOGOUT
-  // ==========================================
+  // ============================================================
+
   const logout = () => {
-    localStorage.clear();
+    // Remove authentication/user data
+    localStorage.removeItem("student");
+    localStorage.removeItem("teacher");
+    localStorage.removeItem("staff");
+
+    // Remove common auth tokens if present
+    localStorage.removeItem("studentToken");
+    localStorage.removeItem("teacherToken");
+    localStorage.removeItem("staffToken");
+    localStorage.removeItem("token");
+
+    // Update navbar immediately
     setUser(null);
+
+    // Redirect to login
     navigate("/login");
   };
 
-  // ==========================================
+  // ============================================================
   // DISPLAY ROLE
-  // ==========================================
+  // ============================================================
+
   const getDisplayRole = () => {
     if (!user) return "";
 
-    // Teacher Type
+    // Teacher type
     if (user.teacherType) {
       return `👤 ${user.teacherType}`;
     }
@@ -135,22 +179,99 @@ export default function Navbar() {
     return "User";
   };
 
+  // ============================================================
+  // DASHBOARD ROUTE
+  // ============================================================
+
+  const getDashboardRoute = () => {
+    if (!user) {
+      return "/login";
+    }
+
+    switch (user.role) {
+      case "student":
+        return "/dashboard";
+
+      case "teacher":
+        return "/teacher/dashboard";
+
+      case "mentor":
+        return "/mentor/dashboard";
+
+      case "head":
+        return "/head/dashboard";
+
+      case "manager":
+        return "/manager/dashboard";
+
+      default:
+        return "/mentor/dashboard";
+    }
+  };
+
+  // ============================================================
+  // DAILY TEST NAVIGATION
+  // ONLY STUDENT CAN ACCESS DAILY TESTS
+  // ============================================================
+
+  const handleDailyTests = () => {
+    if (user?.role === "student") {
+      navigate("/student/daily-test");
+      return;
+    }
+
+    // If someone somehow triggers it without student login
+    navigate("/login");
+  };
+
+  // ============================================================
+  // IS STUDENT
+  // ============================================================
+
+  const isStudent = user?.role === "student";
+
+  // ============================================================
+  // IS LOGGED IN
+  // ============================================================
+
+  const isLoggedIn = !!user;
+
   return (
     <nav className="navbar">
 
-      {/* ==========================================
+      {/* ========================================================
           LOGO
-      ========================================== */}
+      ======================================================== */}
+
       <div className="logo-section">
-        <h2>ExamMaster AI</h2>
-        <p>Smart Examination Platform</p>
+
+        <img
+          src="https://res.cloudinary.com/dlkborjdl/image/upload/v1785332958/images_i0oy4a.jpg"
+          alt="STG PU College"
+          className="college-logo"
+        />
+
+        <div className="college-brand">
+
+          <h2>STG PU COLLEGE</h2>
+
+          <p>
+            Smart Examination Platform
+          </p>
+
+        </div>
+
       </div>
 
-      {/* ==========================================
-          VIDEO
-      ========================================== */}
+
+      {/* ========================================================
+          LEARNING ANIMATION
+      ======================================================== */}
+
       <div className="learning-animation">
+
         <div className="student-run">
+
           <video
             src="https://res.cloudinary.com/dlkborjdl/video/upload/v1785385746/12743779_xrqvvv.mp4"
             autoPlay
@@ -159,151 +280,175 @@ export default function Navbar() {
             playsInline
             className="running-icon-video"
           />
+
         </div>
 
-        <p>Learn • Practice • Win</p>
+        <p>
+          Learn • Practice • Win
+        </p>
+
       </div>
 
-      {/* ==========================================
-          NAV LINKS
-      ========================================== */}
+
+      {/* ========================================================
+          NAVIGATION
+      ======================================================== */}
+
       <div className="nav-links">
 
-        {/* HOME */}
+        {/* ======================================================
+            HOME
+            ALWAYS VISIBLE
+        ====================================================== */}
+
         <Link to="/">
           Home
         </Link>
 
-        {/* SUBJECTS */}
-        <Link to="/subjects">
-          Subjects
-        </Link>
 
-        {/* ==========================================
-            DAILY TESTS
-        ========================================== */}
-        {user?.role === "student" ? (
-          <Link to="/student/daily-test">
-            Daily Tests
-          </Link>
-        ) : (
-          <Link to="/daily-tests">
-            Daily Tests
-          </Link>
+        {/* ======================================================
+            LOGGED-IN NAVIGATION
+        ====================================================== */}
+
+        {isLoggedIn && (
+          <>
+
+            {/* ==================================================
+                DASHBOARD
+            ================================================== */}
+
+            <Link to={getDashboardRoute()}>
+              Dashboard
+            </Link>
+
+
+            {/* ==================================================
+                SUBJECTS
+                ONLY LOGGED-IN USERS
+            ================================================== */}
+
+            <Link to="/subjects">
+              Subjects
+            </Link>
+
+
+            {/* ==================================================
+                DAILY TESTS
+                STUDENT ONLY
+            ================================================== */}
+
+            {isStudent && (
+              <button
+                type="button"
+                className="daily-test-nav-btn"
+                onClick={handleDailyTests}
+              >
+                Daily Tests
+              </button>
+            )}
+
+          </>
         )}
 
-        {/* ==========================================
+
+        {/* ======================================================
             USER AREA
-        ========================================== */}
+        ====================================================== */}
+
         {user ? (
+
           <div className="user-area">
 
-            {/* USER CARD */}
+            {/* ==================================================
+                USER CARD
+            ================================================== */}
+
             <div className="user-card">
+
               <UserCircle size={25} />
 
               <div>
-                <b>{user.name}</b>
-                <small>{getDisplayRole()}</small>
+
+                <b>
+                  {user.name}
+                </b>
+
+                <small>
+                  {getDisplayRole()}
+                </small>
+
               </div>
+
             </div>
 
-            {/* ==========================================
-                DROPDOWN
-            ========================================== */}
+
+            {/* ==================================================
+                USER DROPDOWN
+            ================================================== */}
+
             <div className="dropdown">
 
-              {/* ========================================
-                  STUDENT DASHBOARD
-              ======================================== */}
-              {user.role === "student" ? (
-                <Link to="/dashboard">
-                  <LayoutDashboard size={18} />
-                  Student Dashboard
-                </Link>
-              )
+              {/* ================================================
+                  DASHBOARD
+              ================================================= */}
 
-              /* ========================================
-                 TEACHER DASHBOARD
-              ======================================== */
-              : user.role === "teacher" ? (
-                <Link to="/teacher/dashboard">
-                  <LayoutDashboard size={18} />
-                  Teacher Dashboard
-                </Link>
-              )
+              <Link to={getDashboardRoute()}>
 
-              /* ========================================
-                 MENTOR DASHBOARD
-              ======================================== */
-              : user.role === "mentor" ? (
-                <Link to="/mentor/dashboard">
-                  <LayoutDashboard size={18} />
-                  Mentor Dashboard
-                </Link>
-              )
+                <LayoutDashboard size={18} />
 
-              /* ========================================
-                 HEAD DASHBOARD
-              ======================================== */
-              : user.role === "head" ? (
-                <Link to="/head/dashboard">
-                  <LayoutDashboard size={18} />
-                  Head Dashboard
-                </Link>
-              )
+                Dashboard
 
-              /* ========================================
-                 MANAGER DASHBOARD
-              ======================================== */
-              : user.role === "manager" ? (
-                <Link to="/manager/dashboard">
-                  <LayoutDashboard size={18} />
-                  Manager Dashboard
-                </Link>
-              )
-
-              /* ========================================
-                 OTHER STAFF
-              ======================================== */
-              : (
-                <Link to="/mentor/dashboard">
-                  <LayoutDashboard size={18} />
-                  Staff Dashboard
-                </Link>
-              )}
-
-              {/* ========================================
-                  PROFILE
-              ======================================== */}
-              <Link to="/profile">
-                <BookOpen size={18} />
-                Profile
               </Link>
 
-              {/* ========================================
+
+              {/* ================================================
+                  PROFILE
+              ================================================= */}
+
+              <Link to="/profile">
+
+                <BookOpen size={18} />
+
+                Profile
+
+              </Link>
+
+
+              {/* ================================================
                   LOGOUT
-              ======================================== */}
+              ================================================= */}
+
               <button
+                type="button"
                 className="logout"
                 onClick={logout}
               >
+
                 <LogOut size={18} />
+
                 Logout
+
               </button>
 
             </div>
+
           </div>
+
         ) : (
 
-          /* ==========================================
+          /* ====================================================
              LOGIN DROPDOWN
-          ========================================== */
+          ==================================================== */
+
           <div className="login-dropdown">
 
-            <button className="login-btn">
+            <button
+              type="button"
+              className="login-btn"
+            >
               Login ▾
             </button>
+
 
             <div className="login-menu">
 
@@ -316,11 +461,13 @@ export default function Navbar() {
               </Link>
 
             </div>
+
           </div>
+
         )}
 
       </div>
+
     </nav>
   );
 }
-
