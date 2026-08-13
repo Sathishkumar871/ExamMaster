@@ -7,274 +7,180 @@ import {
 
 import "./Auth.css";
 
+export default function Login() {
 
+  const navigate = useNavigate();
 
-export default function Login(){
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
+  const submit = async (e: any) => {
 
-const navigate = useNavigate();
+    e.preventDefault();
 
+    try {
 
+      const data = await loginStudent({
+        email,
+        password
+      });
 
-const [email,setEmail] = useState("");
+      console.log(
+        "LOGIN RESPONSE:",
+        data
+      );
 
-const [password,setPassword] = useState("");
+      // =====================================
+      // LOGIN SUCCESS
+      // =====================================
 
+      if (data.success && data.token) {
 
+        // =====================================
+        // CLEAR OLD MANAGEMENT / STAFF SESSION
+        // =====================================
 
+        localStorage.removeItem("teacher");
+        localStorage.removeItem("teacherToken");
 
+        localStorage.removeItem("staff");
+        localStorage.removeItem("staffToken");
 
-const submit = async(e:any)=>{
+        // =====================================
+        // SAVE STUDENT TOKEN
+        // =====================================
 
+        localStorage.setItem(
+          "token",
+          data.token
+        );
 
-e.preventDefault();
+        localStorage.setItem(
+          "studentToken",
+          data.token
+        );
 
+        // =====================================
+        // ⭐ SAVE STUDENT ROLE
+        // =====================================
 
+        localStorage.setItem(
+          "role",
+          "student"
+        );
 
-try{
+        // =====================================
+        // SAVE STUDENT DATA
+        // =====================================
 
+        localStorage.setItem(
+          "student",
+          JSON.stringify(
+            data.student
+          )
+        );
 
-const data = await loginStudent({
+        // =====================================
+        // SAVE STUDENT ID
+        // =====================================
 
-email,
+        localStorage.setItem(
+          "studentId",
+          data.student.studentId
+        );
 
-password
+        // =====================================
+        // GO TO STUDENT DASHBOARD
+        // =====================================
 
-});
+        navigate("/dashboard");
 
+      } else {
 
+        alert(
+          data.message ||
+          "Login Failed"
+        );
 
+      }
 
+    } catch (error) {
 
-console.log(
-"LOGIN RESPONSE:",
-data
-);
-
-
-
-
-
-if(data.success && data.token){
-
-
-
-// Save Token
-
-localStorage.setItem(
-
-"token",
-
-data.token
-
-);
-
-
-
-
-
-// Save Student Data
-
-localStorage.setItem(
-
-"student",
-
-JSON.stringify(
-
-data.student
-
-)
-
-);
-
-
-
-
-
-
-// Save Student ID
-
-localStorage.setItem(
-
-"studentId",
-
-data.student.studentId
-
-);
-
-
-
-
-
-
-
-navigate("/dashboard");
-
-
-
-}
-
-else{
-
-
-alert(
-
-data.message || "Login Failed"
-
-);
-
-
-}
-
-
-
-}
-
-catch(error){
-
-
-console.log(error);
-
-
-alert(
-"Login Error"
-);
-
-
-}
-
-
-
-};
-
-
-
-
-
-
-
-return(
-
-
-<div className="auth-page">
-
-
-
-<form
-
-className="auth-card"
-
-onSubmit={submit}
-
->
-
-
-
-<h1>
-
-Student Login
-
-</h1>
-
-
-
-
-
-
-
-<input
-
-type="email"
-
-placeholder="Gmail"
-
-value={email}
-
-onChange={(e)=>
-
-setEmail(e.target.value)
-
-}
-
-/>
-
-
-
-
-
-
-
-<input
-
-type="password"
-
-placeholder="Password"
-
-value={password}
-
-onChange={(e)=>
-
-setPassword(e.target.value)
-
-}
-
-/>
-
-
-
-
-
-
-
-
-<button type="submit">
-
-Login
-
-</button>
-
-
-
-
-
-
-<p>
-
-New Student?
-
-{" "}
-
-<span
-
-onClick={()=>navigate("/student/register")}
-
-style={{
-cursor:"pointer"
-}}
-
->
-
-Register
-
-</span>
-
-
-</p>
-
-
-
-
-
-
-
-</form>
-
-
-
-</div>
-
-
-);
-
+      console.log(
+        "Login Error:",
+        error
+      );
+
+      alert(
+        "Login Error"
+      );
+
+    }
+
+  };
+
+  return (
+
+    <div className="auth-page">
+
+      <form
+        className="auth-card"
+        onSubmit={submit}
+      >
+
+        <h1>
+          Student Login
+        </h1>
+
+        <input
+          type="email"
+          placeholder="Gmail"
+          value={email}
+          onChange={(e) =>
+            setEmail(e.target.value)
+          }
+          required
+        />
+
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) =>
+            setPassword(e.target.value)
+          }
+          required
+        />
+
+        <button type="submit">
+          Login
+        </button>
+
+        <p>
+
+          New Student?
+
+          {" "}
+
+          <span
+            onClick={() =>
+              navigate(
+                "/student/register"
+              )
+            }
+            style={{
+              cursor: "pointer"
+            }}
+          >
+            Register
+          </span>
+
+        </p>
+
+      </form>
+
+    </div>
+
+  );
 
 }

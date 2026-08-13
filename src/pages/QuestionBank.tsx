@@ -1,5 +1,23 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import "./QuestionBank.css";
+
+/* ============================================================
+   TYPES
+============================================================ */
+
+type TestType =
+  | "mock"
+  | "daily"
+  | "physics"
+  | "chemistry"
+  | "mathematics"
+  | "botany"
+  | "zoology"
+  | "biology";
+
+type ExamCategory = "neet" | "jee";
+
+type AcademicYear = "1st-puc" | "2nd-puc";
 
 interface QuestionItem {
   _id?: string;
@@ -8,116 +26,187 @@ interface QuestionItem {
   subject?: string;
   chapter?: string;
 
-  // Backend field
   question?: string;
-
-  // Frontend compatibility
   questionText?: string;
 
   options: string[];
+
   correctAnswer: string;
+
   ansNumber: string;
 
   imageUrl?: string;
 
   difficulty?: string;
+
   testDate?: string;
   testTime?: string;
-  testType?: string;
+
+  testType?: TestType | string;
+
+  examCategory?: ExamCategory | string;
+
+  academicYear?: AcademicYear | string;
 
   testTitle?: string;
+
   isPublished?: boolean;
+
   status?: string;
 }
+
+/* ============================================================
+   API
+============================================================ */
 
 const API_BASE =
   "https://exammaster-backend-up1y.onrender.com/api/questions";
 
+/* ============================================================
+   SUBJECT TEST TYPES
+============================================================ */
+
+const SUBJECT_TEST_TYPES: TestType[] = [
+  "physics",
+  "chemistry",
+  "mathematics",
+  "botany",
+  "zoology",
+  "biology",
+];
+
+/* ============================================================
+   HELPER
+============================================================ */
+
+const isSubjectWiseTest = (testType?: string) => {
+  if (!testType) return false;
+
+  return SUBJECT_TEST_TYPES.includes(
+    testType.toLowerCase() as TestType
+  );
+};
+
+/* ============================================================
+   COMPONENT
+============================================================ */
+
 export default function QuestionBank() {
+  /* ==========================================================
+     MODE
+  ========================================================== */
+
   const [mode, setMode] = useState<"bulk" | "pdf">("bulk");
 
-  // ==============================
-  // DATABASE QUESTIONS
-  // ==============================
-  const [existingQuestions, setExistingQuestions] = useState<QuestionItem[]>(
-    []
-  );
+  /* ==========================================================
+     DATABASE
+  ========================================================== */
 
-  const [showAllTotalView, setShowAllTotalView] = useState(false);
+  const [existingQuestions, setExistingQuestions] =
+    useState<QuestionItem[]>([]);
 
-  const [viewCategoryTab, setViewCategoryTab] = useState<
-    "all" | "mock" | "daily"
-  >("all");
+  const [showAllTotalView, setShowAllTotalView] =
+    useState(false);
 
-  // ==============================
-  // SEARCH
-  // ==============================
+  const [viewCategoryTab, setViewCategoryTab] =
+    useState<"all" | "mock" | "daily">("all");
+
+  /* ==========================================================
+     SEARCH
+  ========================================================== */
+
   const [searchQuery, setSearchQuery] = useState("");
 
-  // ==============================
-  // PAGINATION
-  // ==============================
+  /* ==========================================================
+     PAGINATION
+  ========================================================== */
+
   const [currentPage, setCurrentPage] = useState(1);
 
   const itemsPerPage = 10;
 
-  // ==============================
-  // BULK IMPORT
-  // ==============================
-  const [bulkQuestionsText, setBulkQuestionsText] = useState("");
-  const [bulkAnswersText, setBulkAnswersText] = useState("");
+  /* ==========================================================
+     BULK IMPORT
+  ========================================================== */
 
-  const [parsedQuestions, setParsedQuestions] = useState<QuestionItem[]>([]);
+  const [bulkQuestionsText, setBulkQuestionsText] =
+    useState("");
 
-  // ==============================
-  // PDF
-  // ==============================
-  const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [bulkAnswersText, setBulkAnswersText] =
+    useState("");
 
-  const [pdfLoading, setPdfLoading] = useState(false);
+  const [parsedQuestions, setParsedQuestions] =
+    useState<QuestionItem[]>([]);
 
-  const [publishTestType, setPublishTestType] = useState<
-    "mock" | "daily"
-  >("mock");
+  /* ==========================================================
+     PDF
+  ========================================================== */
 
-  const [publishTestTitle, setPublishTestTitle] = useState("");
+  const [pdfFile, setPdfFile] =
+    useState<File | null>(null);
 
-  const [publishDate, setPublishDate] = useState("");
+  const [pdfLoading, setPdfLoading] =
+    useState(false);
 
-  const [publishTime, setPublishTime] = useState("");
+  /* ==========================================================
+     TEST SETTINGS
+  ========================================================== */
 
-  // ==============================
-  // TIME
-  // ==============================
+  const [publishTestType, setPublishTestType] =
+    useState<TestType>("mock");
+
+  const [examCategory, setExamCategory] =
+    useState<ExamCategory>("neet");
+
+  const [academicYear, setAcademicYear] =
+    useState<AcademicYear>("1st-puc");
+
+  const [publishTestTitle, setPublishTestTitle] =
+    useState("");
+
+  const [publishDate, setPublishDate] =
+    useState("");
+
+  const [publishTime, setPublishTime] =
+    useState("");
+
+  /* ==========================================================
+     TIME
+  ========================================================== */
+
   const [tHour, setTHour] = useState("10");
+
   const [tMin, setTMin] = useState("00");
+
   const [tAmPm, setTAmPm] = useState("AM");
 
-  // ==============================
-  // EDITING
-  // ==============================
-  const [editingQuestionId, setEditingQuestionId] = useState<string | null>(
-    null
-  );
+  /* ==========================================================
+     EDITING
+  ========================================================== */
+
+  const [editingQuestionId, setEditingQuestionId] =
+    useState<string | null>(null);
 
   const [editFormData, setEditFormData] =
     useState<QuestionItem | null>(null);
 
-  // NEW IMAGE FOR EDIT
-  const [editImageFile, setEditImageFile] = useState<File | null>(null);
+  const [editImageFile, setEditImageFile] =
+    useState<File | null>(null);
 
-  const [editImagePreview, setEditImagePreview] = useState<string>("");
+  const [editImagePreview, setEditImagePreview] =
+    useState("");
 
-  // ==============================
-  // GENERAL
-  // ==============================
+  /* ==========================================================
+     GENERAL
+  ========================================================== */
+
   const [message, setMessage] = useState("");
 
   const [loading, setLoading] = useState(false);
 
-  // ============================================================
-  // TOKEN
-  // ============================================================
+  /* ==========================================================
+     TOKEN
+  ========================================================== */
 
   const getToken = () => {
     return (
@@ -130,33 +219,72 @@ export default function QuestionBank() {
     );
   };
 
-  // ============================================================
-  // QUESTION TEXT HELPER
-  // ============================================================
+  /* ==========================================================
+     QUESTION TEXT
+  ========================================================== */
 
   const getQuestionText = (q: QuestionItem) => {
-    return q.question || q.questionText || "Question text unavailable";
+    return (
+      q.question ||
+      q.questionText ||
+      "Question text unavailable"
+    );
   };
 
-  // ============================================================
-  // INITIAL LOAD
-  // ============================================================
+  /* ==========================================================
+     TEST TYPE LABEL
+  ========================================================== */
+
+  const getTestTypeLabel = (type?: string) => {
+    switch (type) {
+      case "mock":
+        return "📝 Mock Test";
+
+      case "daily":
+        return "⚡ Daily Test";
+
+      case "physics":
+        return "⚛️ Physics";
+
+      case "chemistry":
+        return "🧪 Chemistry";
+
+      case "mathematics":
+        return "📐 Mathematics";
+
+      case "botany":
+        return "🌿 Botany";
+
+      case "zoology":
+        return "🦴 Zoology";
+
+      case "biology":
+        return "🧬 Biology";
+
+      default:
+        return "📚 General";
+    }
+  };
+
+  /* ==========================================================
+     INITIAL LOAD
+  ========================================================== */
 
   useEffect(() => {
     fetchExistingQuestions();
   }, []);
 
-  // ============================================================
-  // RESET PAGINATION
-  // ============================================================
+  /* ==========================================================
+     RESET PAGINATION
+  ========================================================== */
 
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, viewCategoryTab]);
 
-  // ============================================================
-  // FETCH QUESTIONS
-  // ============================================================
+  /* ==========================================================
+     FETCH QUESTIONS
+  ========================================================== */
 
   const fetchExistingQuestions = async () => {
     try {
@@ -166,11 +294,13 @@ export default function QuestionBank() {
         setMessage(
           "⚠️ Authentication token not found! Please login again."
         );
+
         return;
       }
 
       const res = await fetch(API_BASE, {
         method: "GET",
+
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -180,65 +310,100 @@ export default function QuestionBank() {
         setMessage(
           "❌ Session Expired (401 Unauthorized). Please re-login!"
         );
+
         return;
       }
 
       const data = await res.json();
 
-      console.log("QUESTION BANK RESPONSE:", data);
+      console.log(
+        "QUESTION BANK RESPONSE:",
+        data
+      );
 
-      if (data.success && Array.isArray(data.questions)) {
-        // Normalize backend question field
-        const normalizedQuestions = data.questions.map(
-          (q: any): QuestionItem => ({
-            ...q,
+      if (
+        data.success &&
+        Array.isArray(data.questions)
+      ) {
+        const normalizedQuestions =
+          data.questions.map(
+            (q: any): QuestionItem => ({
+              ...q,
 
-            question: q.question || q.questionText || "",
+              question:
+                q.question ||
+                q.questionText ||
+                "",
 
-            questionText: q.question || q.questionText || "",
+              questionText:
+                q.question ||
+                q.questionText ||
+                "",
 
-            options: Array.isArray(q.options) ? q.options : [],
+              options:
+                Array.isArray(q.options)
+                  ? q.options
+                  : [],
 
-            correctAnswer: q.correctAnswer || "",
+              correctAnswer:
+                q.correctAnswer || "",
 
-            ansNumber: q.ansNumber
-              ? String(q.ansNumber)
-              : "",
-          })
+              ansNumber: q.ansNumber
+                ? String(q.ansNumber)
+                : "1",
+
+              testType:
+                q.testType || "mock",
+
+              examCategory:
+                q.examCategory || "neet",
+
+              academicYear:
+                q.academicYear || "1st-puc",
+            })
+          );
+
+        setExistingQuestions(
+          normalizedQuestions
         );
-
-        setExistingQuestions(normalizedQuestions);
       } else {
         setExistingQuestions([]);
       }
     } catch (err) {
-      console.error("Question Load Error:", err);
+      console.error(
+        "Question Load Error:",
+        err
+      );
 
-      setMessage("❌ Failed to load questions");
+      setMessage(
+        "❌ Failed to load questions"
+      );
     }
   };
 
-  // ============================================================
-  // BULK PARSER
-  // ============================================================
+  /* ==========================================================
+     BULK PARSER
+  ========================================================== */
 
   const processBulkImport = () => {
     if (!bulkQuestionsText.trim()) {
       setMessage(
         "⚠️ First, paste questions text into the box!"
       );
+
       return;
     }
 
-    const rawAnsText = bulkAnswersText.trim();
+    const rawAnsText =
+      bulkAnswersText.trim();
 
     const answerKeyMap: {
       [key: number]: number;
     } = {};
 
-    // --------------------------------------------
-    // ANSWER KEY
-    // --------------------------------------------
+    /* ========================================================
+       ANSWER KEY
+    ======================================================== */
 
     if (rawAnsText) {
       const explicitPairs = [
@@ -250,6 +415,7 @@ export default function QuestionBank() {
       if (explicitPairs.length > 0) {
         explicitPairs.forEach((m) => {
           const qNum = parseInt(m[1]);
+
           const aNum = parseInt(m[2]);
 
           if (
@@ -257,25 +423,31 @@ export default function QuestionBank() {
             aNum >= 1 &&
             aNum <= 4
           ) {
-            answerKeyMap[qNum] = aNum;
+            answerKeyMap[qNum] =
+              aNum;
           }
         });
       } else {
-        const cleanNums = rawAnsText.match(/[1-4]/g);
+        const cleanNums =
+          rawAnsText.match(/[1-4]/g);
 
         if (cleanNums) {
-          cleanNums.forEach((numStr, index) => {
-            answerKeyMap[index + 1] = parseInt(numStr);
-          });
+          cleanNums.forEach(
+            (numStr, index) => {
+              answerKeyMap[index + 1] =
+                parseInt(numStr);
+            }
+          );
         }
       }
     }
 
-    // --------------------------------------------
-    // OPTION TOKEN
-    // --------------------------------------------
+    /* ========================================================
+       OPTION TOKEN
+    ======================================================== */
 
-    const text = bulkQuestionsText;
+    const text =
+      bulkQuestionsText;
 
     const tokenRegex =
       /(?:\s|^)(?:\(([1-4]|[A-Da-d])\)|([1-4]|[A-Da-d])[\)]|([1-4]|[A-Da-d])\.(?!\d))\s*/g;
@@ -290,13 +462,17 @@ export default function QuestionBank() {
 
     let m;
 
-    while ((m = tokenRegex.exec(text)) !== null) {
+    while (
+      (m = tokenRegex.exec(text)) !==
+      null
+    ) {
       const valStr =
         m[1] ||
         m[2] ||
         m[3];
 
-      let num = parseInt(valStr);
+      let num =
+        parseInt(valStr);
 
       if (isNaN(num)) {
         num =
@@ -312,16 +488,17 @@ export default function QuestionBank() {
       });
     }
 
-    // --------------------------------------------
-    // QUESTION BLOCKS
-    // --------------------------------------------
+    /* ========================================================
+       QUESTION BLOCKS
+    ======================================================== */
 
     const questionBlocks: {
       qText: string;
       options: string[];
     }[] = [];
 
-    let currentCluster: TokenMatch[] = [];
+    let currentCluster: TokenMatch[] =
+      [];
 
     const pushClusterToQuestions = (
       fullText: string,
@@ -331,28 +508,33 @@ export default function QuestionBank() {
         options: string[];
       }[]
     ) => {
-      if (cluster.length === 0) return;
+      if (cluster.length === 0)
+        return;
 
-      const firstOptIndex = cluster[0].index;
+      const firstOptIndex =
+        cluster[0].index;
 
       const prevQEnd =
         (out as any)._lastEnd || 0;
 
-      let rawQText = fullText
-        .substring(
-          prevQEnd,
-          firstOptIndex
-        )
-        .trim();
+      let rawQText =
+        fullText
+          .substring(
+            prevQEnd,
+            firstOptIndex
+          )
+          .trim();
 
-      rawQText = rawQText
-        .replace(
-          /^(?:Q(?:uestion)?\s*\d*[\.\:\)]|\d+[\.\:\)])\s*/i,
-          ""
-        )
-        .trim();
+      rawQText =
+        rawQText
+          .replace(
+            /^(?:Q(?:uestion)?\s*\d*[\.\:\)]|\d+[\.\:\)])\s*/i,
+            ""
+          )
+          .trim();
 
       const extractedOpts = [
+        "",
         "",
         "",
         "",
@@ -371,9 +553,13 @@ export default function QuestionBank() {
                 ? cluster[idx + 1].index
                 : fullText.length;
 
-            let optVal = fullText
-              .substring(start, end)
-              .trim();
+            let optVal =
+              fullText
+                .substring(
+                  start,
+                  end
+                )
+                .trim();
 
             const nextQMatch =
               optVal.match(
@@ -382,14 +568,16 @@ export default function QuestionBank() {
 
             if (
               nextQMatch &&
-              nextQMatch.index !== undefined
+              nextQMatch.index !==
+                undefined
             ) {
-              optVal = optVal
-                .substring(
-                  0,
-                  nextQMatch.index
-                )
-                .trim();
+              optVal =
+                optVal
+                  .substring(
+                    0,
+                    nextQMatch.index
+                  )
+                  .trim();
             }
 
             extractedOpts[idx] =
@@ -408,14 +596,16 @@ export default function QuestionBank() {
       if (rawQText) {
         out.push({
           qText: rawQText,
-          options: extractedOpts,
+
+          options:
+            extractedOpts,
         });
       }
     };
 
-    // --------------------------------------------
-    // BUILD CLUSTERS
-    // --------------------------------------------
+    /* ========================================================
+       BUILD CLUSTERS
+    ======================================================== */
 
     for (
       let i = 0;
@@ -426,7 +616,8 @@ export default function QuestionBank() {
 
       if (
         token.num === 1 &&
-        currentCluster.length >= 2
+        currentCluster.length >=
+          2
       ) {
         pushClusterToQuestions(
           text,
@@ -434,13 +625,20 @@ export default function QuestionBank() {
           questionBlocks
         );
 
-        currentCluster = [token];
+        currentCluster = [
+          token,
+        ];
       } else {
-        currentCluster.push(token);
+        currentCluster.push(
+          token
+        );
       }
     }
 
-    if (currentCluster.length >= 2) {
+    if (
+      currentCluster.length >=
+      2
+    ) {
       pushClusterToQuestions(
         text,
         currentCluster,
@@ -448,14 +646,15 @@ export default function QuestionBank() {
       );
     }
 
-    // --------------------------------------------
-    // FINAL ITEMS
-    // --------------------------------------------
+    /* ========================================================
+       FINAL ITEMS
+    ======================================================== */
 
     const finalItems: QuestionItem[] =
       questionBlocks.map(
         (block, idx) => {
-          const qIndex = idx + 1;
+          const qIndex =
+            idx + 1;
 
           const ansNumber =
             answerKeyMap[qIndex]
@@ -466,10 +665,27 @@ export default function QuestionBank() {
 
           const correctText =
             block.options[
-              parseInt(ansNumber) - 1
+              parseInt(
+                ansNumber
+              ) - 1
             ] ||
             block.options[0] ||
             "";
+
+          /*
+           * SUBJECT-WISE TEST
+           *
+           * Physics -> subject = Physics
+           * Chemistry -> subject = Chemistry
+           * etc.
+           *
+           * Mock/Daily -> General
+           */
+
+          const isSubjectTest =
+            isSubjectWiseTest(
+              publishTestType
+            );
 
           return {
             id:
@@ -478,7 +694,10 @@ export default function QuestionBank() {
               "_" +
               idx,
 
-            subject: "General",
+            subject:
+              isSubjectTest
+                ? publishTestType
+                : "General",
 
             chapter:
               publishTestTitle ||
@@ -500,7 +719,8 @@ export default function QuestionBank() {
 
             imageUrl: "",
 
-            difficulty: "Medium",
+            difficulty:
+              "Medium",
 
             testDate:
               publishDate ||
@@ -514,13 +734,32 @@ export default function QuestionBank() {
 
             testType:
               publishTestType,
+
+            examCategory:
+              examCategory,
+
+            academicYear:
+              academicYear,
+
+            testTitle:
+              publishTestTitle,
+
+            isPublished:
+              false,
+
+            status:
+              "scheduled",
           };
         }
       );
 
-    setParsedQuestions(finalItems);
+    setParsedQuestions(
+      finalItems
+    );
 
-    if (finalItems.length > 0) {
+    if (
+      finalItems.length > 0
+    ) {
       setMessage(
         `⚡ Successfully parsed ${finalItems.length} questions! Review and save.`
       );
@@ -531,9 +770,9 @@ export default function QuestionBank() {
     }
   };
 
-  // ============================================================
-  // PDF UPLOAD
-  // ============================================================
+  /* ==========================================================
+     PDF UPLOAD
+  ========================================================== */
 
   const handlePdfUpload = async (
     e: React.FormEvent
@@ -544,6 +783,7 @@ export default function QuestionBank() {
       setMessage(
         "⚠️ Please select a PDF file!"
       );
+
       return;
     }
 
@@ -551,6 +791,7 @@ export default function QuestionBank() {
       setMessage(
         "⚠️ Please enter a Test Title!"
       );
+
       return;
     }
 
@@ -558,6 +799,7 @@ export default function QuestionBank() {
       setMessage(
         "⚠️ Please select the Test Date!"
       );
+
       return;
     }
 
@@ -567,20 +809,41 @@ export default function QuestionBank() {
       setMessage(
         "⚠️ Authentication token missing! Please login again."
       );
+
       return;
     }
 
-    const formData = new FormData();
+    const formData =
+      new FormData();
+
+    /* ========================================================
+       PDF
+    ======================================================== */
 
     formData.append(
       "pdf",
       pdfFile
     );
 
+    /* ========================================================
+       SUBJECT
+    ======================================================== */
+
+    const subjectForBackend =
+      isSubjectWiseTest(
+        publishTestType
+      )
+        ? publishTestType
+        : "General";
+
     formData.append(
       "subject",
-      "General"
+      subjectForBackend
     );
+
+    /* ========================================================
+       TEST DETAILS
+    ======================================================== */
 
     formData.append(
       "chapter",
@@ -595,6 +858,16 @@ export default function QuestionBank() {
     formData.append(
       "testType",
       publishTestType
+    );
+
+    formData.append(
+      "examCategory",
+      examCategory
+    );
+
+    formData.append(
+      "academicYear",
+      academicYear
     );
 
     formData.append(
@@ -614,24 +887,26 @@ export default function QuestionBank() {
         "⏳ Extracting questions from PDF..."
       );
 
-      const res = await fetch(
-        `${API_BASE}/generate-from-pdf`,
-        {
-          method: "POST",
+      const res =
+        await fetch(
+          `${API_BASE}/generate-from-pdf`,
+          {
+            method: "POST",
 
-          headers: {
-            Authorization:
-              `Bearer ${token}`,
-          },
+            headers: {
+              Authorization:
+                `Bearer ${token}`,
+            },
 
-          body: formData,
-        }
-      );
+            body: formData,
+          }
+        );
 
       if (res.status === 401) {
         setMessage(
           "❌ Session Expired (401). Please re-login!"
         );
+
         return;
       }
 
@@ -689,9 +964,9 @@ export default function QuestionBank() {
     }
   };
 
-  // ============================================================
-  // SAVE BULK QUESTIONS
-  // ============================================================
+  /* ==========================================================
+     SAVE BULK QUESTIONS
+  ========================================================== */
 
   const saveBulkQuestions =
     async () => {
@@ -701,15 +976,18 @@ export default function QuestionBank() {
         setMessage(
           "⚠️ Authentication token missing!"
         );
+
         return;
       }
 
       if (
-        parsedQuestions.length === 0
+        parsedQuestions.length ===
+        0
       ) {
         setMessage(
           "⚠️ No parsed questions found!"
         );
+
         return;
       }
 
@@ -723,12 +1001,12 @@ export default function QuestionBank() {
         let successCount = 0;
 
         for (
-          const item of parsedQuestions
+          const item of
+            parsedQuestions
         ) {
           const payload = {
             ...item,
 
-            // IMPORTANT
             question:
               item.question ||
               item.questionText ||
@@ -738,6 +1016,32 @@ export default function QuestionBank() {
               item.question ||
               item.questionText ||
               "",
+
+            subject:
+              item.subject ||
+              (
+                isSubjectWiseTest(
+                  item.testType
+                )
+                  ? item.testType
+                  : "General"
+              ),
+
+            testType:
+              item.testType ||
+              publishTestType,
+
+            examCategory:
+              item.examCategory ||
+              examCategory,
+
+            academicYear:
+              item.academicYear ||
+              academicYear,
+
+            testTitle:
+              item.testTitle ||
+              publishTestTitle,
           };
 
           const res =
@@ -793,12 +1097,14 @@ export default function QuestionBank() {
       }
     };
 
-  // ============================================================
-  // DELETE SINGLE
-  // ============================================================
+  /* ==========================================================
+     DELETE SINGLE
+  ========================================================== */
 
   const handleDeleteExistingQuestion =
-    async (qId: string) => {
+    async (
+      qId: string
+    ) => {
       if (!qId) return;
 
       if (
@@ -843,9 +1149,9 @@ export default function QuestionBank() {
       }
     };
 
-  // ============================================================
-  // DELETE ALL
-  // ============================================================
+  /* ==========================================================
+     DELETE ALL
+  ========================================================== */
 
   const handleDeleteAllQuestions =
     async () => {
@@ -891,9 +1197,9 @@ export default function QuestionBank() {
       }
     };
 
-  // ============================================================
-  // START EDITING
-  // ============================================================
+  /* ==========================================================
+     START EDITING
+  ========================================================== */
 
   const startEditing = (
     q: QuestionItem
@@ -913,9 +1219,13 @@ export default function QuestionBank() {
     const options =
       Array.isArray(q.options)
         ? [...q.options]
-        : ["", "", "", ""];
+        : [
+            "",
+            "",
+            "",
+            "",
+          ];
 
-    // Make sure 4 options exist
     while (
       options.length < 4
     ) {
@@ -935,35 +1245,48 @@ export default function QuestionBank() {
 
       ansNumber:
         q.ansNumber
-          ? String(q.ansNumber)
+          ? String(
+              q.ansNumber
+            )
           : "1",
 
       correctAnswer:
         q.correctAnswer ||
         options[
           parseInt(
-            q.ansNumber || "1"
+            q.ansNumber ||
+              "1"
           ) - 1
         ] ||
         "",
+
+      testType:
+        q.testType ||
+        "mock",
+
+      examCategory:
+        q.examCategory ||
+        "neet",
+
+      academicYear:
+        q.academicYear ||
+        "1st-puc",
     };
 
     setEditFormData(
       editData
     );
 
-    // Existing image preview
     setEditImagePreview(
       q.imageUrl || ""
     );
 
-    // Reset newly selected image
     setEditImageFile(null);
   };
 
-  // ============================================================
-  // EDIT IMAGE SELECT
-  // ============================================================
+  /* ==========================================================
+     EDIT IMAGE
+  ========================================================== */
 
   const handleEditImageChange = (
     e: React.ChangeEvent<HTMLInputElement>
@@ -975,7 +1298,6 @@ export default function QuestionBank() {
       return;
     }
 
-    // Only image files
     if (
       !file.type.startsWith(
         "image/"
@@ -1002,9 +1324,9 @@ export default function QuestionBank() {
     );
   };
 
-  // ============================================================
-  // SAVE EDITED QUESTION
-  // ============================================================
+  /* ==========================================================
+     SAVE EDITED QUESTION
+  ========================================================== */
 
   const saveEditedQuestion =
     async () => {
@@ -1021,6 +1343,7 @@ export default function QuestionBank() {
         setMessage(
           "⚠️ Authentication token missing!"
         );
+
         return;
       }
 
@@ -1033,6 +1356,7 @@ export default function QuestionBank() {
         setMessage(
           "⚠️ Question text cannot be empty."
         );
+
         return;
       }
 
@@ -1043,27 +1367,47 @@ export default function QuestionBank() {
           "⏳ Updating question..."
         );
 
-        // IMPORTANT:
-        // FormData required because image upload
         const formData =
           new FormData();
+
+        /* ====================================================
+           QUESTION
+        ==================================================== */
 
         formData.append(
           "question",
           questionText
         );
 
-        // Keep compatibility
         formData.append(
           "questionText",
           questionText
         );
 
+        /* ====================================================
+           SUBJECT
+        ==================================================== */
+
+        const currentTestType =
+          editFormData.testType ||
+          "mock";
+
+        const currentSubject =
+          isSubjectWiseTest(
+            currentTestType
+          )
+            ? currentTestType
+            : editFormData.subject ||
+              "General";
+
         formData.append(
           "subject",
-          editFormData.subject ||
-            "General"
+          currentSubject
         );
+
+        /* ====================================================
+           CHAPTER
+        ==================================================== */
 
         formData.append(
           "chapter",
@@ -1071,13 +1415,10 @@ export default function QuestionBank() {
             "General"
         );
 
-        formData.append(
-          "ansNumber",
-          editFormData.ansNumber ||
-            "1"
-        );
+        /* ====================================================
+           OPTIONS
+        ==================================================== */
 
-        // Options as JSON
         formData.append(
           "options",
           JSON.stringify(
@@ -1086,7 +1427,16 @@ export default function QuestionBank() {
           )
         );
 
-        // Calculate correct answer
+        /* ====================================================
+           ANSWER
+        ==================================================== */
+
+        formData.append(
+          "ansNumber",
+          editFormData.ansNumber ||
+            "1"
+        );
+
         const answerIndex =
           Math.max(
             0,
@@ -1108,20 +1458,48 @@ export default function QuestionBank() {
           correctAnswer
         );
 
+        /* ====================================================
+           DIFFICULTY
+        ==================================================== */
+
         formData.append(
           "difficulty",
           editFormData.difficulty ||
             "Medium"
         );
 
-        if (
-          editFormData.testType
-        ) {
-          formData.append(
-            "testType",
-            editFormData.testType
-          );
-        }
+        /* ====================================================
+           TEST TYPE
+        ==================================================== */
+
+        formData.append(
+          "testType",
+          currentTestType
+        );
+
+        /* ====================================================
+           EXAM CATEGORY
+        ==================================================== */
+
+        formData.append(
+          "examCategory",
+          editFormData.examCategory ||
+            "neet"
+        );
+
+        /* ====================================================
+           ACADEMIC YEAR
+        ==================================================== */
+
+        formData.append(
+          "academicYear",
+          editFormData.academicYear ||
+            "1st-puc"
+        );
+
+        /* ====================================================
+           DATE
+        ==================================================== */
 
         if (
           editFormData.testDate
@@ -1132,6 +1510,10 @@ export default function QuestionBank() {
           );
         }
 
+        /* ====================================================
+           TIME
+        ==================================================== */
+
         if (
           editFormData.testTime
         ) {
@@ -1141,9 +1523,22 @@ export default function QuestionBank() {
           );
         }
 
-        // =====================================
-        // NEW IMAGE
-        // =====================================
+        /* ====================================================
+           TEST TITLE
+        ==================================================== */
+
+        if (
+          editFormData.testTitle
+        ) {
+          formData.append(
+            "testTitle",
+            editFormData.testTitle
+          );
+        }
+
+        /* ====================================================
+           IMAGE
+        ==================================================== */
 
         if (editImageFile) {
           formData.append(
@@ -1151,6 +1546,10 @@ export default function QuestionBank() {
             editImageFile
           );
         }
+
+        /* ====================================================
+           API
+        ==================================================== */
 
         const res =
           await fetch(
@@ -1175,26 +1574,23 @@ export default function QuestionBank() {
           data
         );
 
-        if (res.ok && data.success) {
+        if (
+          res.ok &&
+          data.success
+        ) {
           setMessage(
-            "✨ Question and image updated successfully!"
+            "✨ Question and test details updated successfully!"
           );
 
           setEditingQuestionId(
             null
           );
 
-          setEditFormData(
-            null
-          );
+          setEditFormData(null);
 
-          setEditImageFile(
-            null
-          );
+          setEditImageFile(null);
 
-          setEditImagePreview(
-            ""
-          );
+          setEditImagePreview("");
 
           await fetchExistingQuestions();
         } else {
@@ -1219,31 +1615,23 @@ export default function QuestionBank() {
       }
     };
 
-  // ============================================================
-  // CANCEL EDIT
-  // ============================================================
+  /* ==========================================================
+     CANCEL EDIT
+  ========================================================== */
 
   const cancelEdit = () => {
-    setEditingQuestionId(
-      null
-    );
+    setEditingQuestionId(null);
 
-    setEditFormData(
-      null
-    );
+    setEditFormData(null);
 
-    setEditImageFile(
-      null
-    );
+    setEditImageFile(null);
 
-    setEditImagePreview(
-      ""
-    );
+    setEditImagePreview("");
   };
 
-  // ============================================================
-  // FILTER QUESTIONS
-  // ============================================================
+  /* ==========================================================
+     FILTER
+  ========================================================== */
 
   const processedQuestions =
     existingQuestions.filter(
@@ -1273,24 +1661,35 @@ export default function QuestionBank() {
         const question =
           getQuestionText(q);
 
+        const search =
+          searchQuery.toLowerCase();
+
         return (
           question
             .toLowerCase()
-            .includes(
-              searchQuery.toLowerCase()
-            ) ||
+            .includes(search) ||
           q.chapter
             ?.toLowerCase()
-            .includes(
-              searchQuery.toLowerCase()
-            )
+            .includes(search) ||
+          q.subject
+            ?.toLowerCase()
+            .includes(search) ||
+          q.testType
+            ?.toLowerCase()
+            .includes(search) ||
+          q.examCategory
+            ?.toLowerCase()
+            .includes(search) ||
+          q.academicYear
+            ?.toLowerCase()
+            .includes(search)
         );
       }
     );
 
-  // ============================================================
-  // PAGINATION
-  // ============================================================
+  /* ==========================================================
+     PAGINATION
+  ========================================================== */
 
   const totalPages =
     Math.ceil(
@@ -1312,15 +1711,16 @@ export default function QuestionBank() {
       indexOfLastItem
     );
 
-  // ============================================================
-  // TIME SYNC
-  // ============================================================
+  /* ==========================================================
+     TIME SYNC
+  ========================================================== */
 
   useEffect(() => {
-    let h = parseInt(
-      tHour,
-      10
-    );
+    let h =
+      parseInt(
+        tHour,
+        10
+      );
 
     if (
       tAmPm === "PM" &&
@@ -1351,16 +1751,16 @@ export default function QuestionBank() {
     tAmPm,
   ]);
 
-  // ============================================================
-  // JSX
-  // ============================================================
+  /* ==========================================================
+     JSX
+  ========================================================== */
 
   return (
     <div className="question-bank-page">
 
-      {/* =========================================
+      {/* ======================================================
           STATS
-      ========================================== */}
+      ====================================================== */}
 
       <div className="qb-stats-banner">
 
@@ -1425,9 +1825,9 @@ export default function QuestionBank() {
 
       </div>
 
-      {/* =========================================
+      {/* ======================================================
           HEADER
-      ========================================== */}
+      ====================================================== */}
 
       <div className="qb-header">
 
@@ -1455,6 +1855,7 @@ export default function QuestionBank() {
             }
             onClick={() => {
               setMode("bulk");
+
               setShowAllTotalView(
                 false
               );
@@ -1472,6 +1873,7 @@ export default function QuestionBank() {
             }
             onClick={() => {
               setMode("pdf");
+
               setShowAllTotalView(
                 false
               );
@@ -1484,9 +1886,9 @@ export default function QuestionBank() {
 
       </div>
 
-      {/* =========================================
+      {/* ======================================================
           MESSAGE
-      ========================================== */}
+      ====================================================== */}
 
       {message && (
         <div className="qb-message-banner animate-fade">
@@ -1494,9 +1896,9 @@ export default function QuestionBank() {
         </div>
       )}
 
-      {/* =========================================
+      {/* ======================================================
           DATABASE EXPLORER
-      ========================================== */}
+      ====================================================== */}
 
       {showAllTotalView ? (
 
@@ -1505,6 +1907,7 @@ export default function QuestionBank() {
           <div className="explorer-top-flex">
 
             <div>
+
               <h3>
                 🗄️ All Stored Tests & Questions
               </h3>
@@ -1513,6 +1916,7 @@ export default function QuestionBank() {
                 Edit questions, options,
                 correct answers and images.
               </p>
+
             </div>
 
             <div className="explorer-actions">
@@ -1614,8 +2018,10 @@ export default function QuestionBank() {
 
             <input
               type="text"
-              placeholder="🔍 Search test or question..."
-              value={searchQuery}
+              placeholder="🔍 Search test, subject, exam or question..."
+              value={
+                searchQuery
+              }
               onChange={(e) =>
                 setSearchQuery(
                   e.target.value
@@ -1647,7 +2053,10 @@ export default function QuestionBank() {
               <div className="parsed-list">
 
                 {currentQuestions.map(
-                  (q, idx) => {
+                  (
+                    q,
+                    idx
+                  ) => {
 
                     const globalIdx =
                       indexOfFirstItem +
@@ -1665,6 +2074,11 @@ export default function QuestionBank() {
                     const questionText =
                       getQuestionText(
                         q
+                      );
+
+                    const subjectWise =
+                      isSubjectWiseTest(
+                        q.testType
                       );
 
                     return (
@@ -1685,8 +2099,7 @@ export default function QuestionBank() {
 
                             <span className="q-badge">
                               Q#
-                              {globalIdx +
-                                1}
+                              {globalIdx + 1}
                             </span>
 
                             <span className="chapter-tag">
@@ -1695,6 +2108,41 @@ export default function QuestionBank() {
                                 q.testTitle ||
                                 "Untitled Test"}
                             </span>
+
+                            {q.testType && (
+                              <span className="chapter-tag">
+                                {getTestTypeLabel(
+                                  q.testType
+                                )}
+                              </span>
+                            )}
+
+                            {q.examCategory && (
+                              <span className="chapter-tag">
+                                🎯{" "}
+                                {q.examCategory
+                                  .toUpperCase()}
+                              </span>
+                            )}
+
+                            {q.academicYear && (
+                              <span className="chapter-tag">
+                                🎓{" "}
+                                {q.academicYear ===
+                                "1st-puc"
+                                  ? "1st PUC"
+                                  : q.academicYear ===
+                                    "2nd-puc"
+                                  ? "2nd PUC"
+                                  : q.academicYear}
+                              </span>
+                            )}
+
+                            {subjectWise && (
+                              <span className="chapter-tag">
+                                📚 Subject Wise
+                              </span>
+                            )}
 
                             {q.testDate && (
                               <span className="date-tag">
@@ -1717,6 +2165,7 @@ export default function QuestionBank() {
                             {!isEditing ? (
 
                               <>
+
                                 <button
                                   onClick={() =>
                                     startEditing(
@@ -1738,6 +2187,7 @@ export default function QuestionBank() {
                                 >
                                   🗑️ Delete
                                 </button>
+
                               </>
 
                             ) : (
@@ -1775,9 +2225,9 @@ export default function QuestionBank() {
 
                         </div>
 
-                        {/* =====================================
+                        {/* ==================================================
                             EDIT MODE
-                        ====================================== */}
+                        ================================================== */}
 
                         {isEditing &&
                         editFormData ? (
@@ -1789,7 +2239,7 @@ export default function QuestionBank() {
                             <div className="qb-input-group mb-2">
 
                               <label>
-                                Test Title / Chapter
+                                📝 Test Title / Chapter
                               </label>
 
                               <input
@@ -1798,21 +2248,176 @@ export default function QuestionBank() {
                                   editFormData.chapter ||
                                   ""
                                 }
-                                onChange={(
-                                  e
-                                ) =>
+                                onChange={(e) =>
                                   setEditFormData(
                                     {
                                       ...editFormData,
+
                                       chapter:
-                                        e
-                                          .target
+                                        e.target
+                                          .value,
+
+                                      testTitle:
+                                        e.target
                                           .value,
                                     }
                                   )
                                 }
                                 className="input-box"
                               />
+
+                            </div>
+
+                            {/* TEST TYPE */}
+
+                            <div className="qb-grid-3">
+
+                              <div className="qb-input-group">
+
+                                <label>
+                                  📝 Test Type
+                                </label>
+
+                                <select
+                                  value={
+                                    editFormData.testType ||
+                                    "mock"
+                                  }
+                                  onChange={(e) => {
+
+                                    const newType =
+                                      e.target
+                                        .value as TestType;
+
+                                    setEditFormData(
+                                      {
+                                        ...editFormData,
+
+                                        testType:
+                                          newType,
+
+                                        subject:
+                                          isSubjectWiseTest(
+                                            newType
+                                          )
+                                            ? newType
+                                            : "General",
+                                      }
+                                    );
+
+                                  }}
+                                  className="select-box-premium"
+                                >
+
+                                  <option value="mock">
+                                    📝 Mock Test
+                                  </option>
+
+                                  <option value="daily">
+                                    ⚡ Daily Test
+                                  </option>
+
+                                  <option value="physics">
+                                    ⚛️ Physics
+                                  </option>
+
+                                  <option value="chemistry">
+                                    🧪 Chemistry
+                                  </option>
+
+                                  <option value="mathematics">
+                                    📐 Mathematics
+                                  </option>
+
+                                  <option value="botany">
+                                    🌿 Botany
+                                  </option>
+
+                                  <option value="zoology">
+                                    🦴 Zoology
+                                  </option>
+
+                                  <option value="biology">
+                                    🧬 Biology
+                                  </option>
+
+                                </select>
+
+                              </div>
+
+                              <div className="qb-input-group">
+
+                                <label>
+                                  🎯 Exam Category
+                                </label>
+
+                                <select
+                                  value={
+                                    editFormData.examCategory ||
+                                    "neet"
+                                  }
+                                  onChange={(e) =>
+                                    setEditFormData(
+                                      {
+                                        ...editFormData,
+
+                                        examCategory:
+                                          e.target
+                                            .value as ExamCategory,
+                                      }
+                                    )
+                                  }
+                                  className="select-box-premium"
+                                >
+
+                                  <option value="neet">
+                                    🩺 NEET
+                                  </option>
+
+                                  <option value="jee">
+                                    ⚙️ JEE
+                                  </option>
+
+                                </select>
+
+                              </div>
+
+                              <div className="qb-input-group">
+
+                                <label>
+                                  🎓 Academic Year
+                                </label>
+
+                                <select
+                                  value={
+                                    editFormData.academicYear ||
+                                    "1st-puc"
+                                  }
+                                  onChange={(e) =>
+                                    setEditFormData(
+                                      {
+                                        ...editFormData,
+
+                                        academicYear:
+                                          e.target
+                                            .value as AcademicYear,
+                                      }
+                                    )
+                                  }
+                                  className="select-box-premium"
+                                >
+
+                                  <option value="1st-puc">
+                                    📘 1st PUC
+                                  </option>
+
+                                  <option value="2nd-puc">
+                                    📕 2nd PUC
+                                  </option>
+
+                                </select>
+
+                              </div>
 
                             </div>
 
@@ -1830,21 +2435,17 @@ export default function QuestionBank() {
                                   editFormData.questionText ||
                                   ""
                                 }
-                                onChange={(
-                                  e
-                                ) =>
+                                onChange={(e) =>
                                   setEditFormData(
                                     {
                                       ...editFormData,
 
                                       question:
-                                        e
-                                          .target
+                                        e.target
                                           .value,
 
                                       questionText:
-                                        e
-                                          .target
+                                        e.target
                                           .value,
                                     }
                                   )
@@ -1855,9 +2456,7 @@ export default function QuestionBank() {
 
                             </div>
 
-                            {/* =================================
-                                IMAGE UPLOAD
-                            ================================== */}
+                            {/* IMAGE */}
 
                             <div className="qb-input-group mb-2">
 
@@ -1880,12 +2479,16 @@ export default function QuestionBank() {
                                   style={{
                                     marginTop:
                                       "12px",
+
                                     padding:
                                       "10px",
+
                                     border:
                                       "1px solid #ddd",
+
                                     borderRadius:
                                       "10px",
+
                                     background:
                                       "#fafafa",
                                   }}
@@ -1895,6 +2498,7 @@ export default function QuestionBank() {
                                     style={{
                                       marginBottom:
                                         "8px",
+
                                       fontWeight:
                                         600,
                                     }}
@@ -1912,12 +2516,16 @@ export default function QuestionBank() {
                                     style={{
                                       maxWidth:
                                         "100%",
+
                                       maxHeight:
                                         "300px",
+
                                       objectFit:
                                         "contain",
+
                                       borderRadius:
                                         "8px",
+
                                       display:
                                         "block",
                                     }}
@@ -1942,6 +2550,7 @@ export default function QuestionBank() {
                                 style={{
                                   display:
                                     "grid",
+
                                   gap:
                                     "8px",
                                 }}
@@ -1960,8 +2569,10 @@ export default function QuestionBank() {
                                       style={{
                                         display:
                                           "flex",
+
                                         gap:
                                           "10px",
+
                                         alignItems:
                                           "center",
                                       }}
@@ -1971,13 +2582,13 @@ export default function QuestionBank() {
                                         style={{
                                           fontWeight:
                                             700,
+
                                           minWidth:
                                             "30px",
                                         }}
                                       >
                                         (
-                                        {oI +
-                                          1}
+                                        {oI + 1}
                                         )
                                       </span>
 
@@ -1998,16 +2609,14 @@ export default function QuestionBank() {
                                           newOpts[
                                             oI
                                           ] =
-                                            e
-                                              .target
+                                            e.target
                                               .value;
 
                                           const answerIndex =
                                             parseInt(
                                               editFormData.ansNumber ||
                                                 "1"
-                                            ) -
-                                            1;
+                                            ) - 1;
 
                                           setEditFormData(
                                             {
@@ -2037,7 +2646,7 @@ export default function QuestionBank() {
 
                             </div>
 
-                            {/* ANSWER NUMBER */}
+                            {/* ANSWER */}
 
                             <div className="qb-input-group mb-2">
 
@@ -2050,26 +2659,22 @@ export default function QuestionBank() {
                                   editFormData.ansNumber ||
                                   "1"
                                 }
-                                onChange={(
-                                  e
-                                ) => {
+                                onChange={(e) => {
 
                                   const newAnswer =
-                                    e
-                                      .target
+                                    e.target
                                       .value;
 
                                   const answerIndex =
                                     parseInt(
                                       newAnswer
-                                    ) -
-                                    1;
+                                    ) - 1;
 
                                   const correct =
-                                    editFormData.options?.[
+                                    editFormData
+                                      .options?.[
                                       answerIndex
-                                    ] ||
-                                    "";
+                                    ] || "";
 
                                   setEditFormData(
                                     {
@@ -2082,6 +2687,7 @@ export default function QuestionBank() {
                                         correct,
                                     }
                                   );
+
                                 }}
                                 className="select-box-premium"
                                 style={{
@@ -2114,16 +2720,14 @@ export default function QuestionBank() {
 
                         ) : (
 
-                          /* =================================
+                          /* ==================================================
                              VIEW MODE
-                          ================================== */
+                          ================================================== */
 
                           <>
 
                             <p className="pq-text">
-
                               {questionText}
-
                             </p>
 
                             {/* IMAGE */}
@@ -2147,9 +2751,7 @@ export default function QuestionBank() {
 
                             <div className="pq-options">
 
-                              {(q.options ||
-                                []
-                              ).map(
+                              {(q.options || []).map(
                                 (
                                   opt,
                                   oI
@@ -2162,8 +2764,7 @@ export default function QuestionBank() {
                                     className={`pq-opt ${
                                       q.ansNumber ===
                                       String(
-                                        oI +
-                                          1
+                                        oI + 1
                                       )
                                         ? "correct-opt"
                                         : ""
@@ -2172,8 +2773,7 @@ export default function QuestionBank() {
 
                                     <span className="opt-num">
                                       (
-                                      {oI +
-                                        1}
+                                      {oI + 1}
                                       )
                                     </span>
 
@@ -2210,14 +2810,19 @@ export default function QuestionBank() {
                   style={{
                     display:
                       "flex",
+
                     justifyContent:
                       "center",
+
                     alignItems:
                       "center",
+
                     gap:
                       "12px",
+
                     marginTop:
                       "20px",
+
                     padding:
                       "10px",
                   }}
@@ -2228,8 +2833,7 @@ export default function QuestionBank() {
                       setCurrentPage(
                         (prev) =>
                           Math.max(
-                            prev -
-                              1,
+                            prev - 1,
                             1
                           )
                       )
@@ -2247,6 +2851,7 @@ export default function QuestionBank() {
                     style={{
                       fontWeight:
                         600,
+
                       fontSize:
                         "14px",
                     }}
@@ -2262,8 +2867,7 @@ export default function QuestionBank() {
                       setCurrentPage(
                         (prev) =>
                           Math.min(
-                            prev +
-                              1,
+                            prev + 1,
                             totalPages
                           )
                       )
@@ -2289,9 +2893,9 @@ export default function QuestionBank() {
 
       ) : (
 
-        /* =========================================
+        /* ======================================================
            MAIN CREATE AREA
-        ========================================== */
+        ====================================================== */
 
         <>
 
@@ -2299,9 +2903,13 @@ export default function QuestionBank() {
 
             <div className="qb-bulk-section animate-fade">
 
-              {/* TITLE + DATE */}
+              {/* ==================================================
+                  TEST INFORMATION
+              ================================================== */}
 
-              <div className="qb-grid-2">
+              <div className="qb-grid-3">
+
+                {/* TEST TITLE */}
 
                 <div className="qb-input-group">
 
@@ -2311,19 +2919,153 @@ export default function QuestionBank() {
 
                   <input
                     type="text"
-                    placeholder="e.g. Grand Master Mock Test 01"
+                    placeholder="e.g. NEET Chemistry Test 01"
                     value={
                       publishTestTitle
                     }
                     onChange={(e) =>
                       setPublishTestTitle(
-                        e.target.value
+                        e.target
+                          .value
                       )
                     }
                     className="input-box-premium"
                   />
 
                 </div>
+
+                {/* TEST TYPE */}
+
+                <div className="qb-input-group">
+
+                  <label>
+                    📝 Test Publishing Type
+                  </label>
+
+                  <select
+                    value={
+                      publishTestType
+                    }
+                    onChange={(e) =>
+                      setPublishTestType(
+                        e.target
+                          .value as TestType
+                      )
+                    }
+                    className="select-box-premium"
+                  >
+
+                    <option value="mock">
+                      📝 Mock Test
+                    </option>
+
+                    <option value="daily">
+                      ⚡ Daily Test
+                    </option>
+
+                    <option value="physics">
+                      ⚛️ Physics
+                    </option>
+
+                    <option value="chemistry">
+                      🧪 Chemistry
+                    </option>
+
+                    <option value="mathematics">
+                      📐 Mathematics
+                    </option>
+
+                    <option value="botany">
+                      🌿 Botany
+                    </option>
+
+                    <option value="zoology">
+                      🦴 Zoology
+                    </option>
+
+                    <option value="biology">
+                      🧬 Biology
+                    </option>
+
+                  </select>
+
+                </div>
+
+                {/* EXAM CATEGORY */}
+
+                <div className="qb-input-group">
+
+                  <label>
+                    🎯 Exam Category
+                  </label>
+
+                  <select
+                    value={
+                      examCategory
+                    }
+                    onChange={(e) =>
+                      setExamCategory(
+                        e.target
+                          .value as ExamCategory
+                      )
+                    }
+                    className="select-box-premium"
+                  >
+
+                    <option value="neet">
+                      🩺 NEET
+                    </option>
+
+                    <option value="jee">
+                      ⚙️ JEE
+                    </option>
+
+                  </select>
+
+                </div>
+
+              </div>
+
+              {/* ==================================================
+                  YEAR + DATE
+              ================================================== */}
+
+              <div className="qb-grid-3 mt-3">
+
+                {/* YEAR */}
+
+                <div className="qb-input-group">
+
+                  <label>
+                    🎓 Academic Year
+                  </label>
+
+                  <select
+                    value={
+                      academicYear
+                    }
+                    onChange={(e) =>
+                      setAcademicYear(
+                        e.target
+                          .value as AcademicYear
+                      )
+                    }
+                    className="select-box-premium"
+                  >
+
+                    <option value="1st-puc">
+                      📘 1st PUC
+                    </option>
+
+                    <option value="2nd-puc">
+                      📕 2nd PUC
+                    </option>
+
+                  </select>
+
+                </div>
+
+                {/* DATE */}
 
                 <div className="qb-input-group">
 
@@ -2338,7 +3080,8 @@ export default function QuestionBank() {
                     }
                     onChange={(e) =>
                       setPublishDate(
-                        e.target.value
+                        e.target
+                          .value
                       )
                     }
                     className="input-box-premium"
@@ -2346,9 +3089,172 @@ export default function QuestionBank() {
 
                 </div>
 
+                {/* TIME */}
+
+                <div className="qb-input-group">
+
+                  <label>
+                    ⏰ Exam Start Time
+                  </label>
+
+                  <div
+                    style={{
+                      display:
+                        "flex",
+
+                      gap:
+                        "6px",
+                    }}
+                  >
+
+                    <select
+                      value={
+                        tHour
+                      }
+                      onChange={(e) =>
+                        setTHour(
+                          e.target
+                            .value
+                        )
+                      }
+                      className="select-box-premium"
+                    >
+
+                      {Array.from(
+                        {
+                          length:
+                            12,
+                        },
+                        (
+                          _,
+                          i
+                        ) =>
+                          i + 1
+                      ).map(
+                        (h) => (
+
+                          <option
+                            key={
+                              h
+                            }
+                            value={String(
+                              h
+                            )}
+                          >
+                            {h}
+                          </option>
+
+                        )
+                      )}
+
+                    </select>
+
+                    <select
+                      value={
+                        tMin
+                      }
+                      onChange={(e) =>
+                        setTMin(
+                          e.target
+                            .value
+                        )
+                      }
+                      className="select-box-premium"
+                    >
+
+                      {[
+                        "00",
+                        "05",
+                        "10",
+                        "15",
+                        "20",
+                        "25",
+                        "30",
+                        "35",
+                        "40",
+                        "45",
+                        "50",
+                        "55",
+                      ].map(
+                        (m) => (
+
+                          <option
+                            key={
+                              m
+                            }
+                            value={
+                              m
+                            }
+                          >
+                            {m}
+                          </option>
+
+                        )
+                      )}
+
+                    </select>
+
+                    <select
+                      value={
+                        tAmPm
+                      }
+                      onChange={(e) =>
+                        setTAmPm(
+                          e.target
+                            .value
+                        )
+                      }
+                      className="select-box-premium"
+                    >
+
+                      <option value="AM">
+                        AM
+                      </option>
+
+                      <option value="PM">
+                        PM
+                      </option>
+
+                    </select>
+
+                  </div>
+
+                </div>
+
               </div>
 
-              {/* TEXT */}
+              {/* ==================================================
+                  SUBJECT INFORMATION
+              ================================================== */}
+
+              {isSubjectWiseTest(
+                publishTestType
+              ) && (
+
+                <div
+                  className="qb-message-banner animate-fade"
+                  style={{
+                    marginTop:
+                      "18px",
+                  }}
+                >
+                  📚{" "}
+                  <strong>
+                    Subject Wise Test:
+                  </strong>{" "}
+                  {getTestTypeLabel(
+                    publishTestType
+                  )}{" "}
+                  questions will be stored
+                  separately under the selected
+                  subject.
+                </div>
+
+              )}
+
+              {/* ==================================================
+                  QUESTIONS
+              ================================================== */}
 
               <div className="qb-grid-2 mt-4">
 
@@ -2366,7 +3272,8 @@ export default function QuestionBank() {
                     }
                     onChange={(e) =>
                       setBulkQuestionsText(
-                        e.target.value
+                        e.target
+                          .value
                       )
                     }
                     className="textarea-box-premium"
@@ -2388,7 +3295,8 @@ export default function QuestionBank() {
                     }
                     onChange={(e) =>
                       setBulkAnswersText(
-                        e.target.value
+                        e.target
+                          .value
                       )
                     }
                     className="textarea-box-premium"
@@ -2398,7 +3306,9 @@ export default function QuestionBank() {
 
               </div>
 
-              {/* PARSE */}
+              {/* ==================================================
+                  PARSE
+              ================================================== */}
 
               <div className="qb-action-row">
 
@@ -2414,7 +3324,9 @@ export default function QuestionBank() {
 
               </div>
 
-              {/* PARSED */}
+              {/* ==================================================
+                  PARSED
+              ================================================== */}
 
               {parsedQuestions.length >
                 0 && (
@@ -2427,6 +3339,43 @@ export default function QuestionBank() {
                       parsedQuestions.length
                     } Questions)
                   </h3>
+
+                  <div
+                    style={{
+                      margin:
+                        "12px 0",
+
+                      display:
+                        "flex",
+
+                      flexWrap:
+                        "wrap",
+
+                      gap:
+                        "8px",
+                    }}
+                  >
+
+                    <span className="chapter-tag">
+                      {getTestTypeLabel(
+                        publishTestType
+                      )}
+                    </span>
+
+                    <span className="chapter-tag">
+                      🎯{" "}
+                      {examCategory.toUpperCase()}
+                    </span>
+
+                    <span className="chapter-tag">
+                      🎓{" "}
+                      {academicYear ===
+                      "1st-puc"
+                        ? "1st PUC"
+                        : "2nd PUC"}
+                    </span>
+
+                  </div>
 
                   <div className="qb-save-row">
 
@@ -2455,9 +3404,9 @@ export default function QuestionBank() {
 
           ) : (
 
-            /* =====================================
+            /* ==================================================
                PDF
-            ====================================== */
+            ================================================== */
 
             <div className="qb-pdf-section animate-fade">
 
@@ -2476,6 +3425,10 @@ export default function QuestionBank() {
                   Upload question sheets directly.
                 </p>
 
+                {/* ==================================================
+                    PDF + TITLE
+                ================================================== */}
+
                 <div className="qb-grid-2">
 
                   <div className="qb-input-group">
@@ -2491,7 +3444,7 @@ export default function QuestionBank() {
                         setPdfFile(
                           e.target
                             .files?.[0] ||
-                            null
+                          null
                         )
                       }
                       className="file-input-box-premium"
@@ -2513,7 +3466,8 @@ export default function QuestionBank() {
                       }
                       onChange={(e) =>
                         setPublishTestTitle(
-                          e.target.value
+                          e.target
+                            .value
                         )
                       }
                       className="input-box-premium"
@@ -2523,12 +3477,18 @@ export default function QuestionBank() {
 
                 </div>
 
+                {/* ==================================================
+                    TYPE / CATEGORY / YEAR
+                ================================================== */}
+
                 <div className="qb-grid-3 mt-3">
+
+                  {/* TEST TYPE */}
 
                   <div className="qb-input-group">
 
                     <label>
-                      Test Publishing Type
+                      📝 Test Publishing Type
                     </label>
 
                     <select
@@ -2538,9 +3498,7 @@ export default function QuestionBank() {
                       onChange={(e) =>
                         setPublishTestType(
                           e.target
-                            .value as
-                            | "mock"
-                            | "daily"
+                            .value as TestType
                         )
                       }
                       className="select-box-premium"
@@ -2554,9 +3512,107 @@ export default function QuestionBank() {
                         ⚡ Daily Test
                       </option>
 
+                      <option value="physics">
+                        ⚛️ Physics
+                      </option>
+
+                      <option value="chemistry">
+                        🧪 Chemistry
+                      </option>
+
+                      <option value="mathematics">
+                        📐 Mathematics
+                      </option>
+
+                      <option value="botany">
+                        🌿 Botany
+                      </option>
+
+                      <option value="zoology">
+                        🦴 Zoology
+                      </option>
+
+                      <option value="biology">
+                        🧬 Biology
+                      </option>
+
                     </select>
 
                   </div>
+
+                  {/* EXAM CATEGORY */}
+
+                  <div className="qb-input-group">
+
+                    <label>
+                      🎯 Exam Category
+                    </label>
+
+                    <select
+                      value={
+                        examCategory
+                      }
+                      onChange={(e) =>
+                        setExamCategory(
+                          e.target
+                            .value as ExamCategory
+                        )
+                      }
+                      className="select-box-premium"
+                    >
+
+                      <option value="neet">
+                        🩺 NEET
+                      </option>
+
+                      <option value="jee">
+                        ⚙️ JEE
+                      </option>
+
+                    </select>
+
+                  </div>
+
+                  {/* ACADEMIC YEAR */}
+
+                  <div className="qb-input-group">
+
+                    <label>
+                      🎓 Academic Year
+                    </label>
+
+                    <select
+                      value={
+                        academicYear
+                      }
+                      onChange={(e) =>
+                        setAcademicYear(
+                          e.target
+                            .value as AcademicYear
+                        )
+                      }
+                      className="select-box-premium"
+                    >
+
+                      <option value="1st-puc">
+                        📘 1st PUC
+                      </option>
+
+                      <option value="2nd-puc">
+                        📕 2nd PUC
+                      </option>
+
+                    </select>
+
+                  </div>
+
+                </div>
+
+                {/* ==================================================
+                    DATE + TIME
+                ================================================== */}
+
+                <div className="qb-grid-2 mt-3">
 
                   <div className="qb-input-group">
 
@@ -2571,7 +3627,8 @@ export default function QuestionBank() {
                       }
                       onChange={(e) =>
                         setPublishDate(
-                          e.target.value
+                          e.target
+                            .value
                         )
                       }
                       className="input-box-premium"
@@ -2589,6 +3646,7 @@ export default function QuestionBank() {
                       style={{
                         display:
                           "flex",
+
                         gap:
                           "6px",
                       }}
@@ -2609,12 +3667,17 @@ export default function QuestionBank() {
 
                         {Array.from(
                           {
-                            length: 12,
+                            length:
+                              12,
                           },
-                          (_, i) =>
+                          (
+                            _,
+                            i
+                          ) =>
                             i + 1
                         ).map(
                           (h) => (
+
                             <option
                               key={
                                 h
@@ -2625,6 +3688,7 @@ export default function QuestionBank() {
                             >
                               {h}
                             </option>
+
                           )
                         )}
 
@@ -2658,6 +3722,7 @@ export default function QuestionBank() {
                           "55",
                         ].map(
                           (m) => (
+
                             <option
                               key={
                                 m
@@ -2668,6 +3733,7 @@ export default function QuestionBank() {
                             >
                               {m}
                             </option>
+
                           )
                         )}
 
@@ -2701,6 +3767,38 @@ export default function QuestionBank() {
                   </div>
 
                 </div>
+
+                {/* ==================================================
+                    SUBJECT NOTICE
+                ================================================== */}
+
+                {isSubjectWiseTest(
+                  publishTestType
+                ) && (
+
+                  <div
+                    className="qb-message-banner animate-fade"
+                    style={{
+                      marginTop:
+                        "18px",
+                    }}
+                  >
+                    📚{" "}
+                    <strong>
+                      Subject Wise:
+                    </strong>{" "}
+                    {getTestTypeLabel(
+                      publishTestType
+                    )}{" "}
+                    questions will be stored
+                    separately.
+                  </div>
+
+                )}
+
+                {/* ==================================================
+                    SUBMIT
+                ================================================== */}
 
                 <div className="qb-action-row mt-4">
 

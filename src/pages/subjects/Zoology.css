@@ -1,0 +1,1469 @@
+/* =========================================================
+   STG EXAM MASTER
+   ZOOLOGY PAGE
+   PREMIUM MIDNIGHT • ROYAL PURPLE • VIOLET • GOLD
+   DESKTOP + TABLET + MOBILE RESPONSIVE
+   ========================================================= */
+
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
+
+
+/* =========================================================
+   ROOT VARIABLES
+   ========================================================= */
+
+:root {
+  --zoo-bg: #070611;
+  --zoo-bg-soft: #0d0a18;
+
+  --zoo-card: rgba(25, 19, 42, 0.84);
+  --zoo-card-solid: #191329;
+
+  --zoo-border: rgba(190, 158, 255, 0.14);
+  --zoo-border-hover: rgba(201, 170, 255, 0.42);
+
+  --zoo-primary: #9b6cff;
+  --zoo-primary-light: #c9aaff;
+  --zoo-primary-dark: #6738c8;
+
+  --zoo-violet: #7c4dff;
+  --zoo-violet-light: #b388ff;
+
+  --zoo-gold: #e9c46a;
+  --zoo-gold-light: #ffe4a3;
+
+  --zoo-text: #faf8ff;
+  --zoo-text-soft: #d3cce2;
+  --zoo-muted: #9289a7;
+
+  --zoo-shadow:
+    0 25px 75px rgba(0, 0, 0, 0.45);
+
+  --zoo-radius: 24px;
+}
+
+
+/* =========================================================
+   PAGE
+   ========================================================= */
+
+.zoology-page {
+  min-height: 100vh;
+  width: 100%;
+
+  padding: 50px 20px 90px;
+
+  background:
+    radial-gradient(
+      circle at 8% 4%,
+      rgba(155, 108, 255, 0.17),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 92% 10%,
+      rgba(233, 196, 106, 0.08),
+      transparent 25%
+    ),
+    radial-gradient(
+      circle at 50% 80%,
+      rgba(124, 77, 255, 0.08),
+      transparent 32%
+    ),
+    linear-gradient(
+      135deg,
+      #06050c 0%,
+      #0d0917 48%,
+      #070611 100%
+    );
+
+  color: var(--zoo-text);
+
+  font-family:
+    "Plus Jakarta Sans",
+    sans-serif;
+
+  overflow: hidden;
+}
+
+
+/* =========================================================
+   CONTAINER
+   ========================================================= */
+
+.zoology-container {
+  width: min(1380px, 100%);
+  margin: 0 auto;
+}
+
+
+/* =========================================================
+   HERO
+   ========================================================= */
+
+.zoology-hero {
+  position: relative;
+
+  min-height: 410px;
+
+  display: flex;
+  align-items: center;
+
+  padding: 60px 65px;
+
+  margin-bottom: 70px;
+
+  border-radius: 34px;
+
+  overflow: hidden;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(31, 22, 52, 0.97),
+      rgba(11, 8, 22, 0.95)
+    );
+
+  border: 1px solid
+    rgba(190, 158, 255, 0.16);
+
+  box-shadow:
+    0 30px 90px rgba(0, 0, 0, 0.46),
+    inset 0 1px 0
+      rgba(255, 255, 255, 0.05);
+}
+
+
+/* =========================================================
+   HERO GLOW
+   ========================================================= */
+
+.zoology-hero-glow {
+  position: absolute;
+
+  width: 440px;
+  height: 440px;
+
+  right: -130px;
+  top: -170px;
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(155, 108, 255, 0.30),
+      rgba(155, 108, 255, 0.08) 45%,
+      transparent 72%
+    );
+
+  filter: blur(8px);
+
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   SECONDARY GOLD GLOW
+   ========================================================= */
+
+.zoology-hero::after {
+  content: "";
+
+  position: absolute;
+
+  width: 280px;
+  height: 280px;
+
+  right: 100px;
+  bottom: -190px;
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(233, 196, 106, 0.12),
+      transparent 70%
+    );
+
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   HERO CONTENT
+   ========================================================= */
+
+.zoology-hero-content {
+  position: relative;
+
+  z-index: 2;
+
+  max-width: 850px;
+}
+
+
+/* =========================================================
+   BADGE
+   ========================================================= */
+
+.zoology-badge {
+  width: fit-content;
+
+  display: inline-flex;
+  align-items: center;
+
+  gap: 9px;
+
+  padding: 9px 15px;
+
+  margin-bottom: 23px;
+
+  border-radius: 999px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(155, 108, 255, 0.16),
+      rgba(233, 196, 106, 0.08)
+    );
+
+  border: 1px solid
+    rgba(190, 158, 255, 0.23);
+
+  color: var(--zoo-primary-light);
+
+  font-size: 11px;
+
+  font-weight: 800;
+
+  letter-spacing: 1.4px;
+
+  box-shadow:
+    inset 0 1px 0
+      rgba(255, 255, 255, 0.04);
+}
+
+
+/* =========================================================
+   TITLE
+   ========================================================= */
+
+.zoology-title {
+  margin: 0;
+
+  font-size:
+    clamp(42px, 5vw, 76px);
+
+  line-height: 0.98;
+
+  letter-spacing: -3px;
+
+  font-weight: 800;
+
+  color: #faf8ff;
+}
+
+
+/* =========================================================
+   TITLE GRADIENT
+   ========================================================= */
+
+.zoology-title span {
+  display: block;
+
+  margin-top: 16px;
+
+  font-size:
+    clamp(20px, 2.3vw, 32px);
+
+  line-height: 1.2;
+
+  letter-spacing: -1px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #c9aaff 0%,
+      #9b6cff 45%,
+      #ffe4a3 100%
+    );
+
+  -webkit-background-clip: text;
+  background-clip: text;
+
+  -webkit-text-fill-color: transparent;
+}
+
+
+/* =========================================================
+   DESCRIPTION
+   ========================================================= */
+
+.zoology-description {
+  max-width: 720px;
+
+  margin: 25px 0 0;
+
+  color: var(--zoo-text-soft);
+
+  font-size: 15px;
+
+  line-height: 1.8;
+}
+
+
+/* =========================================================
+   STATS
+   ========================================================= */
+
+.zoology-stats {
+  display: flex;
+
+  flex-wrap: wrap;
+
+  gap: 12px;
+
+  margin-top: 32px;
+}
+
+
+.zoology-stat {
+  min-width: 135px;
+
+  padding: 15px 19px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 4px;
+
+  border-radius: 16px;
+
+  background:
+    rgba(255, 255, 255, 0.025);
+
+  border: 1px solid
+    rgba(190, 158, 255, 0.11);
+
+  backdrop-filter: blur(15px);
+
+  box-shadow:
+    inset 0 1px 0
+      rgba(255, 255, 255, 0.025);
+}
+
+
+.zoology-stat-value {
+  font-size: 20px;
+
+  font-weight: 800;
+
+  color: var(--zoo-primary-light);
+}
+
+
+.zoology-stat-label {
+  font-size: 10px;
+
+  color: var(--zoo-muted);
+
+  font-weight: 700;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.8px;
+}
+
+
+/* =========================================================
+   CHAPTER SECTION
+   ========================================================= */
+
+.zoology-chapters-section {
+  width: 100%;
+}
+
+
+/* =========================================================
+   SECTION HEADER
+   ========================================================= */
+
+.zoology-section-header {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: flex-end;
+
+  margin-bottom: 30px;
+}
+
+
+.zoology-section-eyebrow {
+  display: inline-block;
+
+  margin-bottom: 9px;
+
+  color: var(--zoo-gold);
+
+  font-size: 10px;
+
+  font-weight: 800;
+
+  letter-spacing: 2px;
+}
+
+
+.zoology-section-title {
+  margin: 0;
+
+  color: #faf8ff;
+
+  font-size:
+    clamp(28px, 3vw, 42px);
+
+  line-height: 1.1;
+
+  letter-spacing: -1.5px;
+
+  font-weight: 800;
+}
+
+
+.zoology-section-subtitle {
+  margin: 10px 0 0;
+
+  color: var(--zoo-muted);
+
+  font-size: 14px;
+}
+
+
+/* =========================================================
+   GRID
+   ========================================================= */
+
+.zoology-chapter-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  gap: 18px;
+}
+
+
+/* =========================================================
+   CARD
+   ========================================================= */
+
+.zoology-chapter-card {
+  position: relative;
+
+  min-height: 355px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  padding: 22px;
+
+  border-radius: var(--zoo-radius);
+
+  overflow: hidden;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(31, 23, 51, 0.94),
+      rgba(11, 8, 23, 0.94)
+    );
+
+  border: 1px solid
+    rgba(190, 158, 255, 0.13);
+
+  box-shadow:
+    0 20px 55px rgba(0, 0, 0, 0.28);
+
+  transition:
+    transform 0.35s ease,
+    border-color 0.35s ease,
+    box-shadow 0.35s ease;
+}
+
+
+/* =========================================================
+   CARD DECORATIVE GLOW
+   ========================================================= */
+
+.zoology-chapter-card::before {
+  content: "";
+
+  position: absolute;
+
+  width: 180px;
+  height: 180px;
+
+  top: -100px;
+  right: -80px;
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(155, 108, 255, 0.16),
+      transparent 70%
+    );
+
+  pointer-events: none;
+
+  transition:
+    transform 0.4s ease;
+}
+
+
+.zoology-chapter-card:hover::before {
+  transform: scale(1.35);
+}
+
+
+/* =========================================================
+   CARD HOVER
+   ========================================================= */
+
+.zoology-chapter-card:hover {
+  transform: translateY(-8px);
+
+  border-color:
+    rgba(201, 170, 255, 0.42);
+
+  box-shadow:
+    0 30px 75px rgba(0, 0, 0, 0.42),
+    0 0 40px rgba(155, 108, 255, 0.10);
+}
+
+
+/* =========================================================
+   CARD TOP
+   ========================================================= */
+
+.zoology-card-top {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  margin-bottom: 24px;
+}
+
+
+/* =========================================================
+   ICON BASE
+   ========================================================= */
+
+.zoology-chapter-icon {
+  width: 54px;
+  height: 54px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border-radius: 17px;
+
+  border: 1px solid
+    rgba(255, 255, 255, 0.08);
+
+  box-shadow:
+    inset 0 1px 0
+      rgba(255, 255, 255, 0.08);
+}
+
+
+/* =========================================================
+   PHYSIOLOGY
+   ========================================================= */
+
+.zoology-chapter-icon.physiology {
+  color: #ff9fb2;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 95, 125, 0.19),
+      rgba(255, 95, 125, 0.04)
+    );
+
+  box-shadow:
+    0 10px 30px
+      rgba(255, 95, 125, 0.06);
+}
+
+
+/* =========================================================
+   REPRODUCTION
+   ========================================================= */
+
+.zoology-chapter-icon.reproduction {
+  color: #d6a0ff;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(191, 106, 255, 0.20),
+      rgba(191, 106, 255, 0.04)
+    );
+
+  box-shadow:
+    0 10px 30px
+      rgba(191, 106, 255, 0.07);
+}
+
+
+/* =========================================================
+   HEALTH
+   ========================================================= */
+
+.zoology-chapter-icon.health {
+  color: #7cc9ff;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(77, 176, 255, 0.19),
+      rgba(77, 176, 255, 0.04)
+    );
+
+  box-shadow:
+    0 10px 30px
+      rgba(77, 176, 255, 0.06);
+}
+
+
+/* =========================================================
+   GENETICS
+   ========================================================= */
+
+.zoology-chapter-icon.genetics {
+  color: #b9a1ff;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(130, 91, 255, 0.21),
+      rgba(130, 91, 255, 0.04)
+    );
+
+  box-shadow:
+    0 10px 30px
+      rgba(130, 91, 255, 0.07);
+}
+
+
+/* =========================================================
+   ANIMAL
+   ========================================================= */
+
+.zoology-chapter-icon.animal {
+  color: #f5d58a;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(233, 196, 106, 0.19),
+      rgba(233, 196, 106, 0.04)
+    );
+
+  box-shadow:
+    0 10px 30px
+      rgba(233, 196, 106, 0.06);
+}
+
+
+/* =========================================================
+   EVOLUTION
+   ========================================================= */
+
+.zoology-chapter-icon.evolution {
+  color: #a9d6ff;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(104, 187, 255, 0.19),
+      rgba(104, 187, 255, 0.04)
+    );
+
+  box-shadow:
+    0 10px 30px
+      rgba(104, 187, 255, 0.06);
+}
+
+
+/* =========================================================
+   CELL
+   ========================================================= */
+
+.zoology-chapter-icon.cell {
+  color: #c8b4ff;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(155, 108, 255, 0.20),
+      rgba(155, 108, 255, 0.04)
+    );
+
+  box-shadow:
+    0 10px 30px
+      rgba(155, 108, 255, 0.07);
+}
+
+
+/* =========================================================
+   BIOTECH
+   ========================================================= */
+
+.zoology-chapter-icon.biotech {
+  color: #ffb6ec;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(239, 117, 214, 0.20),
+      rgba(239, 117, 214, 0.04)
+    );
+
+  box-shadow:
+    0 10px 30px
+      rgba(239, 117, 214, 0.06);
+}
+
+
+/* =========================================================
+   NUMBER
+   ========================================================= */
+
+.zoology-chapter-number {
+  font-size: 11px;
+
+  font-weight: 800;
+
+  color:
+    rgba(211, 200, 226, 0.40);
+
+  letter-spacing: 1px;
+}
+
+
+/* =========================================================
+   CARD CONTENT
+   ========================================================= */
+
+.zoology-card-content {
+  display: flex;
+
+  flex-direction: column;
+
+  flex: 1;
+}
+
+
+/* =========================================================
+   CARD TAG
+   ========================================================= */
+
+.zoology-card-tag {
+  width: fit-content;
+
+  margin-bottom: 10px;
+
+  color: var(--zoo-gold);
+
+  font-size: 9px;
+
+  font-weight: 800;
+
+  letter-spacing: 1.2px;
+}
+
+
+/* =========================================================
+   CARD TITLE
+   ========================================================= */
+
+.zoology-card-content h3 {
+  margin: 0;
+
+  color: #faf8ff;
+
+  font-size: 20px;
+
+  line-height: 1.25;
+
+  font-weight: 800;
+
+  letter-spacing: -0.5px;
+}
+
+
+/* =========================================================
+   CARD DESCRIPTION
+   ========================================================= */
+
+.zoology-card-content p {
+  margin: 13px 0 22px;
+
+  color: var(--zoo-muted);
+
+  font-size: 12px;
+
+  line-height: 1.75;
+}
+
+
+/* =========================================================
+   TEST BUTTON
+   ========================================================= */
+
+.zoology-test-button {
+  width: 100%;
+
+  margin-top: auto;
+
+  min-height: 46px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 8px;
+
+  border: 1px solid
+    rgba(155, 108, 255, 0.23);
+
+  border-radius: 13px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(155, 108, 255, 0.14),
+      rgba(103, 56, 200, 0.05)
+    );
+
+  color: var(--zoo-primary-light);
+
+  font-family: inherit;
+
+  font-size: 11px;
+
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition:
+    background 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease,
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+
+/* =========================================================
+   BUTTON ARROW
+   ========================================================= */
+
+.zoology-test-button svg:last-child {
+  transition:
+    transform 0.3s ease;
+}
+
+
+/* =========================================================
+   BUTTON HOVER
+   ========================================================= */
+
+.zoology-test-button:hover {
+  color: #ffffff;
+
+  background:
+    linear-gradient(
+      135deg,
+      #9b6cff,
+      #6738c8
+    );
+
+  border-color:
+    #9b6cff;
+
+  box-shadow:
+    0 12px 35px
+      rgba(155, 108, 255, 0.28);
+
+  transform: translateY(-2px);
+}
+
+
+.zoology-test-button:hover svg:last-child {
+  transform: translateX(4px);
+}
+
+
+/* =========================================================
+   BOTTOM CTA
+   ========================================================= */
+
+.zoology-bottom-cta {
+  position: relative;
+
+  margin-top: 55px;
+
+  padding: 28px 30px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 20px;
+
+  border-radius: 25px;
+
+  background:
+    linear-gradient(
+      120deg,
+      rgba(31, 22, 52, 0.94),
+      rgba(12, 8, 23, 0.94)
+    );
+
+  border: 1px solid
+    rgba(155, 108, 255, 0.15);
+
+  box-shadow:
+    0 20px 60px
+      rgba(0, 0, 0, 0.30);
+}
+
+
+/* =========================================================
+   CTA GLOW
+   ========================================================= */
+
+.zoology-bottom-cta::before {
+  content: "";
+
+  position: absolute;
+
+  width: 220px;
+  height: 220px;
+
+  left: -100px;
+  top: -120px;
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(155, 108, 255, 0.12),
+      transparent 70%
+    );
+
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   CTA ICON
+   ========================================================= */
+
+.zoology-cta-icon {
+  flex: 0 0 auto;
+
+  width: 58px;
+  height: 58px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border-radius: 18px;
+
+  color: var(--zoo-primary-light);
+
+  background:
+    rgba(155, 108, 255, 0.11);
+
+  border: 1px solid
+    rgba(155, 108, 255, 0.20);
+
+  box-shadow:
+    0 10px 30px
+      rgba(155, 108, 255, 0.07);
+}
+
+
+/* =========================================================
+   CTA CONTENT
+   ========================================================= */
+
+.zoology-cta-content {
+  flex: 1;
+}
+
+
+.zoology-cta-content > span {
+  font-size: 9px;
+
+  font-weight: 800;
+
+  letter-spacing: 1.5px;
+
+  color: var(--zoo-gold);
+}
+
+
+.zoology-cta-content h2 {
+  margin: 5px 0;
+
+  font-size: 22px;
+
+  font-weight: 800;
+
+  color: #faf8ff;
+}
+
+
+.zoology-cta-content p {
+  margin: 0;
+
+  color: var(--zoo-muted);
+
+  font-size: 12px;
+}
+
+
+/* =========================================================
+   CTA BUTTON
+   ========================================================= */
+
+.zoology-cta-button {
+  flex: 0 0 auto;
+
+  min-height: 48px;
+
+  padding: 0 20px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 9px;
+
+  border: 0;
+
+  border-radius: 13px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #9b6cff,
+      #6738c8
+    );
+
+  color: #ffffff;
+
+  font-family: inherit;
+
+  font-size: 11px;
+
+  font-weight: 800;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 12px 30px
+      rgba(155, 108, 255, 0.18);
+
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+
+/* =========================================================
+   CTA BUTTON HOVER
+   ========================================================= */
+
+.zoology-cta-button:hover {
+  transform: translateY(-3px);
+
+  box-shadow:
+    0 18px 42px
+      rgba(155, 108, 255, 0.28);
+}
+
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 1150px) {
+
+  .zoology-chapter-grid {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
+
+}
+
+
+/* =========================================================
+   SMALL TABLET
+   ========================================================= */
+
+@media (max-width: 850px) {
+
+  .zoology-page {
+    padding: 30px 15px 70px;
+  }
+
+
+  .zoology-hero {
+    padding: 45px 35px;
+
+    min-height: auto;
+
+    border-radius: 27px;
+  }
+
+
+  .zoology-chapter-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+
+  .zoology-bottom-cta {
+    align-items: flex-start;
+
+    flex-wrap: wrap;
+  }
+
+
+  .zoology-cta-content {
+    min-width: 220px;
+  }
+
+
+  .zoology-cta-button {
+    width: 100%;
+  }
+
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+  .zoology-page {
+    padding: 18px 11px 55px;
+  }
+
+
+  .zoology-hero {
+    padding: 32px 21px;
+
+    margin-bottom: 45px;
+
+    border-radius: 23px;
+  }
+
+
+  .zoology-hero-glow {
+    width: 280px;
+    height: 280px;
+
+    right: -150px;
+    top: -130px;
+  }
+
+
+  .zoology-badge {
+    padding: 8px 12px;
+
+    margin-bottom: 18px;
+
+    font-size: 9px;
+
+    letter-spacing: 1px;
+  }
+
+
+  .zoology-title {
+    font-size: 42px;
+
+    letter-spacing: -2px;
+  }
+
+
+  .zoology-title span {
+    margin-top: 12px;
+
+    font-size: 20px;
+
+    letter-spacing: -0.6px;
+  }
+
+
+  .zoology-description {
+    margin-top: 19px;
+
+    font-size: 12px;
+
+    line-height: 1.7;
+  }
+
+
+  .zoology-stats {
+    display: grid;
+
+    grid-template-columns:
+      repeat(3, 1fr);
+
+    gap: 7px;
+
+    margin-top: 23px;
+  }
+
+
+  .zoology-stat {
+    min-width: 0;
+
+    padding: 12px 7px;
+
+    text-align: center;
+
+    border-radius: 13px;
+  }
+
+
+  .zoology-stat-value {
+    font-size: 16px;
+  }
+
+
+  .zoology-stat-label {
+    font-size: 7px;
+
+    letter-spacing: 0.4px;
+  }
+
+
+  .zoology-section-header {
+    margin-bottom: 22px;
+  }
+
+
+  .zoology-section-eyebrow {
+    font-size: 8px;
+  }
+
+
+  .zoology-section-title {
+    font-size: 28px;
+
+    letter-spacing: -1px;
+  }
+
+
+  .zoology-section-subtitle {
+    font-size: 11px;
+
+    line-height: 1.6;
+  }
+
+
+  .zoology-chapter-grid {
+    grid-template-columns: 1fr;
+
+    gap: 13px;
+  }
+
+
+  .zoology-chapter-card {
+    min-height: auto;
+
+    padding: 18px;
+
+    border-radius: 20px;
+  }
+
+
+  .zoology-card-top {
+    margin-bottom: 18px;
+  }
+
+
+  .zoology-chapter-icon {
+    width: 48px;
+    height: 48px;
+
+    border-radius: 14px;
+  }
+
+
+  .zoology-chapter-number {
+    font-size: 9px;
+  }
+
+
+  .zoology-card-content h3 {
+    font-size: 18px;
+  }
+
+
+  .zoology-card-content p {
+    margin: 10px 0 18px;
+
+    font-size: 11px;
+
+    line-height: 1.65;
+  }
+
+
+  .zoology-card-tag {
+    font-size: 8px;
+
+    letter-spacing: 1px;
+  }
+
+
+  .zoology-test-button {
+    min-height: 44px;
+
+    border-radius: 12px;
+
+    font-size: 10px;
+  }
+
+
+  .zoology-bottom-cta {
+    margin-top: 35px;
+
+    padding: 20px;
+
+    gap: 14px;
+
+    border-radius: 20px;
+  }
+
+
+  .zoology-cta-icon {
+    width: 48px;
+    height: 48px;
+
+    border-radius: 14px;
+  }
+
+
+  .zoology-cta-content h2 {
+    font-size: 18px;
+
+    line-height: 1.3;
+  }
+
+
+  .zoology-cta-content p {
+    font-size: 10px;
+
+    line-height: 1.6;
+  }
+
+
+  .zoology-cta-button {
+    min-height: 45px;
+
+    font-size: 10px;
+  }
+
+}
+
+
+/* =========================================================
+   VERY SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 380px) {
+
+  .zoology-title {
+    font-size: 36px;
+  }
+
+
+  .zoology-title span {
+    font-size: 18px;
+  }
+
+
+  .zoology-stats {
+    grid-template-columns: 1fr;
+  }
+
+
+  .zoology-stat {
+    flex-direction: row;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    text-align: left;
+  }
+
+}
+
+
+/* =========================================================
+   ACCESSIBILITY
+   ========================================================= */
+
+.zoology-test-button:focus-visible,
+.zoology-cta-button:focus-visible {
+  outline: 2px solid
+    var(--zoo-primary-light);
+
+  outline-offset: 3px;
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .zoology-chapter-card,
+  .zoology-test-button,
+  .zoology-cta-button,
+  .zoology-test-button svg,
+  .zoology-chapter-card::before {
+    transition: none;
+  }
+
+}

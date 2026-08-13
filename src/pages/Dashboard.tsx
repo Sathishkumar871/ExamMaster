@@ -1,146 +1,406 @@
 import { Link } from "react-router-dom";
+import {
+  BookOpen,
+  ClipboardCheck,
+  MessageSquareText,
+  UserRound,
+  ArrowUpRight,
+  Sparkles,
+  Play,
+  Clock3,
+  ChevronRight,
+} from "lucide-react";
+
 import "./Dashboard.css";
 
 export default function Dashboard() {
   const student = JSON.parse(localStorage.getItem("student") || "{}");
 
+  const studentName = student.name || "Student";
+
   return (
     <div className="dashboard-container">
-      {/* ================= HERO BANNER ================= */}
-      <div className="dashboard-hero">
+
+      {/* ================= PREMIUM HERO ================= */}
+      <section className="dashboard-hero">
+
+        <div className="hero-glow hero-glow-one"></div>
+        <div className="hero-glow hero-glow-two"></div>
+
         <div className="hero-content">
-          <span className="hero-greeting-tag">🔥 Welcome back</span>
-          <h1>Hello, <span>{student.name || "Student"}</span>! 👋</h1>
-          <p>Ready to conquer your next exam? Access your subjects, practice tests, or raise college requirements easily.</p>
-          
-          {/* Quick Stats inside Hero */}
-          <div className="hero-quick-stats">
-            <div className="stat-pill">
-              <span className="stat-icon">🎯</span>
-              <div>
-                <strong>{student.testsCompleted || 12}</strong>
-                <span>Tests Done</span>
-              </div>
-            </div>
-            <div className="stat-pill">
-              <span className="stat-icon">🔥</span>
-              <div>
-                <strong>{student.streak || 5} Days</strong>
-                <span>Streak</span>
-              </div>
-            </div>
-            <div className="stat-pill">
-              <span className="stat-icon">📊</span>
-              <div>
-                <strong>{student.avgScore || "88%"}</strong>
-                <span>Avg. Score</span>
-              </div>
-            </div>
+
+          <div className="hero-top-line">
+            <span className="portal-badge">
+             
+              Student Portal
+            </span>
+
+            <span className="hero-status">
+              <span className="status-dot"></span>
+              Ready to learn
+            </span>
           </div>
+
+          <h1>
+            Welcome back,
+            <span>{studentName}</span>
+          </h1>
+
+          <p className="hero-description">
+            Your learning journey continues here. Explore your subjects,
+            practice with daily tests, and keep building your confidence.
+          </p>
+
+          <div className="hero-actions">
+
+            <Link to="/subjects" className="primary-action">
+              <span>Continue Learning</span>
+              <ArrowUpRight size={18} />
+            </Link>
+
+            <Link to="/daily-tests" className="secondary-action">
+              <Play size={16} />
+              Daily Tests
+            </Link>
+
+          </div>
+
         </div>
 
-        <div className="hero-badge-wrapper">
-          <div className="hero-badge">
-            <span>🎓 Student Portal</span>
+        {/* Decorative Hero Panel */}
+        <div className="hero-visual">
+
+          <div className="visual-orbit orbit-one"></div>
+          <div className="visual-orbit orbit-two"></div>
+
+          <div className="hero-center-card">
+
+            <div className="center-icon">
+              <BookOpen size={28} />
+            </div>
+
+            <span>Learning Space</span>
+
+            <strong>Focus. Practice. Improve.</strong>
+
+            <div className="center-line"></div>
+
+            <small>
+              Your personalized study dashboard
+            </small>
+
           </div>
-          <div className="announcement-pill">
-            <span className="pulse-dot"></span>
-            <p>New Mock Test for Mathematics is live!</p>
-          </div>
+
         </div>
-      </div>
 
-      {/* ================= QUICK RESUME BANNER ================= */}
-      <div className="resume-learning-card">
-        <div className="resume-info">
-          <span className="resume-tag">Continue Learning</span>
-          <h3>Advanced Physics: Quantum Mechanics</h3>
-          <p>Last studied 2 hours ago • Chapter 4: Wave Functions</p>
+      </section>
+
+
+      {/* ================= CONTINUE LEARNING ================= */}
+      <section className="resume-learning-card">
+
+        <div className="resume-left">
+
+          <div className="resume-icon">
+            <BookOpen size={21} />
+          </div>
+
+          <div className="resume-content">
+
+            <span className="resume-label">
+              CONTINUE LEARNING
+            </span>
+
+            <h3>
+              Advanced Physics
+            </h3>
+
+            <p>
+              Quantum Mechanics
+            </p>
+
+            <div className="resume-meta">
+
+              <span>
+                <Clock3 size={14} />
+                Last studied 2 hours ago
+              </span>
+
+              <span className="meta-divider"></span>
+
+              <span>
+                Chapter 4
+              </span>
+
+            </div>
+
+          </div>
+
         </div>
-        <Link to="/subjects" className="resume-btn">
-          Resume <span>→</span>
+
+        <Link to="/subjects" className="resume-button">
+          <span>Resume</span>
+          <ArrowUpRight size={17} />
         </Link>
-      </div>
 
-      {/* ================= DASHBOARD GRID CARDS ================= */}
-      <div className="section-title">
-        <h2>Quick Navigation</h2>
-        <p>Explore your study tools and portal options</p>
-      </div>
+      </section>
 
-      <div className="dashboard-grid">
-        {/* Subjects Card */}
-        <Link to="/subjects" className="dashboard-card card-subjects">
-          <div className="card-top">
-            <div className="card-icon-wrapper">
-              <span className="card-emoji">📚</span>
+
+      {/* ================= SECTION HEADER ================= */}
+      <section className="navigation-section">
+
+        <div className="section-heading">
+
+          <div>
+            <span className="section-eyebrow">
+              YOUR STUDY SPACE
+            </span>
+
+            <h2>
+              Everything you need
+            </h2>
+
+            <p>
+              Access your learning tools and student services.
+            </p>
+          </div>
+
+        </div>
+
+
+        {/* ================= DASHBOARD CARDS ================= */}
+        <div className="dashboard-grid">
+
+          {/* SUBJECTS */}
+          <Link
+            to="/subjects"
+            className="dashboard-card subjects-card"
+          >
+
+            <div className="card-background"></div>
+
+            <div className="card-top">
+
+              <div className="card-icon">
+                <BookOpen size={23} />
+              </div>
+
+              <span className="card-number">
+                01
+              </span>
+
             </div>
-            <span className="card-badge">6 Active</span>
-          </div>
-          <div className="card-content">
-            <h3>Subjects</h3>
-            <p>Choose your subjects & learning materials</p>
-          </div>
-          <div className="card-footer">
-            <span>Explore materials</span>
-            <span className="card-arrow">→</span>
-          </div>
-        </Link>
 
-        {/* Mock Tests Card */}
-        <Link to="/mock-tests" className="dashboard-card card-mock">
-          <div className="card-top">
-            <div className="card-icon-wrapper">
-              <span className="card-emoji">📝</span>
-            </div>
-            <span className="card-badge pulse-badge">New Test</span>
-          </div>
-          <div className="card-content">
-            <h3>Mock Tests</h3>
-            <p>Practice online exams & boost your score</p>
-          </div>
-          <div className="card-footer">
-            <span>Take a test</span>
-            <span className="card-arrow">→</span>
-          </div>
-        </Link>
+            <div className="card-body">
 
-        {/* Complaints & Requirements Card */}
-        <Link to="/student/complaints" className="dashboard-card card-complaint">
-          <div className="card-top">
-            <div className="card-icon-wrapper">
-              <span className="card-emoji">📢</span>
-            </div>
-            <span className="card-badge">24/7 Support</span>
-          </div>
-          <div className="card-content">
-            <h3>Complaints & Needs</h3>
-            <p>Submit college issues or special requirements</p>
-          </div>
-          <div className="card-footer">
-            <span>Raise ticket</span>
-            <span className="card-arrow">→</span>
-          </div>
-        </Link>
+              <span className="card-label">
+                LEARNING
+              </span>
 
-        {/* Profile Card */}
-        <Link to="/profile" className="dashboard-card card-profile">
-          <div className="card-top">
-            <div className="card-icon-wrapper">
-              <span className="card-emoji">👤</span>
+              <h3>
+                Subjects
+              </h3>
+
+              <p>
+                Explore your subjects, chapters and
+                learning materials.
+              </p>
+
             </div>
-            <span className="card-badge">Analytics</span>
-          </div>
-          <div className="card-content">
-            <h3>My Profile</h3>
-            <p>View your marks, stats & performance history</p>
-          </div>
-          <div className="card-footer">
-            <span>View stats</span>
-            <span className="card-arrow">→</span>
-          </div>
-        </Link>
-      </div>
+
+            <div className="card-bottom">
+
+              <span>
+                Explore subjects
+              </span>
+
+              <div className="card-arrow">
+                <ArrowUpRight size={18} />
+              </div>
+
+            </div>
+
+          </Link>
+
+
+          {/* DAILY TESTS */}
+          <Link
+            to="/daily-tests"
+            className="dashboard-card tests-card"
+          >
+
+            <div className="card-background"></div>
+
+            <div className="card-top">
+
+              <div className="card-icon">
+                <ClipboardCheck size={23} />
+              </div>
+
+              <span className="card-number">
+                02
+              </span>
+
+            </div>
+
+            <div className="card-body">
+
+              <span className="card-label">
+                PRACTICE
+              </span>
+
+              <h3>
+                Daily Tests
+              </h3>
+
+              <p>
+                Practice chapter-wise questions and
+                improve your preparation.
+              </p>
+
+            </div>
+
+            <div className="card-bottom">
+
+              <span>
+                Start practice
+              </span>
+
+              <div className="card-arrow">
+                <ArrowUpRight size={18} />
+              </div>
+
+            </div>
+
+          </Link>
+
+
+          {/* COMPLAINTS */}
+          <Link
+            to="/student/complaints"
+            className="dashboard-card support-card"
+          >
+
+            <div className="card-background"></div>
+
+            <div className="card-top">
+
+              <div className="card-icon">
+                <MessageSquareText size={23} />
+              </div>
+
+              <span className="card-number">
+                03
+              </span>
+
+            </div>
+
+            <div className="card-body">
+
+              <span className="card-label">
+                SUPPORT
+              </span>
+
+              <h3>
+                Student Support
+              </h3>
+
+              <p>
+                Raise complaints, requests or special
+                requirements easily.
+              </p>
+
+            </div>
+
+            <div className="card-bottom">
+
+              <span>
+                Get support
+              </span>
+
+              <div className="card-arrow">
+                <ArrowUpRight size={18} />
+              </div>
+
+            </div>
+
+          </Link>
+
+
+          {/* PROFILE */}
+          <Link
+            to="/profile"
+            className="dashboard-card profile-card"
+          >
+
+            <div className="card-background"></div>
+
+            <div className="card-top">
+
+              <div className="card-icon">
+                <UserRound size={23} />
+              </div>
+
+              <span className="card-number">
+                04
+              </span>
+
+            </div>
+
+            <div className="card-body">
+
+              <span className="card-label">
+                PERSONAL
+              </span>
+
+              <h3>
+                My Profile
+              </h3>
+
+              <p>
+                View your profile, examination history
+                and performance.
+              </p>
+
+            </div>
+
+            <div className="card-bottom">
+
+              <span>
+                View profile
+              </span>
+
+              <div className="card-arrow">
+                <ArrowUpRight size={18} />
+              </div>
+
+            </div>
+
+          </Link>
+
+        </div>
+
+      </section>
+
+
+      {/* ================= BOTTOM MOTIVATION ================= */}
+      <section className="dashboard-footer-banner">
+
+        
+        <div>
+          <strong>
+            Small progress every day.
+          </strong>
+
+          <p>
+            Stay consistent and let your preparation speak for itself.
+          </p>
+        </div>
+
+        <ChevronRight className="footer-chevron" size={20} />
+
+      </section>
+
     </div>
   );
 }

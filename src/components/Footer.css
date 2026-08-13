@@ -1,33 +1,38 @@
 /* =========================================================
    STG MINI PREMIUM FOOTER
-   Mobile • Tablet • Laptop • Large Desktop
+   Premium • Compact • Responsive
+   Ivory • Champagne • Espresso • Soft Orange
+   Mobile • Tablet • Desktop
 ========================================================= */
 
 .stg-footer {
   position: relative;
   width: 100%;
-  margin-top: 60px;
+  margin-top: 42px;
   overflow: hidden;
 
   background:
     radial-gradient(
-      circle at 10% 0%,
-      rgba(255, 103, 37, 0.09),
-      transparent 28%
+      circle at 8% 0%,
+      rgba(255, 178, 92, 0.09),
+      transparent 26%
     ),
     radial-gradient(
-      circle at 90% 100%,
-      rgba(255, 103, 37, 0.06),
-      transparent 30%
+      circle at 92% 100%,
+      rgba(255, 125, 62, 0.06),
+      transparent 28%
     ),
-    #0d1013;
+    linear-gradient(
+      145deg,
+      #0c0d0f 0%,
+      #111214 52%,
+      #0b0c0e 100%
+    );
 
   color: #fff;
 
-  border-top:
-    1px solid rgba(255, 255, 255, 0.07);
+  border-top: 1px solid rgba(255, 213, 154, 0.10);
 }
-
 
 /* =========================================================
    BACKGROUND GLOW
@@ -43,9 +48,9 @@
 
   background:
     linear-gradient(
-      135deg,
-      transparent 30%,
-      rgba(255, 103, 37, 0.025),
+      125deg,
+      transparent 25%,
+      rgba(255, 196, 125, 0.018),
       transparent 70%
     );
 }
@@ -53,22 +58,20 @@
 .stg-footer-glow {
   position: absolute;
 
-  width: 350px;
-  height: 350px;
+  width: 280px;
+  height: 280px;
 
-  right: -180px;
-  top: -180px;
+  right: -150px;
+  top: -150px;
 
   border-radius: 50%;
 
-  background:
-    rgba(255, 103, 37, 0.10);
+  background: rgba(255, 168, 92, 0.08);
 
-  filter: blur(90px);
+  filter: blur(80px);
 
   pointer-events: none;
 }
-
 
 /* =========================================================
    CONTAINER
@@ -78,41 +81,39 @@
   position: relative;
   z-index: 2;
 
-  width: min(1180px, calc(100% - 36px));
+  width: min(1120px, calc(100% - 32px));
 
-  margin: auto;
+  margin: 0 auto;
 }
-
 
 /* =========================================================
    MINI FOOTER
 ========================================================= */
 
 .stg-footer-mini {
-  min-height: 88px;
+  min-height: 76px;
 
   display: flex;
   align-items: center;
   justify-content: space-between;
 
-  gap: 25px;
+  gap: 20px;
 
-  padding: 16px 20px;
+  padding: 12px 16px;
 
-  border-radius: 22px;
+  border-radius: 19px;
 
   background:
     linear-gradient(
       135deg,
-      rgba(255, 255, 255, 0.055),
+      rgba(255, 255, 255, 0.065),
       rgba(255, 255, 255, 0.025)
     );
 
-  border:
-    1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 220, 175, 0.09);
 
   box-shadow:
-    0 18px 45px rgba(0, 0, 0, 0.22);
+    0 14px 38px rgba(0, 0, 0, 0.24);
 
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
@@ -123,13 +124,11 @@
 }
 
 .stg-footer-mini:hover {
-  border-color:
-    rgba(255, 103, 37, 0.20);
+  border-color: rgba(255, 190, 115, 0.22);
 
   box-shadow:
-    0 22px 55px rgba(0, 0, 0, 0.28);
+    0 18px 45px rgba(0, 0, 0, 0.30);
 }
-
 
 /* =========================================================
    MINI BRAND
@@ -139,14 +138,14 @@
   display: flex;
   align-items: center;
 
-  gap: 13px;
+  gap: 11px;
 
   min-width: 0;
 }
 
 .stg-mini-logo {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
 
   flex-shrink: 0;
 
@@ -154,26 +153,30 @@
   align-items: center;
   justify-content: center;
 
-  border-radius: 15px;
+  border-radius: 13px;
 
-  color: #ff6b2c;
+  color: #ffd59a;
 
   background:
-    rgba(255, 103, 37, 0.10);
+    linear-gradient(
+      145deg,
+      rgba(255, 190, 110, 0.14),
+      rgba(255, 126, 54, 0.06)
+    );
 
-  border:
-    1px solid rgba(255, 103, 37, 0.18);
+  border: 1px solid rgba(255, 204, 142, 0.18);
 
   box-shadow:
-    inset 0 0 20px rgba(255, 103, 37, 0.035);
+    inset 0 0 20px rgba(255, 188, 110, 0.035),
+    0 6px 18px rgba(0, 0, 0, 0.16);
 }
 
 .stg-mini-brand strong {
   display: block;
 
-  color: #fff;
+  color: #fffaf3;
 
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 800;
 
   line-height: 1.3;
@@ -182,16 +185,15 @@
 .stg-mini-brand span {
   display: block;
 
-  margin-top: 3px;
+  margin-top: 2px;
 
-  color: #777f87;
+  color: #88827a;
 
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 650;
 
   letter-spacing: 0.08em;
 }
-
 
 /* =========================================================
    MINI ACTIONS
@@ -201,35 +203,38 @@
   display: flex;
   align-items: center;
 
-  gap: 8px;
+  gap: 7px;
 }
 
 .stg-mini-btn {
-  height: 42px;
+  height: 38px;
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
-  gap: 7px;
+  gap: 6px;
 
-  padding: 0 15px;
+  padding: 0 13px;
 
-  border-radius: 12px;
+  border-radius: 11px;
 
-  border:
-    1px solid rgba(255, 255, 255, 0.09);
+  border: 1px solid rgba(255, 219, 174, 0.10);
 
   background:
-    rgba(255, 255, 255, 0.045);
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.055),
+      rgba(255, 255, 255, 0.025)
+    );
 
-  color: #e8eaed;
+  color: #dcd6ce;
 
   cursor: pointer;
 
   font-family: inherit;
 
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 800;
 
   transition:
@@ -240,35 +245,51 @@
     box-shadow 0.25s ease;
 }
 
+/* PREMIUM BUTTON HOVER */
+
 .stg-mini-btn:hover {
   transform: translateY(-2px);
 
-  color: #fff;
-
-  background:
-    rgba(255, 103, 37, 0.10);
-
-  border-color:
-    rgba(255, 103, 37, 0.30);
-
-  box-shadow:
-    0 10px 25px rgba(0, 0, 0, 0.20);
-}
-
-.stg-mini-btn.active {
-  color: #fff;
+  color: #fff9ef;
 
   background:
     linear-gradient(
       135deg,
-      #ff6b2c,
-      #f4511e
+      rgba(255, 193, 115, 0.16),
+      rgba(255, 126, 54, 0.10)
+    );
+
+  border-color:
+    rgba(255, 202, 137, 0.30);
+
+  box-shadow:
+    0 9px 24px rgba(0, 0, 0, 0.22);
+}
+
+/* ACTIVE BUTTON */
+
+.stg-mini-btn.active {
+  color: #21170e;
+
+  background:
+    linear-gradient(
+      135deg,
+      #ffe0a8 0%,
+      #ffb66b 48%,
+      #f58a4a 100%
     );
 
   border-color: transparent;
 
   box-shadow:
-    0 10px 28px rgba(255, 103, 37, 0.20);
+    0 9px 26px rgba(255, 164, 88, 0.20);
+}
+
+.stg-mini-btn.active:hover {
+  color: #17110c;
+
+  box-shadow:
+    0 12px 30px rgba(255, 164, 88, 0.27);
 }
 
 .stg-mini-btn svg {
@@ -279,9 +300,12 @@
   transform: rotate(180deg);
 }
 
-
 /* =========================================================
    EXPANDING PANEL
+
+   IMPORTANT:
+   This remains in normal document flow.
+   Nothing is fixed/sticky/absolute here.
 ========================================================= */
 
 .stg-expand-panel {
@@ -292,15 +316,15 @@
   opacity: 0;
 
   transform:
-    translateY(-12px)
-    scale(0.985);
+    translateY(-8px)
+    scale(0.99);
 
   pointer-events: none;
 
   transition:
-    grid-template-rows 0.55s cubic-bezier(.22,1,.36,1),
-    opacity 0.35s ease,
-    transform 0.55s cubic-bezier(.22,1,.36,1);
+    grid-template-rows 0.48s cubic-bezier(.22, 1, .36, 1),
+    opacity 0.3s ease,
+    transform 0.48s cubic-bezier(.22, 1, .36, 1);
 }
 
 .stg-expand-panel.open {
@@ -316,9 +340,9 @@
 }
 
 .stg-expand-inner {
+  min-height: 0;
   overflow: hidden;
 }
-
 
 /* =========================================================
    CONTACT PANEL
@@ -326,39 +350,47 @@
 
 .stg-panel-heading {
   padding:
-    45px
-    5px
-    25px;
+    34px
+    4px
+    19px;
 }
 
 .stg-panel-heading > span {
   display: inline-flex;
   align-items: center;
+
   gap: 7px;
 
-  color: #ff6b2c;
+  color: #ffbd78;
 
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 900;
 
-  letter-spacing: 0.20em;
+  letter-spacing: 0.19em;
 }
 
 .stg-panel-heading > span::before {
   content: "";
 
-  width: 22px;
+  width: 19px;
   height: 2px;
 
   border-radius: 10px;
 
-  background: #ff6b2c;
+  background:
+    linear-gradient(
+      90deg,
+      #ffd69c,
+      #f28b4c
+    );
 }
 
 .stg-panel-heading h2 {
-  margin: 9px 0 0;
+  margin: 8px 0 0;
 
-  font-size: clamp(28px, 4vw, 42px);
+  color: #fffaf3;
+
+  font-size: clamp(25px, 3.5vw, 38px);
 
   line-height: 1.05;
 
@@ -368,17 +400,16 @@
 }
 
 .stg-panel-heading p {
-  max-width: 560px;
+  max-width: 540px;
 
-  margin: 11px 0 0;
+  margin: 9px 0 0;
 
-  color: #7d858d;
+  color: #817d78;
 
-  font-size: 13px;
+  font-size: 12px;
 
-  line-height: 1.65;
+  line-height: 1.6;
 }
-
 
 /* =========================================================
    CONTACT GRID
@@ -390,30 +421,33 @@
   grid-template-columns:
     repeat(2, minmax(0, 1fr));
 
-  gap: 10px;
+  gap: 9px;
 }
 
 .stg-contact-card {
-  min-height: 100px;
+  min-height: 88px;
 
   display: flex;
   align-items: center;
 
-  gap: 13px;
+  gap: 12px;
 
-  padding: 16px;
+  padding: 14px;
 
   color: #fff;
 
   text-decoration: none;
 
-  border-radius: 17px;
+  border-radius: 15px;
 
   background:
-    rgba(255, 255, 255, 0.035);
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.045),
+      rgba(255, 255, 255, 0.018)
+    );
 
-  border:
-    1px solid rgba(255, 255, 255, 0.065);
+  border: 1px solid rgba(255, 220, 175, 0.075);
 
   transition:
     transform 0.25s ease,
@@ -426,18 +460,26 @@
   transform: translateY(-3px);
 
   background:
-    rgba(255, 103, 37, 0.065);
+    linear-gradient(
+      145deg,
+      rgba(255, 191, 115, 0.085),
+      rgba(255, 255, 255, 0.025)
+    );
 
   border-color:
-    rgba(255, 103, 37, 0.28);
+    rgba(255, 197, 125, 0.27);
 
   box-shadow:
-    0 15px 35px rgba(0, 0, 0, 0.22);
+    0 13px 30px rgba(0, 0, 0, 0.23);
 }
 
+/* =========================================================
+   CONTACT ICON
+========================================================= */
+
 .stg-contact-icon {
-  width: 42px;
-  height: 42px;
+  width: 39px;
+  height: 39px;
 
   flex-shrink: 0;
 
@@ -445,26 +487,34 @@
   align-items: center;
   justify-content: center;
 
-  color: #ff6b2c;
+  color: #ffc47f;
 
-  border-radius: 13px;
+  border-radius: 11px;
 
   background:
-    rgba(255, 103, 37, 0.09);
+    linear-gradient(
+      145deg,
+      rgba(255, 195, 123, 0.13),
+      rgba(255, 132, 62, 0.06)
+    );
 
   border:
-    1px solid rgba(255, 103, 37, 0.15);
+    1px solid rgba(255, 205, 145, 0.14);
 }
 
 .stg-contact-icon.whatsapp-icon {
-  color: #25d366;
+  color: #65dc91;
 
   background:
-    rgba(37, 211, 102, 0.08);
+    rgba(71, 210, 122, 0.07);
 
   border-color:
-    rgba(37, 211, 102, 0.14);
+    rgba(71, 210, 122, 0.13);
 }
+
+/* =========================================================
+   CONTACT INFO
+========================================================= */
 
 .stg-contact-info {
   flex: 1;
@@ -475,11 +525,11 @@
 .stg-contact-info span {
   display: block;
 
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 
-  color: #686f76;
+  color: #6f6b66;
 
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 850;
 
   text-transform: uppercase;
@@ -490,26 +540,26 @@
 .stg-contact-info strong {
   display: block;
 
-  color: #f2f4f6;
+  color: #f4eee7;
 
-  font-size: 12.5px;
+  font-size: 11.5px;
   font-weight: 750;
 
   line-height: 1.4;
 }
 
 .stg-contact-info p {
-  margin: 3px 0 0;
+  margin: 2px 0 0;
 
-  color: #777f87;
+  color: #77736e;
 
-  font-size: 10.5px;
+  font-size: 9.5px;
 }
 
 .stg-contact-card > svg:last-child {
   flex-shrink: 0;
 
-  color: #555d65;
+  color: #595650;
 
   transition:
     transform 0.25s ease,
@@ -517,101 +567,109 @@
 }
 
 .stg-contact-card:hover > svg:last-child {
-  color: #ff6b2c;
+  color: #ffc27b;
 
   transform:
     translate(3px, -3px);
 }
-
 
 /* =========================================================
    MAP BANNER
 ========================================================= */
 
 .stg-map-banner {
-  min-height: 72px;
+  min-height: 62px;
 
-  margin-top: 10px;
+  margin-top: 9px;
 
-  padding: 15px 18px;
+  padding: 11px 15px;
 
   display: flex;
   align-items: center;
   justify-content: space-between;
 
-  gap: 15px;
+  gap: 14px;
 
   text-decoration: none;
 
   color: #fff;
 
-  border-radius: 17px;
+  border-radius: 15px;
 
   background:
     linear-gradient(
       100deg,
-      rgba(255, 103, 37, 0.10),
-      rgba(255, 255, 255, 0.035)
+      rgba(255, 188, 108, 0.095),
+      rgba(255, 255, 255, 0.025)
     );
 
   border:
-    1px solid rgba(255, 103, 37, 0.13);
+    1px solid rgba(255, 198, 129, 0.13);
 
   transition:
     transform 0.25s ease,
-    border-color 0.25s ease;
+    border-color 0.25s ease,
+    background 0.25s ease;
 }
 
 .stg-map-banner:hover {
   transform: translateY(-2px);
 
   border-color:
-    rgba(255, 103, 37, 0.35);
+    rgba(255, 199, 130, 0.30);
+
+  background:
+    linear-gradient(
+      100deg,
+      rgba(255, 188, 108, 0.13),
+      rgba(255, 255, 255, 0.035)
+    );
 }
 
 .stg-map-left {
   display: flex;
   align-items: center;
 
-  gap: 12px;
+  gap: 10px;
 }
 
 .stg-map-icon {
-  width: 40px;
-  height: 40px;
+  width: 37px;
+  height: 37px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  color: #ff6b2c;
+  color: #ffc47f;
 
-  border-radius: 12px;
+  border-radius: 11px;
 
   background:
-    rgba(255, 103, 37, 0.09);
+    rgba(255, 188, 108, 0.09);
 }
 
 .stg-map-left strong {
   display: block;
 
-  font-size: 12px;
+  color: #f4eee7;
+
+  font-size: 11px;
 }
 
 .stg-map-left span {
   display: block;
 
-  margin-top: 3px;
+  margin-top: 2px;
 
-  color: #777f87;
+  color: #76716b;
 
-  font-size: 10px;
+  font-size: 9px;
 }
 
 .stg-map-banner > svg {
-  color: #ff6b2c;
+  color: #ffc47f;
 }
-
 
 /* =========================================================
    MORE GRID
@@ -623,61 +681,84 @@
   grid-template-columns:
     repeat(4, minmax(0, 1fr));
 
-  gap: 12px;
+  gap: 10px;
 
   padding:
-    45px 0 20px;
+    34px 0 17px;
 }
 
 .stg-more-card {
-  min-height: 240px;
+  min-height: 205px;
 
-  padding: 21px;
+  padding: 17px;
 
-  border-radius: 18px;
+  border-radius: 16px;
 
   background:
-    rgba(255, 255, 255, 0.032);
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.038),
+      rgba(255, 255, 255, 0.016)
+    );
 
   border:
-    1px solid rgba(255, 255, 255, 0.065);
+    1px solid rgba(255, 220, 175, 0.065);
+
+  transition:
+    transform 0.25s ease,
+    border-color 0.25s ease,
+    background 0.25s ease;
+}
+
+.stg-more-card:hover {
+  transform: translateY(-3px);
+
+  border-color:
+    rgba(255, 199, 130, 0.18);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 193, 115, 0.055),
+      rgba(255, 255, 255, 0.018)
+    );
 }
 
 .stg-more-icon {
-  width: 42px;
-  height: 42px;
+  width: 39px;
+  height: 39px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  color: #ff6b2c;
+  color: #ffc17a;
 
-  border-radius: 13px;
+  border-radius: 11px;
 
   background:
-    rgba(255, 103, 37, 0.09);
+    rgba(255, 187, 107, 0.09);
 
-  margin-bottom: 17px;
+  margin-bottom: 14px;
 }
 
 .stg-more-card h3 {
-  margin: 0 0 17px;
+  margin: 0 0 13px;
 
-  color: #fff;
+  color: #f7f0e8;
 
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 800;
 }
 
 .stg-more-card p {
-  margin: 0 0 15px;
+  margin: 0 0 13px;
 
-  color: #777f87;
+  color: #77736e;
 
-  font-size: 11px;
+  font-size: 10px;
 
-  line-height: 1.7;
+  line-height: 1.65;
 }
 
 .stg-more-card a {
@@ -687,13 +768,13 @@
 
   gap: 5px;
 
-  margin-bottom: 11px;
+  margin-bottom: 9px;
 
-  color: #858c93;
+  color: #858079;
 
   text-decoration: none;
 
-  font-size: 11px;
+  font-size: 10px;
 
   transition:
     color 0.2s ease,
@@ -701,32 +782,42 @@
 }
 
 .stg-more-card a:hover {
-  color: #ff6b2c;
+  color: #ffc27d;
 
   transform: translateX(3px);
 }
 
+/* =========================================================
+   GALLERY BUTTON
+========================================================= */
+
 .stg-gallery-btn {
   display: inline-flex !important;
+
   justify-content: center !important;
 
-  padding: 10px 13px;
+  padding: 8px 11px;
 
-  border-radius: 10px;
+  border-radius: 9px;
 
-  color: #fff !important;
+  color: #24180e !important;
 
   background:
     linear-gradient(
       135deg,
-      #ff6b2c,
-      #f4511e
+      #ffe0ad,
+      #ffad67
     );
 
   box-shadow:
-    0 8px 20px rgba(255, 103, 37, 0.15);
+    0 7px 18px rgba(255, 166, 91, 0.13);
 }
 
+.stg-gallery-btn:hover {
+  color: #1a120c !important;
+
+  transform: translateY(-1px) !important;
+}
 
 /* =========================================================
    POLICY
@@ -737,90 +828,95 @@
   align-items: center;
   justify-content: space-between;
 
-  gap: 25px;
+  gap: 20px;
 
   padding:
-    20px;
+    16px;
 
-  border-radius: 18px;
+  border-radius: 16px;
 
   background:
-    rgba(255, 255, 255, 0.028);
+    rgba(255, 255, 255, 0.022);
 
   border:
-    1px solid rgba(255, 255, 255, 0.06);
+    1px solid rgba(255, 220, 175, 0.055);
 }
 
 .stg-policy-heading {
   display: flex;
   align-items: center;
 
-  gap: 10px;
+  gap: 9px;
 }
 
 .stg-policy-heading > svg {
-  color: #ff6b2c;
+  color: #ffc17c;
 }
 
 .stg-policy-heading strong {
   display: block;
 
-  font-size: 12px;
+  color: #e9e1d8;
+
+  font-size: 11px;
 }
 
 .stg-policy-heading span {
   display: block;
 
-  margin-top: 3px;
+  margin-top: 2px;
 
-  color: #70777e;
+  color: #706b66;
 
-  font-size: 10px;
+  font-size: 9px;
 }
 
 .stg-policy-links {
   display: flex;
   flex-wrap: wrap;
 
-  gap: 8px;
+  gap: 6px;
 }
 
 .stg-policy-links a {
   display: inline-flex;
   align-items: center;
 
-  gap: 6px;
+  gap: 5px;
 
-  min-height: 36px;
+  min-height: 32px;
 
-  padding: 0 11px;
+  padding: 0 9px;
 
-  border-radius: 9px;
+  border-radius: 8px;
 
-  color: #858c93;
+  color: #817b74;
 
   background:
-    rgba(255, 255, 255, 0.035);
+    rgba(255, 255, 255, 0.028);
 
   border:
-    1px solid rgba(255, 255, 255, 0.06);
+    1px solid rgba(255, 220, 175, 0.055);
 
   text-decoration: none;
 
-  font-size: 10px;
+  font-size: 9px;
 
   transition:
     color 0.2s ease,
-    border-color 0.2s ease;
+    border-color 0.2s ease,
+    background 0.2s ease;
 }
 
 .stg-policy-links a:hover {
-  color: #ff6b2c;
+  color: #ffc27d;
 
   border-color:
-    rgba(255, 103, 37, 0.25);
-}
+    rgba(255, 196, 126, 0.22);
 
+  background:
+    rgba(255, 187, 108, 0.045);
+}
 
 /* =========================================================
    MORE BOTTOM
@@ -831,33 +927,32 @@
   align-items: center;
   justify-content: space-between;
 
-  gap: 20px;
+  gap: 18px;
 
   padding:
-    22px 2px 12px;
+    18px 2px 10px;
 
-  color: #555d64;
+  color: #55514d;
 
-  font-size: 10px;
+  font-size: 9px;
 }
 
 .stg-more-bottom strong {
   display: block;
 
-  color: #858c93;
+  color: #817b74;
 
-  font-size: 11px;
+  font-size: 10px;
 }
 
 .stg-more-bottom span {
   display: block;
 
-  margin-top: 3px;
+  margin-top: 2px;
 }
 
-
 /* =========================================================
-   BOTTOM COPYRIGHT
+   COPYRIGHT
 ========================================================= */
 
 .stg-footer-mini-bottom {
@@ -865,19 +960,18 @@
   align-items: center;
   justify-content: space-between;
 
-  gap: 15px;
+  gap: 12px;
 
   padding:
-    18px 3px 22px;
+    15px 2px 18px;
 
   border-top:
-    1px solid rgba(255, 255, 255, 0.055);
+    1px solid rgba(255, 220, 175, 0.045);
 
-  color: #555d64;
+  color: #514d49;
 
-  font-size: 9.5px;
+  font-size: 8.5px;
 }
-
 
 /* =========================================================
    TABLET
@@ -887,7 +981,7 @@
 
   .stg-footer-container {
     width: min(
-      calc(100% - 30px),
+      calc(100% - 28px),
       720px
     );
   }
@@ -899,11 +993,14 @@
 
   .stg-policy-section {
     flex-direction: column;
+
     align-items: flex-start;
   }
 
+  .stg-policy-links {
+    width: 100%;
+  }
 }
-
 
 /* =========================================================
    MOBILE
@@ -912,162 +1009,193 @@
 @media (max-width: 600px) {
 
   .stg-footer {
-    margin-top: 40px;
+    margin-top: 32px;
   }
 
   .stg-footer-container {
     width:
-      calc(100% - 20px);
+      calc(100% - 16px);
   }
+
+  /* MINI FOOTER */
 
   .stg-footer-mini {
-    min-height: 74px;
+    min-height: 66px;
 
-    padding:
-      11px;
+    padding: 9px;
 
-    border-radius: 18px;
+    border-radius: 16px;
 
-    gap: 10px;
+    gap: 8px;
   }
+
+  /* LOGO */
 
   .stg-mini-logo {
-    width: 40px;
-    height: 40px;
-
-    border-radius: 12px;
-  }
-
-  .stg-mini-brand {
-    gap: 9px;
-  }
-
-  .stg-mini-brand strong {
-    font-size: 11px;
-  }
-
-  .stg-mini-brand span {
-    font-size: 8px;
-  }
-
-  .stg-mini-actions {
-    gap: 5px;
-  }
-
-  .stg-mini-btn {
+    width: 37px;
     height: 37px;
-
-    padding:
-      0 9px;
-
-    gap: 4px;
-
-    border-radius: 10px;
-
-    font-size: 9px;
-  }
-
-  .stg-mini-btn svg {
-    width: 14px;
-  }
-
-
-  /* CONTACT */
-
-  .stg-panel-heading {
-    padding:
-      32px
-      2px
-      18px;
-  }
-
-  .stg-panel-heading h2 {
-    font-size: 30px;
-  }
-
-  .stg-panel-heading p {
-    font-size: 11px;
-  }
-
-  .stg-contact-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .stg-contact-card {
-    min-height: 82px;
-
-    padding: 13px;
-
-    border-radius: 15px;
-  }
-
-  .stg-contact-icon {
-    width: 38px;
-    height: 38px;
 
     border-radius: 11px;
   }
 
+  .stg-mini-brand {
+    gap: 8px;
+  }
+
+  .stg-mini-brand strong {
+    font-size: 10px;
+  }
+
+  .stg-mini-brand span {
+    font-size: 7px;
+  }
+
+  /* ACTIONS */
+
+  .stg-mini-actions {
+    gap: 4px;
+  }
+
+  .stg-mini-btn {
+    height: 34px;
+
+    padding:
+      0 8px;
+
+    gap: 4px;
+
+    border-radius: 9px;
+
+    font-size: 8px;
+  }
+
+  .stg-mini-btn svg {
+    width: 13px;
+    height: 13px;
+  }
+
+  /* CONTACT HEADING */
+
+  .stg-panel-heading {
+    padding:
+      27px
+      2px
+      16px;
+  }
+
+  .stg-panel-heading h2 {
+    font-size: 27px;
+  }
+
+  .stg-panel-heading p {
+    font-size: 10px;
+
+    line-height: 1.55;
+  }
+
+  /* CONTACT */
+
+  .stg-contact-grid {
+    grid-template-columns: 1fr;
+
+    gap: 8px;
+  }
+
+  .stg-contact-card {
+    min-height: 73px;
+
+    padding: 11px;
+
+    border-radius: 13px;
+  }
+
+  .stg-contact-icon {
+    width: 35px;
+    height: 35px;
+
+    border-radius: 10px;
+  }
+
   .stg-contact-info strong {
-    font-size: 11px;
+    font-size: 10.5px;
   }
 
   .stg-contact-info p {
-    font-size: 9px;
+    font-size: 8.5px;
   }
-
 
   /* MAP */
 
   .stg-map-banner {
-    min-height: 65px;
+    min-height: 57px;
 
     padding:
-      11px 13px;
+      9px
+      11px;
 
-    border-radius: 14px;
+    border-radius: 13px;
   }
 
+  .stg-map-icon {
+    width: 34px;
+    height: 34px;
+  }
+
+  .stg-map-left strong {
+    font-size: 10px;
+  }
+
+  .stg-map-left span {
+    font-size: 8px;
+  }
 
   /* MORE */
 
   .stg-more-grid {
     grid-template-columns: 1fr;
 
-    padding-top: 32px;
+    gap: 8px;
+
+    padding-top: 27px;
   }
 
   .stg-more-card {
     min-height: auto;
 
-    padding: 18px;
+    padding: 15px;
+
+    border-radius: 14px;
+  }
+
+  .stg-more-card h3 {
+    font-size: 12px;
   }
 
   .stg-more-card p {
-    font-size: 10px;
+    font-size: 9px;
   }
-
 
   /* POLICY */
 
   .stg-policy-section {
-    padding: 15px;
+    padding: 13px;
 
-    border-radius: 15px;
+    border-radius: 14px;
   }
 
   .stg-policy-links {
-    width: 100%;
-
     display: grid;
 
     grid-template-columns: 1fr;
+
+    gap: 5px;
   }
 
   .stg-policy-links a {
     width: 100%;
-  }
 
+    min-height: 31px;
+  }
 
   /* BOTTOM */
 
@@ -1076,7 +1204,7 @@
 
     align-items: flex-start;
 
-    padding-top: 18px;
+    padding-top: 15px;
   }
 
   .stg-footer-mini-bottom {
@@ -1084,11 +1212,11 @@
 
     align-items: flex-start;
 
-    gap: 5px;
+    gap: 4px;
+
+    padding-bottom: 16px;
   }
-
 }
-
 
 /* =========================================================
    VERY SMALL MOBILE
@@ -1098,20 +1226,22 @@
 
   .stg-footer-container {
     width:
-      calc(100% - 14px);
+      calc(100% - 12px);
   }
 
   .stg-footer-mini {
-    padding: 9px;
+    padding: 8px;
+
+    gap: 6px;
   }
 
   .stg-mini-logo {
-    width: 36px;
-    height: 36px;
+    width: 34px;
+    height: 34px;
   }
 
   .stg-mini-brand strong {
-    font-size: 10px;
+    font-size: 9px;
   }
 
   .stg-mini-brand span {
@@ -1120,13 +1250,11 @@
 
   .stg-mini-btn {
     padding:
-      0 7px;
+      0 6px;
 
-    font-size: 8px;
+    font-size: 7.5px;
   }
-
 }
-
 
 /* =========================================================
    REDUCE MOTION
@@ -1141,5 +1269,4 @@
 
     transition: none !important;
   }
-
 }

@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import TeacherLogin from "./pages/TeacherLogin";
+import StaffLogin from "./pages/StaffLogin";
 import Register from "./pages/Register";
 import StaffRegister from "./pages/StaffRegister";
 import Profile from "./pages/Profile";
@@ -16,7 +17,7 @@ import Subjects from "./pages/Subjects";
 import MockTests from "./pages/MockTests";
 import DailyTest from "./pages/DailyTest";
 import StudentComplaints from "./pages/StudentComplaints";
-import Gallery from "./components/Gallery";
+import Gallery from "./components/college/Gallery";
 import AboutCollege from "./components/college/AboutCollege";
 import Admission from "./components/college/Admissions";
 import Faculty from "./components/college/Faculty";
@@ -51,15 +52,29 @@ import NotFound from "./pages/NotFound";
 
 // ================= PROTECTED =================
 import ProtectedRoute from "./ProtectedRoute";
-
+// ================= subjects =================
+import Physics from "./pages/subjects/Physics";
+import Chemistry from "./pages/subjects/Chemistry";
+import Botany from "./pages/subjects/Botany";
+import Zoology from "./pages/subjects/Zoology";
+import Mathematics from "./pages/subjects/Mathematics";
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         {/* ================= PUBLIC ROUTES ================= */}
         <Route path="/" element={<Home />} />
+         // ================= subjects =================
+        <Route path="/subjects/physics" element={<ProtectedRoute><Physics /></ProtectedRoute>} />
+          <Route path="/subjects/chemistry" element={<ProtectedRoute><Chemistry /></ProtectedRoute>} />
+          <Route path="/subjects/botany" element={<ProtectedRoute><Botany /></ProtectedRoute>} />
+          <Route path="/subjects/zoology" element={<ProtectedRoute><Zoology /></ProtectedRoute>} />
+          <Route path="/subjects/mathematics" element={<ProtectedRoute><Mathematics /></ProtectedRoute>} />
+
+          // ================= logins  =================
         <Route path="/login" element={<Login />} />
         <Route path="/teacher/login" element={<TeacherLogin />} />
+        <Route path="/staff/login" element={<StaffLogin />} />
         <Route path="/register" element={<Register />} />
         <Route path="/student/register" element={<StudentRegister />} />
         <Route path="/staff/register" element={<StaffRegister />} />
@@ -109,7 +124,9 @@ function App() {
         <Route path="/head/dashboard" element={<ProtectedRoute><HeadDashboard /></ProtectedRoute>} />
         <Route path="/question-bank" element={<ProtectedRoute><QuestionBank /></ProtectedRoute>} />
         <Route path="/create-exam" element={<ProtectedRoute><CreateDailyTest /></ProtectedRoute>} />
-
+         
+        
+        
         {/* ================= 404 ================= */}
         <Route path="*" element={<NotFound />} />
       </Routes>

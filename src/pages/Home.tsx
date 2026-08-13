@@ -4,9 +4,9 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
 import {
-  Sparkles,
   ArrowRight,
   Atom,
+  Calculator,
   ShieldCheck,
   BarChart3,
   HeartPulse,
@@ -21,7 +21,7 @@ import {
 
 import "./Home.css";
 
-const TARGET_HOUR = 22; // 10 PM
+const TARGET_HOUR = 22;
 const TARGET_MINUTE = 50;
 
 export default function Home() {
@@ -82,7 +82,10 @@ export default function Home() {
 
     updateCountdown();
 
-    const interval = setInterval(updateCountdown, 1000);
+    const interval = setInterval(
+      updateCountdown,
+      1000
+    );
 
     return () => clearInterval(interval);
   }, []);
@@ -141,7 +144,9 @@ export default function Home() {
       ====================================================== */}
 
       <section className="hero">
+
         <div className="hero-bg-wrapper">
+
           <img
             src="https://res.cloudinary.com/dlkborjdl/image/upload/v1785383712/IMG_20260730_091436_lkmtde.jpg"
             alt="NEET Exam Background"
@@ -150,50 +155,68 @@ export default function Home() {
           />
 
           <div className="hero-gradient-overlay"></div>
+
         </div>
 
+
         <div className="hero-content">
-          {/* HERO TITLE */}
 
           <h1 className="hero-title-anim">
+
             Crack NEET & JEE With Confidence
+
             <br />
+
             <span></span>
+
           </h1>
 
-          {/* HERO DESCRIPTION */}
 
           <p className="hero-desc-anim">
+
             Practice thousands of high-yield NEET & JEE
             questions, chapter-wise mock tests, and live
             face verification proctoring.
+
           </p>
 
-          {/* HERO BUTTONS */}
 
           <div className="hero-buttons">
 
             {isLive ? (
+
               <button
                 onClick={handleStartExam}
                 className="start-btn active-live"
               >
+
                 Start NEET Practice Now
+
                 <ArrowRight size={18} />
+
               </button>
+
             ) : (
+
               <button
                 className="locked-hero-btn"
-                onClick={() => setShowExamModal(true)}
+                onClick={() =>
+                  setShowExamModal(true)
+                }
               >
+
                 <Lock size={18} />
 
                 Locked • Opens in{" "}
+
                 {formatTime(timeLeft.hours)}:
                 {formatTime(timeLeft.minutes)}:
                 {formatTime(timeLeft.seconds)}
+
               </button>
+
             )}
+
 
             <Link
               to="/subjects"
@@ -203,136 +226,363 @@ export default function Home() {
             </Link>
 
           </div>
+
         </div>
+
       </section>
 
+
       {/* =====================================================
-          NEET SUBJECTS
+          PREMIUM SUBJECTS SECTION
       ====================================================== */}
 
-      <section className="categories-section">
+      <section className="subjects-premium-section">
 
-        <div className="section-header">
+        <div className="subjects-section-header">
 
-          <h2>
-            NEET Practice Domains
-          </h2>
+          <div className="subjects-title-wrap">
+
+            <span className="subjects-eyebrow">
+              EXPLORE YOUR POTENTIAL
+            </span>
+
+
+            <h2>
+              Master Every Subject.
+              <span> Conquer Every Exam.</span>
+            </h2>
+
+
+            <p>
+              Explore NEET & JEE subjects, strengthen your
+              concepts, and practice with exam-focused
+              questions.
+            </p>
+
+          </div>
+
+
+          <div className="scroll-hint">
+
+            <span>
+              Swipe to explore
+            </span>
+
+            <ArrowRight size={17} />
+
+          </div>
+
+        </div>
+
+
+        {/* =================================================
+            HORIZONTAL SUBJECT SCROLL
+        ================================================== */}
+
+        <div className="subject-scroll-wrapper">
+
+          <div className="subject-scroll-container">
+
+
+            {/* =================================================
+                PHYSICS
+            ================================================== */}
+
+            <div className="premium-subject-card">
+
+              <div className="subject-card-top">
+
+                <div className="premium-subject-icon physics">
+
+                  <Atom size={30} />
+
+                </div>
+
+                <span className="subject-number">
+                  
+                </span>
+
+              </div>
+
+
+              <div className="subject-card-content">
+
+                <span className="subject-exam">
+                  NEET • JEE
+                </span>
+
+                <h3>
+                  Physics
+                </h3>
+
+                <p>
+                  Mechanics, Thermodynamics, Optics &
+                  Modern Physics
+                </p>
+
+              </div>
+
+
+              <Link
+                to="/subjects/physics"
+                className="premium-subject-link"
+              >
+
+                <span>
+                  Explore Physics
+                </span>
+
+                <ArrowRight size={17} />
+
+              </Link>
+
+            </div>
+
+
+            {/* =================================================
+                CHEMISTRY
+            ================================================== */}
+
+            <div className="premium-subject-card">
+
+              <div className="subject-card-top">
+
+                <div className="premium-subject-icon chemistry">
+
+                  <FlaskConical size={30} />
+
+                </div>
+
+                <span className="subject-number">
+                  
+                </span>
+
+              </div>
+
+
+              <div className="subject-card-content">
+
+                <span className="subject-exam">
+                  NEET • JEE
+                </span>
+
+                <h3>
+                  Chemistry
+                </h3>
+
+                <p>
+                  Organic, Inorganic & Physical Chemistry
+                </p>
+
+              </div>
+
+
+              <Link
+                to="/subjects/chemistry"
+                className="premium-subject-link"
+              >
+
+                <span>
+                  Explore Chemistry
+                </span>
+
+                <ArrowRight size={17} />
+
+              </Link>
+
+            </div>
+
+
+            {/* =================================================
+                BOTANY
+            ================================================== */}
+
+            <div className="premium-subject-card">
+
+              <div className="subject-card-top">
+
+                <div className="premium-subject-icon botany">
+
+                  <Dna size={30} />
+
+                </div>
+
+                <span className="subject-number">
+                  
+                </span>
+
+              </div>
+
+
+              <div className="subject-card-content">
+
+                <span className="subject-exam">
+                  NEET
+                </span>
+
+                <h3>
+                  Botany
+                </h3>
+
+                <p>
+                  Plant Physiology, Genetics, Ecology &
+                  Cell Biology
+                </p>
+
+              </div>
+
+
+              <Link
+                to="/subjects/botany"
+                className="premium-subject-link"
+              >
+
+                <span>
+                  Explore Botany
+                </span>
+
+                <ArrowRight size={17} />
+
+              </Link>
+
+            </div>
+
+
+            {/* =================================================
+                ZOOLOGY
+            ================================================== */}
+
+            <div className="premium-subject-card">
+
+              <div className="subject-card-top">
+
+                <div className="premium-subject-icon zoology">
+
+                  <HeartPulse size={30} />
+
+                </div>
+
+                <span className="subject-number">
+                  
+                </span>
+
+              </div>
+
+
+              <div className="subject-card-content">
+
+                <span className="subject-exam">
+                  NEET
+                </span>
+
+                <h3>
+                  Zoology
+                </h3>
+
+                <p>
+                  Human Physiology, Evolution &
+                  Reproduction
+                </p>
+
+              </div>
+
+
+              <Link
+                to="/subjects/zoology"
+                className="premium-subject-link"
+              >
+
+                <span>
+                  Explore Zoology
+                </span>
+
+                <ArrowRight size={17} />
+
+              </Link>
+
+            </div>
+
+
+            {/* =================================================
+                MATHEMATICS
+            ================================================== */}
+
+            <div className="premium-subject-card">
+
+              <div className="subject-card-top">
+
+                <div className="premium-subject-icon mathematics">
+
+                  <Calculator size={30} />
+
+                </div>
+
+                <span className="subject-number">
+                  
+                </span>
+
+              </div>
+
+
+              <div className="subject-card-content">
+
+                <span className="subject-exam">
+                  JEE
+                </span>
+
+                <h3>
+                  Mathematics
+                </h3>
+
+                <p>
+                  Algebra, Calculus, Coordinate Geometry &
+                  Trigonometry
+                </p>
+
+              </div>
+
+
+              <Link
+                to="/subjects/mathematics"
+                className="premium-subject-link"
+              >
+
+                <span>
+                  Explore Mathematics
+                </span>
+
+                <ArrowRight size={17} />
+
+              </Link>
+
+            </div>
+
+
+          </div>
+
+        </div>
+
+
+        {/* =================================================
+            SCROLL INDICATOR
+        ================================================== */}
+
+        <div className="subject-scroll-bottom">
+
+          <div className="scroll-line">
+
+            <span></span>
+
+          </div>
 
           <p>
-            Choose your medical entrance subject and
-            practice high-yield chapter tests instantly.
+            Scroll horizontally to explore all subjects
           </p>
 
         </div>
 
-        <div className="category-grid">
-
-          {/* PHYSICS */}
-
-          <div className="category-card">
-
-            <div className="cat-icon physics">
-              <Atom size={28} />
-            </div>
-
-            <h3>
-              Physics (NEET)
-            </h3>
-
-            <p>
-              Mechanics, Thermodynamics, Optics &
-              Modern Physics
-            </p>
-
-            <Link
-              to="/subjects/neet-physics"
-              className="cat-link"
-            >
-              Practice Physics →
-            </Link>
-
-          </div>
-
-          {/* CHEMISTRY */}
-
-          <div className="category-card">
-
-            <div className="cat-icon chemistry">
-              <FlaskConical size={28} />
-            </div>
-
-            <h3>
-              Chemistry (NEET)
-            </h3>
-
-            <p>
-              Organic, Inorganic & Physical Chemistry
-              Mock Tests
-            </p>
-
-            <Link
-              to="/subjects/neet-chemistry"
-              className="cat-link"
-            >
-              Practice Chemistry →
-            </Link>
-
-          </div>
-
-          {/* BOTANY */}
-
-          <div className="category-card">
-
-            <div className="cat-icon botany">
-              <Dna size={28} />
-            </div>
-
-            <h3>
-              Botany (NEET)
-            </h3>
-
-            <p>
-              Plant Physiology, Genetics, Ecology &
-              Cell Biology
-            </p>
-
-            <Link
-              to="/subjects/neet-botany"
-              className="cat-link"
-            >
-              Practice Botany →
-            </Link>
-
-          </div>
-
-          {/* ZOOLOGY */}
-
-          <div className="category-card">
-
-            <div className="cat-icon zoology">
-              <HeartPulse size={28} />
-            </div>
-
-            <h3>
-              Zoology (NEET)
-            </h3>
-
-            <p>
-              Human Physiology, Biomolecules, Evolution &
-              Reproduction
-            </p>
-
-            <Link
-              to="/subjects/neet-zoology"
-              className="cat-link"
-            >
-              Practice Zoology →
-            </Link>
-
-          </div>
-
-        </div>
       </section>
+
 
       {/* =====================================================
           FEATURES SECTION
@@ -343,67 +593,85 @@ export default function Home() {
         <div className="section-header">
 
           <h2>
-            Why NEET Aspirants Choose STG Exam Master?
+            Why NEET & JEE Aspirants Choose STG Exam Master?
           </h2>
 
           <p>
-            Engineered precisely according to the latest
-            NTA NEET exam patterns.
+            Engineered for focused preparation with
+            exam-oriented practice and secure testing.
           </p>
 
         </div>
 
+
         <div className="feature-grid">
+
 
           {/* FEATURE 1 */}
 
           <div className="feature-card">
 
             <div className="feat-icon-box">
+
               <Stethoscope size={24} />
+
             </div>
+
 
             <h3>
               NTA Pattern Mock Tests
             </h3>
 
+
             <p>
-              Experience exact NEET exam formats with
-              negative marking and section breakdowns.
+              Experience exam-focused formats with
+              negative marking and detailed section
+              breakdowns.
             </p>
 
           </div>
+
 
           {/* FEATURE 2 */}
 
           <div className="feature-card">
 
             <div className="feat-icon-box">
+
               <BarChart3 size={24} />
+
             </div>
+
 
             <h3>
               Detailed Diagnostic Analytics
             </h3>
 
+
             <p>
-              Identify your weak biological chapters
-              and calculation speed instantly.
+              Identify your weak chapters and improve
+              your accuracy and calculation speed
+              instantly.
             </p>
 
           </div>
+
 
           {/* FEATURE 3 */}
 
           <div className="feature-card">
 
             <div className="feat-icon-box">
+
               <ShieldCheck size={24} />
+
             </div>
+
 
             <h3>
               Secure Exam Environment
             </h3>
+
 
             <p>
               Advanced proctoring features like live
@@ -413,22 +681,30 @@ export default function Home() {
           </div>
 
         </div>
+
       </section>
+
 
       {/* =====================================================
           EXAM MODAL
       ====================================================== */}
 
       {showExamModal && (
+
         <div
           className="exam-modal-backdrop"
-          onClick={() => setShowExamModal(false)}
+          onClick={() =>
+            setShowExamModal(false)
+          }
         >
 
           <div
             className="exam-modal-content"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) =>
+              e.stopPropagation()
+            }
           >
+
 
             {/* MODAL HEADER */}
 
@@ -447,6 +723,7 @@ export default function Home() {
 
               </span>
 
+
               <button
                 className="close-alert-btn"
                 onClick={() =>
@@ -454,10 +731,13 @@ export default function Home() {
                 }
                 aria-label="Close"
               >
+
                 <X size={18} />
+
               </button>
 
             </div>
+
 
             {/* MODAL BODY */}
 
@@ -465,23 +745,31 @@ export default function Home() {
 
               {isLive ? (
 
-                /* ================= LIVE ================= */
+                /* =================================================
+                    LIVE EXAM
+                ================================================== */
 
                 <div className="live-status-container">
 
                   <div className="live-badge">
+
                     <span className="pulse-dot"></span>
+
                     🔴 EXAM IS LIVE NOW
+
                   </div>
+
 
                   <h3>
                     The Weekly NEET Mock Test Has Started!
                   </h3>
 
+
                   <p>
                     Please ensure you are logged in to
                     start camera verification.
                   </p>
+
 
                   <button
                     className="start-exam-now-btn active-live"
@@ -498,13 +786,16 @@ export default function Home() {
 
               ) : (
 
-                /* ================= COUNTDOWN ================= */
+                /* =================================================
+                    COUNTDOWN
+                ================================================== */
 
                 <div className="countdown-container">
 
                   <p className="schedule-info">
 
                     Exam Scheduled Today at{" "}
+
                     <strong>
                       10:50 PM
                     </strong>
@@ -512,24 +803,30 @@ export default function Home() {
                     <br />
 
                     The{" "}
+
                     <strong>
                       "Start Exam Now"
                     </strong>{" "}
+
                     button will automatically activate
                     once countdown hits 00:00:00.
 
                   </p>
 
+
                   <div className="timer-grid">
+
 
                     {/* HOURS */}
 
                     <div className="timer-box">
 
                       <span className="digit">
+
                         {formatTime(
                           timeLeft.hours
                         )}
+
                       </span>
 
                       <span className="label">
@@ -538,18 +835,22 @@ export default function Home() {
 
                     </div>
 
+
                     <span className="colon">
                       :
                     </span>
+
 
                     {/* MINUTES */}
 
                     <div className="timer-box">
 
                       <span className="digit">
+
                         {formatTime(
                           timeLeft.minutes
                         )}
+
                       </span>
 
                       <span className="label">
@@ -558,18 +859,22 @@ export default function Home() {
 
                     </div>
 
+
                     <span className="colon">
                       :
                     </span>
+
 
                     {/* SECONDS */}
 
                     <div className="timer-box">
 
                       <span className="digit">
+
                         {formatTime(
                           timeLeft.seconds
                         )}
+
                       </span>
 
                       <span className="label">
@@ -579,6 +884,7 @@ export default function Home() {
                     </div>
 
                   </div>
+
 
                   <button
                     className="waiting-btn locked-disabled"
@@ -592,6 +898,7 @@ export default function Home() {
                   </button>
 
                 </div>
+
               )}
 
             </div>
@@ -599,7 +906,9 @@ export default function Home() {
           </div>
 
         </div>
+
       )}
+
 
       {/* =====================================================
           FOOTER

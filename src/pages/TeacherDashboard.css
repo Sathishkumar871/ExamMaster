@@ -1,380 +1,1669 @@
-/* --- STG Pre-University College - Ultra-Modern Elite Teacher Dashboard --- */
+/* =========================================================
+   STG PRE-UNIVERSITY COLLEGE
+   LUXURY EXECUTIVE TEACHER DASHBOARD
+   Professional • Elegant • Premium • Smooth
+   Mobile First + Desktop Responsive
+========================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap');
+
+
+/* =========================================================
+   PREMIUM DESIGN SYSTEM
+========================================================= */
+
 :root {
-  --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-  --surface-color: #ffffff;
-  --bg-color: #f8fafc;
-  --text-main: #0f172a;
-  --text-muted: #64748b;
-  --border-color: #e2e8f0;
+
+  /* BACKGROUND */
+  --page-bg: #f3f1eb;
+  --page-bg-soft: #f8f7f3;
+
+  /* DARK BRAND */
+  --ink: #171a19;
+  --ink-soft: #252a28;
+  --charcoal: #202522;
+
+  /* PREMIUM GREEN */
+  --forest: #173d35;
+  --forest-2: #205247;
+  --sage: #6c8a7e;
+
+  /* LUXURY GOLD */
+  --gold: #b08a45;
+  --gold-light: #d6bd82;
+
+  /* TEXT */
+  --text-main: #202321;
+  --text-soft: #69716d;
+  --text-light: #929995;
+
+  /* SURFACES */
+  --white: #ffffff;
+  --cream: #faf9f5;
+  --card: rgba(255,255,255,0.92);
+
+  /* BORDERS */
+  --border: rgba(32,37,34,0.09);
+  --border-dark: rgba(255,255,255,0.10);
+
+  /* SHADOWS */
+  --shadow-sm:
+    0 4px 14px rgba(26,32,29,0.045);
+
+  --shadow-md:
+    0 14px 35px rgba(26,32,29,0.075);
+
+  --shadow-lg:
+    0 24px 60px rgba(26,32,29,0.10);
 }
+
+
+/* =========================================================
+   GLOBAL
+========================================================= */
+
+* {
+  box-sizing: border-box;
+}
+
 
 .teacher-container {
-  background: var(--bg-color);
+
   min-height: 100vh;
-  padding: 40px;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+
+  padding: 42px;
+
+  font-family:
+    'DM Sans',
+    system-ui,
+    sans-serif;
+
   color: var(--text-main);
-  animation: fadeInDashboard 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
 
-@keyframes fadeInDashboard {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* --- Elite Loading Screen --- */
-.teacher-loading {
-  display: flex;
-  height: 100vh;
-  justify-content: center;
-  align-items: center;
-  background: #090d16;
-  color: #38bdf8;
-  font-size: 1.25rem;
-  font-weight: 700;
-  letter-spacing: 0.8px;
-}
-
-/* --- Gorgeous Teacher Header & Professional Icon Design --- */
-.teacher-header {
-  background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
-  color: #ffffff;
-  padding: 36px 40px;
-  border-radius: 24px;
-  margin-bottom: 32px;
-  box-shadow: 0 20px 40px -15px rgba(30, 27, 75, 0.4);
-  border: 1px solid rgba(129, 140, 248, 0.25);
-  display: flex;
-  flex-direction: column;
   position: relative;
-  overflow: hidden;
+
+  overflow-x: hidden;
+
+  background:
+
+    radial-gradient(
+      circle at 8% 5%,
+      rgba(176,138,69,0.055),
+      transparent 28%
+    ),
+
+    radial-gradient(
+      circle at 92% 18%,
+      rgba(23,61,53,0.055),
+      transparent 30%
+    ),
+
+    linear-gradient(
+      135deg,
+      #f5f3ee 0%,
+      #eeece6 48%,
+      #f7f6f1 100%
+    );
+
+  animation:
+    dashboardEnter
+    .55s
+    cubic-bezier(.22,1,.36,1)
+    both;
 }
 
-/* Background Decorative Glowing Circle */
-.teacher-header::before {
+
+.teacher-container::before {
+
   content: '';
+
+  position: fixed;
+
+  inset: 0;
+
+  pointer-events: none;
+
+  opacity: .28;
+
+  background-image:
+    radial-gradient(
+      rgba(20,30,25,.07) .6px,
+      transparent .6px
+    );
+
+  background-size: 6px 6px;
+
+  mask-image:
+    linear-gradient(
+      to bottom,
+      black,
+      transparent 80%
+    );
+}
+
+
+/* =========================================================
+   PAGE ENTER
+========================================================= */
+
+@keyframes dashboardEnter {
+
+  from {
+
+    opacity: 0;
+
+    transform:
+      translateY(12px);
+  }
+
+  to {
+
+    opacity: 1;
+
+    transform:
+      translateY(0);
+  }
+}
+
+
+/* =========================================================
+   LOADING
+========================================================= */
+
+.teacher-loading {
+
+  height: 100vh;
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  text-align: center;
+
+  font-family:
+    'DM Sans',
+    sans-serif;
+
+  font-size: 15px;
+
+  font-weight: 600;
+
+  letter-spacing: .2px;
+
+  color: #e8dfc9;
+
+  background:
+
+    radial-gradient(
+      circle at 50% 20%,
+      rgba(176,138,69,.12),
+      transparent 35%
+    ),
+
+    linear-gradient(
+      145deg,
+      #111614,
+      #1b2521
+    );
+}
+
+
+/* =========================================================
+   PREMIUM HEADER
+========================================================= */
+
+.teacher-header {
+
+  position: relative;
+
+  overflow: hidden;
+
+  padding: 38px 40px;
+
+  margin-bottom: 30px;
+
+  border-radius: 28px;
+
+  color: white;
+
+  background:
+
+    radial-gradient(
+      circle at 90% 10%,
+      rgba(176,138,69,.18),
+      transparent 25%
+    ),
+
+    radial-gradient(
+      circle at 0% 100%,
+      rgba(108,138,126,.15),
+      transparent 35%
+    ),
+
+    linear-gradient(
+      135deg,
+      #121716 0%,
+      #18211e 50%,
+      #20312b 100%
+    );
+
+  border:
+    1px solid
+    rgba(255,255,255,.08);
+
+  box-shadow:
+    var(--shadow-lg);
+
+  isolation: isolate;
+}
+
+
+/* HEADER GOLD LINE */
+
+.teacher-header::before {
+
+  content: '';
+
   position: absolute;
-  right: -50px;
-  top: -50px;
-  width: 220px;
-  height: 220px;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.35) 0%, transparent 70%);
+
+  left: 0;
+
+  top: 0;
+
+  width: 100%;
+
+  height: 2px;
+
+  background:
+
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--gold),
+      var(--gold-light),
+      transparent
+    );
+
+  opacity: .85;
+}
+
+
+/* HEADER DECORATION */
+
+.teacher-header::after {
+
+  content: '';
+
+  position: absolute;
+
+  width: 280px;
+
+  height: 280px;
+
+  right: -120px;
+
+  top: -140px;
+
   border-radius: 50%;
+
+  border:
+    1px solid
+    rgba(214,189,130,.12);
+
+  box-shadow:
+    0 0 0 30px rgba(214,189,130,.025),
+    0 0 0 60px rgba(214,189,130,.018);
+
   pointer-events: none;
 }
 
+
+/* =========================================================
+   HEADER TITLE
+========================================================= */
+
 .teacher-header h1 {
-  margin: 0 0 8px 0;
-  font-size: 2.1rem;
-  font-weight: 800;
-  letter-spacing: -0.03em;
+
+  position: relative;
+
+  z-index: 2;
+
+  margin: 0 0 9px;
+
   display: flex;
+
   align-items: center;
-  gap: 14px;
+
+  gap: 15px;
+
+  font-family:
+    'DM Sans',
+    sans-serif;
+
+  font-size: 2rem;
+
+  font-weight: 700;
+
+  line-height: 1.2;
+
+  letter-spacing: -.035em;
+
+  color: #f8f6ef;
 }
 
-/* Professional Teacher Avatar Badge inside Header */
+
+/* =========================================================
+   TEACHER BADGE
+========================================================= */
+
 .teacher-header h1::before {
-  content: '👨‍🏫';
-  background: rgba(255, 255, 255, 0.12);
-  padding: 10px 14px;
+
+  content: '✦';
+
+  width: 50px;
+
+  height: 50px;
+
+  flex-shrink: 0;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
   border-radius: 16px;
-  font-size: 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(8px);
-  box-shadow: inset 0 2px 6px rgba(255, 255, 255, 0.15);
+
+  color: var(--gold-light);
+
+  font-size: 20px;
+
+  background:
+
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.11),
+      rgba(255,255,255,.035)
+    );
+
+  border:
+    1px solid
+    rgba(214,189,130,.24);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.12);
+
+  backdrop-filter:
+    blur(12px);
 }
+
 
 .teacher-header p {
+
+  position: relative;
+
+  z-index: 2;
+
   margin: 4px 0;
-  font-size: 15px;
-  color: #c7d2fe;
+
+  color:
+    rgba(234,238,234,.68);
+
+  font-size: 13.5px;
+
   font-weight: 500;
-  letter-spacing: 0.3px;
+
+  letter-spacing: .15px;
 }
 
-/* --- Ultra-Snappy Animated Action Buttons --- */
+
+/* =========================================================
+   ACTIONS
+========================================================= */
+
 .teacher-actions {
+
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-  gap: 18px;
-  margin-bottom: 32px;
+
+  grid-template-columns:
+    repeat(5, 1fr);
+
+  gap: 13px;
+
+  margin-bottom: 28px;
 }
+
 
 .teacher-actions button {
-  padding: 16px 20px;
-  border-radius: 16px;
-  border: none;
-  font-size: 14.5px;
+
+  min-height: 57px;
+
+  padding:
+    13px 15px;
+
+  border-radius: 15px;
+
+  border:
+    1px solid
+    var(--border);
+
+  font-family:
+    'DM Sans',
+    sans-serif;
+
+  font-size: 13px;
+
   font-weight: 700;
+
   cursor: pointer;
+
   display: flex;
+
   align-items: center;
+
   justify-content: center;
-  gap: 10px;
-  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+
+  gap: 8px;
+
+  transition:
+    transform .25s cubic-bezier(.22,1,.36,1),
+    box-shadow .25s ease,
+    border-color .25s ease;
 }
+
+
+/* DESKTOP HOVER */
 
 .teacher-actions button:hover {
-  transform: translateY(-4px) scale(1.02);
+
+  transform:
+    translateY(-3px);
 }
+
 
 .teacher-actions button:active {
-  transform: scale(0.96) translateY(0);
+
+  transform:
+    scale(.97);
 }
 
-/* Button Variants with Distinct Gradients & Glows */
+
+/* =========================================================
+   QUESTION BUTTON
+========================================================= */
+
 .question-btn {
-  background: #ffffff;
-  color: #334155;
-  border: 1px solid #cbd5e1;
+
+  color: #313633;
+
+  background:
+    rgba(255,255,255,.82);
+
+  border-color:
+    rgba(32,37,34,.10);
+
+  box-shadow:
+    var(--shadow-sm);
 }
+
+
 .question-btn:hover {
-  background: #f8fafc;
-  border-color: #94a3b8;
-  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+
+  border-color:
+    rgba(32,37,34,.18);
+
+  box-shadow:
+    var(--shadow-md);
 }
+
+
+/* =========================================================
+   GREEN BUTTON
+========================================================= */
 
 .create-exam-btn {
-  background: linear-gradient(135deg, #059669 0%, #047857 100%);
-  color: #ffffff;
-  box-shadow: 0 8px 22px rgba(5, 150, 105, 0.35) !important;
+
+  color: #fff;
+
+  background:
+    linear-gradient(
+      135deg,
+      #285b4e,
+      #173d35
+    );
+
+  border:
+    1px solid
+    rgba(255,255,255,.08);
+
+  box-shadow:
+    0 10px 25px
+    rgba(23,61,53,.18) !important;
 }
-.create-exam-btn:hover {
-  box-shadow: 0 12px 28px rgba(5, 150, 105, 0.45) !important;
-  filter: brightness(1.06);
-}
+
+
+/* =========================================================
+   DARK BUTTON
+========================================================= */
 
 .manage-exam-btn {
-  background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
-  color: #ffffff;
-  box-shadow: 0 8px 22px rgba(79, 70, 229, 0.35) !important;
+
+  color: #fff;
+
+  background:
+    linear-gradient(
+      135deg,
+      #303936,
+      #171c1a
+    );
+
+  border:
+    1px solid
+    rgba(255,255,255,.08);
+
+  box-shadow:
+    0 10px 25px
+    rgba(23,28,26,.16) !important;
 }
-.manage-exam-btn:hover {
-  box-shadow: 0 12px 28px rgba(79, 70, 229, 0.45) !important;
-  filter: brightness(1.06);
-}
+
+
+/* =========================================================
+   BLUE-GREEN BUTTON
+========================================================= */
 
 .student-btn {
-  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-  color: #ffffff;
-  box-shadow: 0 8px 22px rgba(2, 132, 199, 0.35) !important;
+
+  color: #fff;
+
+  background:
+    linear-gradient(
+      135deg,
+      #477b70,
+      #285b4e
+    );
+
+  border:
+    1px solid
+    rgba(255,255,255,.08);
+
+  box-shadow:
+    0 10px 25px
+    rgba(40,91,78,.16) !important;
 }
-.student-btn:hover {
-  box-shadow: 0 12px 28px rgba(2, 132, 199, 0.45) !important;
-  filter: brightness(1.06);
-}
+
+
+/* =========================================================
+   GOLD BUTTON
+========================================================= */
 
 .result-btn {
-  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
-  color: #ffffff;
-  box-shadow: 0 8px 22px rgba(217, 119, 6, 0.35) !important;
-}
-.result-btn:hover {
-  box-shadow: 0 12px 28px rgba(217, 119, 6, 0.45) !important;
-  filter: brightness(1.06);
+
+  color: #fff;
+
+  background:
+    linear-gradient(
+      135deg,
+      #c6a45f,
+      #a67d35
+    );
+
+  border:
+    1px solid
+    rgba(255,255,255,.12);
+
+  box-shadow:
+    0 10px 25px
+    rgba(166,125,53,.18) !important;
 }
 
-/* --- High-End Search Input --- */
+
+/* =========================================================
+   SEARCH
+========================================================= */
+
 .search-box {
-  margin-bottom: 32px;
+
   display: flex;
+
+  margin-bottom: 28px;
 }
+
 
 .search-box input {
-  padding: 16px 24px;
+
   width: 480px;
+
   max-width: 100%;
-  border-radius: 16px;
-  border: 1px solid #cbd5e1;
+
+  min-height: 54px;
+
+  padding:
+    15px 19px;
+
   outline: none;
-  font-size: 15px;
-  background: #ffffff;
-  color: #0f172a;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+
+  border-radius: 15px;
+
+  border:
+    1px solid
+    rgba(32,37,34,.10);
+
+  background:
+    rgba(255,255,255,.84);
+
+  color:
+    var(--text-main);
+
+  font-family:
+    'DM Sans',
+    sans-serif;
+
+  font-size: 14px;
+
+  box-shadow:
+    var(--shadow-sm);
+
+  transition:
+    width .3s ease,
+    border-color .25s ease,
+    box-shadow .25s ease;
 }
+
 
 .search-box input::placeholder {
-  color: #94a3b8;
+
+  color:
+    #9ba19e;
 }
+
 
 .search-box input:focus {
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15), 0 8px 20px rgba(0, 0, 0, 0.05);
+
   width: 520px;
+
+  border-color:
+    rgba(23,61,53,.35);
+
+  box-shadow:
+
+    0 0 0 4px
+    rgba(23,61,53,.055),
+
+    var(--shadow-md);
 }
 
-/* --- Student Cards Grid with Smooth Motion --- */
+
+/* =========================================================
+   STUDENT GRID
+========================================================= */
+
 .student-grid {
+
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 28px;
+
+  grid-template-columns:
+    repeat(
+      auto-fill,
+      minmax(320px, 1fr)
+    );
+
+  gap: 20px;
 }
+
+
+/* =========================================================
+   STUDENT CARD
+========================================================= */
 
 .student-card {
-  background: #ffffff;
-  padding: 28px;
-  border-radius: 20px;
-  box-shadow: 0 12px 35px -10px rgba(15, 23, 42, 0.06);
-  border: 1px solid #e2e8f0;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+
   position: relative;
+
   overflow: hidden;
+
+  padding: 25px;
+
+  border-radius: 21px;
+
+  background:
+    rgba(255,255,255,.88);
+
+  border:
+    1px solid
+    rgba(32,37,34,.075);
+
+  box-shadow:
+    var(--shadow-md);
+
+  backdrop-filter:
+    blur(10px);
+
+  transition:
+    transform .3s cubic-bezier(.22,1,.36,1),
+    box-shadow .3s ease,
+    border-color .3s ease;
 }
 
-/* Top Shimmer Accent Line */
+
+/* GOLD ACCENT */
+
 .student-card::before {
+
   content: '';
+
   position: absolute;
-  top: 0;
+
   left: 0;
-  right: 0;
-  height: 5px;
-  background: linear-gradient(90deg, #4f46e5, #059669);
-  transition: height 0.25s ease;
+
+  top: 0;
+
+  bottom: 0;
+
+  width: 3px;
+
+  background:
+
+    linear-gradient(
+      180deg,
+      var(--gold-light),
+      var(--gold),
+      var(--forest)
+    );
+
+  opacity: .9;
 }
+
 
 .student-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 22px 50px -12px rgba(15, 23, 42, 0.14);
-  border-color: #cbd5e1;
+
+  transform:
+    translateY(-5px);
+
+  border-color:
+    rgba(32,37,34,.13);
+
+  box-shadow:
+    0 24px 50px
+    rgba(26,32,29,.11);
 }
+
 
 .student-card:hover::before {
-  height: 8px;
+
+  width: 4px;
 }
+
+
+/* =========================================================
+   STUDENT TITLE
+========================================================= */
 
 .student-card h2 {
-  margin: 0 0 10px 0;
-  font-size: 1.25rem;
-  color: #0f172a;
-  font-weight: 750;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+
+  margin:
+    0 0 10px;
+
+  color:
+    var(--text-main);
+
+  font-family:
+    'DM Sans',
+    sans-serif;
+
+  font-size:
+    1.16rem;
+
+  font-weight:
+    700;
+
+  line-height:
+    1.4;
+
+  letter-spacing:
+    -.025em;
 }
+
 
 .student-card p {
-  margin: 6px 0;
-  font-size: 14px;
-  color: #64748b;
-  font-weight: 500;
+
+  margin:
+    6px 0;
+
+  color:
+    var(--text-soft);
+
+  font-size:
+    13.5px;
+
+  font-weight:
+    500;
+
+  line-height:
+    1.55;
 }
+
 
 .student-card hr {
-  border: none;
-  border-top: 1px solid #f1f5f9;
-  margin: 18px 0;
+
+  margin:
+    18px 0;
+
+  border:
+    none;
+
+  border-top:
+    1px solid
+    rgba(32,37,34,.07);
 }
 
-/* --- Clean Modern Performance Pills Grid --- */
+
+/* =========================================================
+   PERFORMANCE
+========================================================= */
+
 .performance {
+
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  background: #f8fafc;
-  padding: 16px;
-  border-radius: 14px;
-  border: 1px solid #f1f5f9;
+
+  grid-template-columns:
+    1fr 1fr;
+
+  gap: 9px;
+
+  padding: 13px;
+
+  border-radius: 15px;
+
+  background:
+    #f4f3ee;
+
+  border:
+    1px solid
+    rgba(32,37,34,.055);
 }
+
 
 .performance p {
+
   margin: 0;
-  font-size: 13.5px;
-  color: #334155;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #ffffff;
-  padding: 8px 12px;
-  border-radius: 10px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
-  border: 1px solid #e2e8f0;
-  transition: transform 0.2s ease, border-color 0.2s ease;
+
+  padding:
+    10px 11px;
+
+  border-radius: 11px;
+
+  color:
+    #4d5551;
+
+  background:
+    rgba(255,255,255,.88);
+
+  border:
+    1px solid
+    rgba(32,37,34,.06);
+
+  font-size:
+    12.5px;
+
+  font-weight:
+    600;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  gap: 7px;
+
+  box-shadow:
+    0 3px 9px
+    rgba(26,32,29,.035);
+
+  transition:
+    border-color .2s ease;
 }
+
 
 .performance p:hover {
-  transform: translateY(-2px);
-  border-color: #cbd5e1;
+
+  border-color:
+    rgba(176,138,69,.24);
 }
+
+
+/* =========================================================
+   NOTIFICATIONS
+========================================================= */
+
 .premium-notification-container {
-  background: linear-gradient(135deg, #fffbeb, #fef3c7);
-  border: 1px solid #f59e0b;
-  border-radius: 12px;
-  padding: 16px 20px;
-  margin: 20px 0;
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+
+  margin:
+    20px 0;
+
+  padding:
+    18px 20px;
+
+  border-radius:
+    18px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #faf6eb,
+      #f4edda
+    );
+
+  border:
+    1px solid
+    rgba(176,138,69,.18);
+
+  box-shadow:
+    var(--shadow-sm);
 }
+
 
 .notification-banner-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  gap:
+    9px;
+
+  margin-bottom:
+    12px;
 }
+
 
 .notification-banner-header h3 {
-  color: #92400e;
-  margin: 0;
-  font-size: 1.1rem;
+
+  margin:
+    0;
+
+  color:
+    #735b2c;
+
+  font-size:
+    15px;
+
+  font-weight:
+    700;
 }
+
 
 .premium-notification-card {
-  background: #ffffff;
-  border-radius: 8px;
-  padding: 12px 16px;
-  margin-bottom: 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-left: 4px solid #f59e0b;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+
+  padding:
+    13px 15px;
+
+  margin-bottom:
+    9px;
+
+  border-radius:
+    12px;
+
+  display:
+    flex;
+
+  justify-content:
+    space-between;
+
+  align-items:
+    center;
+
+  gap:
+    15px;
+
+  background:
+    rgba(255,255,255,.90);
+
+  border:
+    1px solid
+    rgba(32,37,34,.055);
+
+  border-left:
+    3px solid
+    var(--gold);
+
+  box-shadow:
+    0 4px 14px
+    rgba(26,32,29,.04);
 }
+
 
 .notification-details h4 {
-  margin: 0 0 4px 0;
-  color: #1f2937;
+
+  margin:
+    0 0 4px;
+
+  color:
+    var(--text-main);
+
+  font-size:
+    13px;
+
+  font-weight:
+    700;
 }
+
 
 .notification-details p {
-  margin: 2px 0;
-  font-size: 0.9rem;
-  color: #4b5563;
+
+  margin:
+    2px 0;
+
+  color:
+    var(--text-soft);
+
+  font-size:
+    12px;
 }
+
 
 .notification-actions {
-  display: flex;
-  gap: 8px;
+
+  display:
+    flex;
+
+  gap:
+    7px;
 }
+
+
+.notif-accept-btn,
+.notif-reject-btn {
+
+  border:
+    none;
+
+  padding:
+    8px 13px;
+
+  border-radius:
+    9px;
+
+  color:
+    white;
+
+  font-family:
+    'DM Sans',
+    sans-serif;
+
+  font-size:
+    11.5px;
+
+  font-weight:
+    700;
+
+  cursor:
+    pointer;
+
+  transition:
+    transform .15s ease;
+}
+
 
 .notif-accept-btn {
-  background-color: #10b981;
-  color: white;
-  border: none;
-  padding: 6px 14px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
+
+  background:
+    var(--forest);
 }
+
 
 .notif-reject-btn {
-  background-color: #ef4444;
-  color: white;
-  border: none;
-  padding: 6px 14px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
+
+  background:
+    #8b4038;
 }
 
+
+.notif-accept-btn:active,
+.notif-reject-btn:active {
+
+  transform:
+    scale(.95);
+}
+
+
 .notification-alert-msg {
-  background: #d1fae5;
-  color: #065f46;
-  padding: 8px 12px;
-  border-radius: 6px;
-  margin-bottom: 10px;
-  font-size: 0.9rem;
+
+  padding:
+    9px 12px;
+
+  border-radius:
+    9px;
+
+  background:
+    #eaf4ef;
+
+  color:
+    #285b4e;
+
+  border:
+    1px solid
+    rgba(40,91,78,.10);
+
+  font-size:
+    12px;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 768px) {
+
+  .teacher-container {
+
+    padding:
+      17px
+      12px
+      calc(25px + env(safe-area-inset-bottom));
+
+    background:
+
+      radial-gradient(
+        circle at 0% 0%,
+        rgba(176,138,69,.075),
+        transparent 32%
+      ),
+
+      radial-gradient(
+        circle at 100% 15%,
+        rgba(23,61,53,.065),
+        transparent 32%
+      ),
+
+      linear-gradient(
+        180deg,
+        #f7f5ef,
+        #eeece6
+      );
+  }
+
+
+  /* HEADER */
+
+  .teacher-header {
+
+    padding:
+      24px
+      18px
+      22px;
+
+    margin-bottom:
+      18px;
+
+    border-radius:
+      23px;
+
+    box-shadow:
+      0 18px 45px
+      rgba(26,32,29,.17);
+  }
+
+
+  .teacher-header h1 {
+
+    font-size:
+      1.32rem;
+
+    gap:
+      11px;
+  }
+
+
+  .teacher-header h1::before {
+
+    width:
+      42px;
+
+    height:
+      42px;
+
+    border-radius:
+      13px;
+
+    font-size:
+      17px;
+  }
+
+
+  .teacher-header p {
+
+    font-size:
+      11.5px;
+
+    line-height:
+      1.55;
+  }
+
+
+  /* ACTIONS */
+
+  .teacher-actions {
+
+    grid-template-columns:
+      1fr 1fr;
+
+    gap:
+      9px;
+
+    margin-bottom:
+      19px;
+  }
+
+
+  .teacher-actions button {
+
+    min-height:
+      56px;
+
+    padding:
+      10px 7px;
+
+    border-radius:
+      14px;
+
+    font-size:
+      10.7px;
+
+    box-shadow:
+      0 7px 18px
+      rgba(26,32,29,.07);
+  }
+
+
+  .teacher-actions button:hover {
+
+    transform:
+      none;
+  }
+
+
+  .teacher-actions button:active {
+
+    transform:
+      scale(.95);
+  }
+
+
+  /* SEARCH */
+
+  .search-box {
+
+    width:
+      100%;
+
+    margin-bottom:
+      18px;
+  }
+
+
+  .search-box input {
+
+    width:
+      100%;
+
+    min-height:
+      51px;
+
+    padding:
+      14px 16px;
+
+    border-radius:
+      14px;
+
+    font-size:
+      13px;
+
+    background:
+      rgba(255,255,255,.91);
+  }
+
+
+  .search-box input:focus {
+
+    width:
+      100%;
+  }
+
+
+  /* STUDENT GRID */
+
+  .student-grid {
+
+    grid-template-columns:
+      1fr;
+
+    gap:
+      13px;
+  }
+
+
+  /* CARD */
+
+  .student-card {
+
+    padding:
+      20px
+      16px
+      16px;
+
+    border-radius:
+      18px;
+
+    box-shadow:
+      0 10px 28px
+      rgba(26,32,29,.065);
+
+    backdrop-filter:
+      blur(8px);
+  }
+
+
+  .student-card:hover {
+
+    transform:
+      none;
+
+    box-shadow:
+      0 10px 28px
+      rgba(26,32,29,.065);
+  }
+
+
+  .student-card:active {
+
+    transform:
+      scale(.985);
+  }
+
+
+  .student-card h2 {
+
+    font-size:
+      1rem;
+
+    margin-bottom:
+      8px;
+  }
+
+
+  .student-card p {
+
+    font-size:
+      12px;
+
+    margin:
+      5px 0;
+  }
+
+
+  .student-card hr {
+
+    margin:
+      14px 0;
+  }
+
+
+  /* PERFORMANCE */
+
+  .performance {
+
+    padding:
+      9px;
+
+    gap:
+      7px;
+
+    border-radius:
+      13px;
+  }
+
+
+  .performance p {
+
+    padding:
+      8px 7px;
+
+    border-radius:
+      9px;
+
+    font-size:
+      10.5px;
+
+    gap:
+      4px;
+  }
+
+
+  /* NOTIFICATION */
+
+  .premium-notification-container {
+
+    padding:
+      14px;
+
+    margin:
+      15px 0;
+
+    border-radius:
+      16px;
+  }
+
+
+  .notification-banner-header h3 {
+
+    font-size:
+      13px;
+  }
+
+
+  .premium-notification-card {
+
+    padding:
+      12px;
+
+    flex-direction:
+      column;
+
+    align-items:
+      stretch;
+
+    gap:
+      10px;
+
+    border-radius:
+      12px;
+  }
+
+
+  .notification-details h4 {
+
+    font-size:
+      12.5px;
+  }
+
+
+  .notification-details p {
+
+    font-size:
+      11px;
+  }
+
+
+  .notification-actions {
+
+    display:
+      grid;
+
+    grid-template-columns:
+      1fr 1fr;
+
+    width:
+      100%;
+
+    gap:
+      7px;
+  }
+
+
+  .notif-accept-btn,
+  .notif-reject-btn {
+
+    min-height:
+      38px;
+
+    padding:
+      7px;
+
+    font-size:
+      11px;
+
+    border-radius:
+      8px;
+  }
+
+
+  .notification-alert-msg {
+
+    font-size:
+      10.8px;
+  }
+}
+
+
+/* =========================================================
+   SMALL PHONES
+========================================================= */
+
+@media (max-width: 390px) {
+
+  .teacher-container {
+
+    padding-left:
+      10px;
+
+    padding-right:
+      10px;
+  }
+
+
+  .teacher-header {
+
+    padding:
+      21px
+      16px;
+
+    border-radius:
+      20px;
+  }
+
+
+  .teacher-header h1 {
+
+    font-size:
+      1.2rem;
+  }
+
+
+  .teacher-header h1::before {
+
+    width:
+      38px;
+
+    height:
+      38px;
+
+    border-radius:
+      12px;
+  }
+
+
+  .teacher-actions {
+
+    gap:
+      8px;
+  }
+
+
+  .teacher-actions button {
+
+    min-height:
+      53px;
+
+    font-size:
+      10px;
+
+    border-radius:
+      13px;
+  }
+
+
+  .student-card {
+
+    padding:
+      18px
+      14px
+      15px;
+
+    border-radius:
+      17px;
+  }
+
+
+  .performance p {
+
+    font-size:
+      10px;
+
+    padding:
+      8px 6px;
+  }
+}
+
+
+/* =========================================================
+   EXTRA SMALL
+========================================================= */
+
+@media (max-width: 340px) {
+
+  .teacher-actions {
+
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .performance {
+
+    grid-template-columns:
+      1fr;
+  }
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  * {
+
+    animation:
+      none !important;
+
+    transition:
+      none !important;
+  }
 }
