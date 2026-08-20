@@ -1,120 +1,136 @@
 import "./QuestionPalette.css";
 
-interface Props{
+interface Props {
+  totalQuestions: number;
 
-totalQuestions:number;
+  currentQuestion: number;
 
-currentQuestion:number;
+  answers: Record<number, string>;
 
-answers:Record<number,string>;
-
-onSelectQuestion:(index:number)=>void;
-
+  onSelectQuestion: (index: number) => void;
 }
 
 export default function QuestionPalette({
+  totalQuestions,
+  currentQuestion,
+  answers,
+  onSelectQuestion,
+}: Props) {
+  // ============================================================
+  // ANSWERED COUNT
+  // ============================================================
 
-totalQuestions,
+  const answeredCount = Object.keys(answers).length;
 
-currentQuestion,
+  const remainingCount =
+    Math.max(0, totalQuestions - answeredCount);
 
-answers,
+  // ============================================================
+  // RENDER
+  // ============================================================
 
-onSelectQuestion
+  return (
+    <div className="palette">
 
-}:Props){
+      {/* ======================================================
+          HEADER
+      ====================================================== */}
 
-return(
+      <div className="palette-header">
+        <h3>Questions</h3>
 
-<div className="palette">
+        <span className="palette-count">
+          {answeredCount}/{totalQuestions}
+        </span>
+      </div>
 
-<h3>
+      {/* ======================================================
+          QUESTION GRID
+      ====================================================== */}
 
-Questions
+      <div className="palette-grid">
 
-</h3>
+        {Array.from({
+          length: totalQuestions,
+        }).map((_, index) => {
 
-<div className="palette-grid">
+          const isCurrent =
+            currentQuestion === index;
 
-{
+          const isAnswered =
+            Boolean(answers[index]);
 
-Array.from({
+          let buttonClass =
+            "palette-btn";
 
-length:totalQuestions
+          if (isCurrent) {
+            buttonClass += " active";
+          } else if (isAnswered) {
+            buttonClass += " answered";
+          }
 
-}).map((_,index)=>(
+          return (
+            <button
+              type="button"
+              key={index}
+              className={buttonClass}
+              onClick={() =>
+                onSelectQuestion(index)
+              }
+              aria-label={`Question ${index + 1}${
+                isAnswered
+                  ? " answered"
+                  : " not answered"
+              }`}
+            >
+              {index + 1}
+            </button>
+          );
+        })}
 
-<button
+      </div>
 
-key={index}
+      {/* ======================================================
+          LEGEND
+      ====================================================== */}
 
-onClick={()=>onSelectQuestion(index)}
+      <div className="palette-legend">
 
-className={
+        <div className="legend-item">
+          <span className="legend-dot answered-dot" />
+          <span>Answered</span>
+        </div>
 
-currentQuestion===index
+        <div className="legend-item">
+          <span className="legend-dot remaining-dot" />
+          <span>Not Answered</span>
+        </div>
 
-?
+        <div className="legend-item">
+          <span className="legend-dot current-dot" />
+          <span>Current</span>
+        </div>
 
-"palette-btn active"
+      </div>
 
-:
+      {/* ======================================================
+          INFO
+      ====================================================== */}
 
-answers[index]
+      <div className="palette-info">
 
-?
+        <p>
+          <strong>Answered</strong>
+          <span>{answeredCount}</span>
+        </p>
 
-"palette-btn answered"
+        <p>
+          <strong>Remaining</strong>
+          <span>{remainingCount}</span>
+        </p>
 
-:
+      </div>
 
-"palette-btn"
-
-}
-
->
-
-{index+1}
-
-</button>
-
-))
-
-}
-
-</div>
-
-<div className="palette-info">
-
-<p>
-
-🟩 Answered :
-{
-
-Object.keys(answers).length
-
-}
-
-</p>
-
-<p>
-
-⬜ Remaining :
-
-{
-
-totalQuestions -
-
-Object.keys(answers).length
-
-}
-
-</p>
-
-</div>
-
-</div>
-
-);
-
+    </div>
+  );
 }

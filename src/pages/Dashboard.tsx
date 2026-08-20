@@ -97,54 +97,8 @@ export default function Dashboard() {
 
 
       {/* ================= CONTINUE LEARNING ================= */}
-      <section className="resume-learning-card">
-
-        <div className="resume-left">
-
-          <div className="resume-icon">
-            <BookOpen size={21} />
-          </div>
-
-          <div className="resume-content">
-
-            <span className="resume-label">
-              CONTINUE LEARNING
-            </span>
-
-            <h3>
-              Advanced Physics
-            </h3>
-
-            <p>
-              Quantum Mechanics
-            </p>
-
-            <div className="resume-meta">
-
-              <span>
-                <Clock3 size={14} />
-                Last studied 2 hours ago
-              </span>
-
-              <span className="meta-divider"></span>
-
-              <span>
-                Chapter 4
-              </span>
-
-            </div>
-
-          </div>
-
-        </div>
-
-        <Link to="/subjects" className="resume-button">
-          <span>Resume</span>
-          <ArrowUpRight size={17} />
-        </Link>
-
-      </section>
-
+      
+         
 
       {/* ================= SECTION HEADER ================= */}
       <section className="navigation-section">

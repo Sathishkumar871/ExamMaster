@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import FaceVerification from "./../components/FaceVerification";
 import { Clock, ShieldAlert, Bookmark, ArrowRight, ArrowLeft, LogOut, Lock } from "lucide-react";
 import "./JeeMains.css";
 
@@ -21,17 +22,15 @@ interface Question {
   testCategory?: string;
   className?: string;
   class?: string;
-  subject?: string;
 }
 
-export default function DailyTests() {
+export default function JeeMains() {
   const navigate = useNavigate();
 
-  // ఫేస్ వెరిఫికేషన్ తీసేసాం కాబట్టి డైరెక్ట్ "dashboard" నుండి స్టార్ట్ అవుతుంది
-  const [step, setStep] = useState<string>("dashboard");
+  const [step, setStep] = useState<string>("verify");
   
   const [questions, setQuestions] = useState<Question[]>(() => {
-    const saved = localStorage.getItem("dailytest_questions");
+    const saved = localStorage.getItem("jeemains_questions");
     return saved ? JSON.parse(saved) : [];
   });
 
@@ -40,47 +39,98 @@ export default function DailyTests() {
 
   const [studentName, setStudentName] = useState("Student");
   const [studentId, setStudentId] = useState("");
-  const [className, setClassName] = useState<string>("2nd PUC");
+  const [className, setClassName] = useState<string>("");
+  const [academicYear, setAcademicYear] = useState<string>("2026-2027");
   
-  const [violationCount] = useState<number>(0);
+  const [violationCount, setViolationCount] = useState<number>(0);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   
   const [answers, setAnswers] = useState<Record<string, string>>(() => {
-    const saved = localStorage.getItem("dailytest_answers");
+    const saved = localStorage.getItem("jeemains_answers");
     return saved ? JSON.parse(saved) : {};
   });
 
   const [markedForReview, setMarkedForReview] = useState<Record<string, boolean>>(() => {
-    const saved = localStorage.getItem("dailytest_marked");
+    const saved = localStorage.getItem("jeemains_marked");
     return saved ? JSON.parse(saved) : {};
   });
 
-  const [timeLeft, setTimeLeft] = useState<number>(180 * 60);
+  const [timeLeft, setTimeLeft] = useState<number>(30 * 60);
 
   useEffect(() => {
-    const getStoredName = () => localStorage.getItem("studentName") || localStorage.getItem("name") || "Student";
-    const getStoredId = () => localStorage.getItem("studentId") || localStorage.getItem("id") || "SEC-2026-X";
-    const getStoredClass = () => localStorage.getItem("className") || localStorage.getItem("class") || "2nd PUC";
+    const token = localStorage.getItem("studentToken") || localStorage.getItem("token");
+
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    const getStoredName = () => {
+      const direct = localStorage.getItem("studentName") || localStorage.getItem("name");
+      if (direct) return direct;
+      
+      const userStr = localStorage.getItem("user") || localStorage.getItem("student");
+      if (userStr) {
+        try {
+          const obj = JSON.parse(userStr);
+          if (obj?.name) return obj.name;
+        } catch (e) {}
+      }
+      return "Student";
+    };
+
+    const getStoredId = () => {
+      const direct = localStorage.getItem("studentId") || localStorage.getItem("id");
+      if (direct) return direct;
+
+      const userStr = localStorage.getItem("user") || localStorage.getItem("student");
+      if (userStr) {
+        try {
+          const obj = JSON.parse(userStr);
+          if (obj?.studentId || obj?.id) return obj.studentId || obj.id;
+        } catch (e) {}
+      }
+      return "SEC-2026-X";
+    };
+
+    const getStoredClass = () => {
+      const direct = localStorage.getItem("className") || localStorage.getItem("class") || localStorage.getItem("puc");
+      if (direct) return direct;
+
+      const userStr = localStorage.getItem("user") || localStorage.getItem("student");
+      if (userStr) {
+        try {
+          const obj = JSON.parse(userStr);
+          if (obj?.className) return obj.className;
+          if (obj?.class) return obj.class;
+          if (obj?.puc) return obj.puc;
+        } catch (e) {}
+      }
+      return "";
+    };
 
     setStudentName(getStoredName());
     setStudentId(getStoredId());
     setClassName(getStoredClass());
-  }, []);
+  }, [navigate]);
 
-  // బ్యాకెండ్ నుండి ప్రశ్నలను ఫెచ్ చేయడం (Dynamic API_BASE_URL వాడి)
-  const fetchDailyTestQuestions = async (selectedClass: string) => {
+  // Dedicated Backend API Call for JEE Mock Questions (using API_BASE_URL)
+  const fetchJeeQuestions = async (selectedClass: string) => {
     setLoading(true);
     setError("");
+    const token = localStorage.getItem("studentToken") || localStorage.getItem("token");
 
     try {
       const queryParams = new URLSearchParams({
-        className: selectedClass || "2nd PUC"
+        examType: "JEE",
+        className: selectedClass || ""
       });
 
       const response = await fetch(
-        `${API_BASE_URL}/api/questions/daily-tests?${queryParams.toString()}`,
+        `${API_BASE_URL}/api/questions/mock-tests?${queryParams.toString()}`,
         {
           headers: {
+            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
         }
@@ -89,19 +139,19 @@ export default function DailyTests() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Failed to load Daily Test questions");
+        throw new Error(data.message || "Failed to load JEE questions");
       }
 
       const loadedQuestions = data.questions || [];
       
       setQuestions(loadedQuestions);
-      localStorage.setItem("dailytest_questions", JSON.stringify(loadedQuestions));
+      localStorage.setItem("jeemains_questions", JSON.stringify(loadedQuestions));
 
-      const calculatedTime = loadedQuestions.length > 0 ? loadedQuestions.length * 60 : 180 * 60;
+      const calculatedTime = loadedQuestions.length > 0 ? loadedQuestions.length * 60 : 30 * 60;
       setTimeLeft(calculatedTime);
     } catch (err) {
       console.error(err);
-      setError("Unable to load Daily Test questions from server.");
+      setError("Unable to load JEE Mains Mock Test questions from server.");
     } finally {
       setLoading(false);
     }
@@ -109,8 +159,8 @@ export default function DailyTests() {
 
   useEffect(() => {
     if (step === "exam") {
-      localStorage.setItem("dailytest_answers", JSON.stringify(answers));
-      localStorage.setItem("dailytest_marked", JSON.stringify(markedForReview));
+      localStorage.setItem("jeemains_answers", JSON.stringify(answers));
+      localStorage.setItem("jeemains_marked", JSON.stringify(markedForReview));
     }
   }, [answers, markedForReview, step]);
 
@@ -129,9 +179,17 @@ export default function DailyTests() {
     return () => clearInterval(timer);
   }, [step, timeLeft]);
 
+  const handleFaceVerified = () => {
+    setStep("dashboard");
+  };
+
+  const handleViolation = (count: number) => {
+    setViolationCount((prev) => prev + count);
+  };
+
   const handleStartExam = async () => {
     setStep("greeting");
-    await fetchDailyTestQuestions(className);
+    await fetchJeeQuestions(className);
 
     setTimeout(() => {
       setStep("exam");
@@ -178,10 +236,38 @@ export default function DailyTests() {
     }
   };
 
-  const submitExam = () => {
-    localStorage.removeItem("dailytest_answers");
-    localStorage.removeItem("dailytest_marked");
-    localStorage.removeItem("dailytest_questions");
+  const submitExam = async () => {
+    let calculatedScore = 0;
+
+    questions.forEach((question) => {
+      if (answers[question._id] === question.correctAnswer) {
+        calculatedScore++;
+      }
+    });
+
+    try {
+      const token = localStorage.getItem("studentToken") || localStorage.getItem("token");
+      await fetch(`${API_BASE_URL}/api/exams/submit`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          examType: "JEE",
+          testCategory: "Mock Test",
+          className,
+          answers,
+          score: calculatedScore,
+        }),
+      });
+    } catch (e) {
+      console.log("Backend submission error", e);
+    }
+
+    localStorage.removeItem("jeemains_answers");
+    localStorage.removeItem("jeemains_marked");
+    localStorage.removeItem("jeemains_questions");
     navigate("/");
   };
 
@@ -198,13 +284,22 @@ export default function DailyTests() {
 
   const current = questions[currentQuestion];
 
+  if (step === "verify") {
+    return (
+      <FaceVerification
+        onVerified={handleFaceVerified}
+        onViolation={handleViolation}
+      />
+    );
+  }
+
   if (step === "dashboard") {
     return (
       <div className="exam-page">
         <div className="start-wrapper">
           <div className="start-card" style={{ textAlign: "center", padding: "40px", maxWidth: "500px", margin: "auto", background: "#fff", borderRadius: "12px", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
-            <div className="test-badge" style={{ marginBottom: "12px", display: "inline-block", background: "#fef08a", color: "#854d0e", padding: "4px 12px", borderRadius: "20px", fontSize: "12px", fontWeight: "bold" }}>
-              <Lock size={12} style={{ display: "inline", marginRight: "4px" }} /> DAILY PRACTICE TEST PORTAL
+            <div className="test-badge" style={{ marginBottom: "12px", display: "inline-block", background: "#e0f2fe", color: "#0284c7", padding: "4px 12px", borderRadius: "20px", fontSize: "12px", fontWeight: "bold" }}>
+              <Lock size={12} style={{ display: "inline", marginRight: "4px" }} /> JEE MAINS MOCK TEST PORTAL
             </div>
             
             <h1 style={{ marginBottom: "10px", color: "#1e293b" }}>Welcome, {studentName}!</h1>
@@ -214,16 +309,19 @@ export default function DailyTests() {
                 🆔 <strong>Student ID:</strong> <span style={{ color: "#0f172a" }}>{studentId}</span>
               </p>
               <p style={{ margin: "6px 0", color: "#475569", fontSize: "14px" }}>
-                📚 <strong>Class Name:</strong> <span style={{ color: "#ca8a04", fontWeight: "bold" }}>{className || "Not Specified"}</span>
+                📚 <strong>Class Name:</strong> <span style={{ color: "#2563eb", fontWeight: "bold" }}>{className || "Not Specified"}</span>
+              </p>
+              <p style={{ margin: "6px 0", color: "#16a34a", fontSize: "14px" }}>
+                ✅ <strong>Face Verification:</strong> <span style={{ fontWeight: "bold" }}>Authenticated Successfully</span>
               </p>
             </div>
 
             <button 
               className="start-button" 
               onClick={handleStartExam}
-              style={{ background: "#ca8a04", color: "#fff", padding: "14px 28px", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: "bold", width: "100%", fontSize: "16px" }}
+              style={{ background: "#3b82f6", color: "#fff", padding: "14px 28px", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: "bold", width: "100%", fontSize: "16px" }}
             >
-              Start Daily Test Session Now →
+              Start JEE Mock Test Now →
             </button>
           </div>
         </div>
@@ -233,14 +331,14 @@ export default function DailyTests() {
 
   if (step === "greeting") {
     return (
-      <div className="exam-page" style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", background: "linear-gradient(135deg, #3f3f46, #18181b)" }}>
+      <div className="exam-page" style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", background: "linear-gradient(135deg, #0f172a, #1e3a8a)" }}>
         <div style={{ textAlign: "center", color: "#fff" }}>
-          <div style={{ fontSize: "65px", marginBottom: "15px" }}>📚⚡🎯</div>
+          <div style={{ fontSize: "65px", marginBottom: "15px" }}>🚀⚡🎯</div>
           <h1 style={{ fontSize: "38px", marginBottom: "10px", fontWeight: "bold" }}>
-            Let's Crack Today, <span style={{ color: "#facc15" }}>{studentName}</span>!
+            All The Best, <span style={{ color: "#38bdf8" }}>{studentName}</span>!
           </h1>
           <p style={{ fontSize: "18px", opacity: "0.9" }}>
-            Loading your daily merged pool of assessment items...
+            Preparing your <span style={{ fontWeight: "bold", textDecoration: "underline" }}>JEE ({className || "Mock"})</span> test matrix...
           </p>
           <div className="loading-spinner" style={{ margin: "30px auto", borderColor: "#fff", borderTopColor: "transparent" }} />
         </div>
@@ -252,8 +350,8 @@ export default function DailyTests() {
     return (
       <div className="exam-loading">
         <div className="loading-spinner" />
-        <h2>Preparing Daily Assessment</h2>
-        <p>Fetching today's curated question set...</p>
+        <h2>Initializing JEE Mock Test</h2>
+        <p>Please wait while we prepare your test items...</p>
       </div>
     );
   }
@@ -275,7 +373,7 @@ export default function DailyTests() {
     <div className="jee-cbt-root">
       <header className="jee-header">
         <div className="jee-brand">
-          <span className="jee-badge-yr" style={{ background: "#fef08a", color: "#854d0e" }}>Daily Practice Test ({className})</span>
+          <span className="jee-badge-yr">JEE Mock Test ({className})</span>
           <h1>CBT Assessment Terminal</h1>
         </div>
         <div className="jee-header-right">
@@ -295,7 +393,7 @@ export default function DailyTests() {
           <div className="jee-question-card">
             <div className="q-meta-info">
               <span>Question {currentQuestion + 1} of {questions.length}</span>
-              <span className="marks-badge" style={{ background: "#fef9c3", color: "#a16207" }}>Daily Mixed Pool</span>
+              <span className="marks-badge">JEE Pattern (+4 / -1)</span>
             </div>
             
             <h1 className="q-text">{current?.questionText || current?.question}</h1>
@@ -327,9 +425,9 @@ export default function DailyTests() {
                 <ArrowLeft size={14} /> Prev
               </button>
               {currentQuestion === questions.length - 1 ? (
-                <button className="jee-btn-primary" onClick={submitExam} style={{ background: "#ca8a04" }}>Submit Test ✓</button>
+                <button className="jee-btn-primary" onClick={submitExam}>Submit Test ✓</button>
               ) : (
-                <button className="jee-btn-primary" onClick={nextQuestion} style={{ background: "#ca8a04" }}>
+                <button className="jee-btn-primary" onClick={nextQuestion}>
                   Save & Next <ArrowRight size={14} />
                 </button>
               )}
@@ -358,7 +456,7 @@ export default function DailyTests() {
 
                 return (
                   <button
-                    key={q._id || idx}
+                    key={q._id}
                     className={`palette-item ${statusClass} ${currentQuestion === idx ? "current" : ""}`}
                     onClick={() => setCurrentQuestion(idx)}
                   >
@@ -375,7 +473,7 @@ export default function DailyTests() {
             </div>
           </div>
 
-          <button className="jee-submit-final-btn" onClick={submitExam} style={{ background: "#ca8a04" }}>
+          <button className="jee-submit-final-btn" onClick={submitExam}>
             <LogOut size={15} /> Finish & Submit Exam
           </button>
         </div>

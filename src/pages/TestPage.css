@@ -1,0 +1,200 @@
+.test-page {
+  min-height: 100vh;
+
+  padding: 35px 20px;
+
+  background:
+    radial-gradient(
+      circle at top,
+      rgba(245, 158, 11, 0.08),
+      transparent 40%
+    ),
+    #07111f;
+
+  color: #f8fafc;
+}
+
+
+.test-container {
+  width: min(1000px, 100%);
+
+  margin: auto;
+}
+
+
+.test-header {
+  margin-bottom: 30px;
+}
+
+
+.test-header span {
+  color: #f59e0b;
+
+  font-size: 11px;
+
+  font-weight: 900;
+
+  letter-spacing: 3px;
+}
+
+
+.test-header h1 {
+  margin: 7px 0;
+
+  font-size: 38px;
+}
+
+
+.test-header p {
+  color: #94a3b8;
+}
+
+
+.test-question {
+  padding: 25px;
+
+  margin-bottom: 18px;
+
+  border-radius: 20px;
+
+  background:
+    rgba(15, 23, 42, 0.92);
+
+  border:
+    1px solid
+    rgba(148, 163, 184, 0.12);
+}
+
+
+.q-number {
+  margin-bottom: 12px;
+
+  color: #f59e0b;
+
+  font-size: 13px;
+
+  font-weight: 800;
+}
+
+
+.test-question h2 {
+  margin: 0 0 22px;
+
+  font-size: 19px;
+
+  line-height: 1.6;
+}
+
+
+.test-options {
+  display: grid;
+
+  gap: 11px;
+}
+
+
+.test-options button {
+  display: flex;
+
+  align-items: center;
+
+  gap: 13px;
+
+  width: 100%;
+
+  padding: 14px;
+
+  border:
+    1px solid
+    rgba(148, 163, 184, 0.14);
+
+  border-radius: 13px;
+
+  background:
+    rgba(255, 255, 255, 0.025);
+
+  color: #e2e8f0;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
+}
+
+
+.test-options button:hover {
+  border-color: #f59e0b;
+
+  background:
+    rgba(245, 158, 11, 0.06);
+}
+
+
+.test-options button span {
+  width: 34px;
+
+  height: 34px;
+
+  display: grid;
+
+  place-items: center;
+
+  flex-shrink: 0;
+
+  border-radius: 9px;
+
+  background:
+    rgba(245, 158, 11, 0.1);
+
+  color: #fbbf24;
+
+  font-weight: 800;
+}
+
+
+.empty-test,
+.test-page-center {
+  min-height: 300px;
+
+  display: grid;
+
+  place-items: center;
+
+  text-align: center;
+
+  color: #94a3b8;
+}
+
+
+.test-page-center {
+  min-height: 100vh;
+
+  background: #07111f;
+}
+
+
+.test-page-center.error {
+  color: #f87171;
+}
+
+
+@media (max-width: 600px) {
+
+  .test-page {
+    padding: 20px 12px;
+  }
+
+  .test-question {
+    padding: 18px;
+  }
+
+  .test-header h1 {
+    font-size: 30px;
+  }
+
+  .test-question h2 {
+    font-size: 17px;
+  }
+
+}

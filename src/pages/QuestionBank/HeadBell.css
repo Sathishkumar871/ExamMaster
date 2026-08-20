@@ -1,0 +1,489 @@
+/* ============================================================
+   HEAD BELL
+   PREMIUM QUESTION BANK NOTIFICATION
+   ============================================================ */
+
+.head-bell-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* ============================================================
+   BELL BUTTON
+   ============================================================ */
+
+.head-bell-button {
+  position: relative;
+
+  width: 42px;
+  height: 42px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid rgba(120, 72, 35, 0.14);
+  border-radius: 13px;
+
+  background: rgba(255, 255, 255, 0.88);
+
+  color: #5b3a24;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.head-bell-button:hover {
+  transform: translateY(-1px);
+
+  background: #fff;
+
+  border-color: rgba(120, 72, 35, 0.25);
+
+  box-shadow:
+    0 8px 22px rgba(55, 35, 20, 0.1);
+}
+
+.head-bell-button.is-open {
+  background: #f7efe7;
+
+  border-color: rgba(120, 72, 35, 0.3);
+
+  box-shadow:
+    0 8px 24px rgba(70, 43, 24, 0.12);
+}
+
+/* ============================================================
+   ALERT PULSE
+   ============================================================ */
+
+.head-bell-button.has-alerts svg {
+  animation: headBellRing 2.8s ease-in-out infinite;
+}
+
+@keyframes headBellRing {
+  0%,
+  85%,
+  100% {
+    transform: rotate(0deg);
+  }
+
+  88% {
+    transform: rotate(8deg);
+  }
+
+  91% {
+    transform: rotate(-8deg);
+  }
+
+  94% {
+    transform: rotate(5deg);
+  }
+
+  97% {
+    transform: rotate(-3deg);
+  }
+}
+
+/* ============================================================
+   BADGE
+   ============================================================ */
+
+.head-bell-badge {
+  position: absolute;
+
+  top: -5px;
+  right: -5px;
+
+  min-width: 18px;
+  height: 18px;
+
+  padding: 0 5px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 2px solid #fff;
+  border-radius: 999px;
+
+  background: #b42318;
+
+  color: #fff;
+
+  font-size: 9px;
+  font-weight: 800;
+
+  line-height: 1;
+
+  box-shadow:
+    0 4px 10px rgba(180, 35, 24, 0.25);
+}
+
+/* ============================================================
+   PANEL
+   ============================================================ */
+
+.head-bell-panel {
+  position: absolute;
+
+  top: calc(100% + 12px);
+  right: 0;
+
+  width: 360px;
+
+  overflow: hidden;
+
+  border: 1px solid rgba(101, 67, 42, 0.12);
+  border-radius: 20px;
+
+  background: rgba(255, 252, 248, 0.98);
+
+  box-shadow:
+    0 24px 70px rgba(45, 29, 18, 0.18),
+    0 8px 24px rgba(45, 29, 18, 0.08);
+
+  backdrop-filter: blur(18px);
+
+  animation:
+    headBellPanelIn
+    0.2s ease-out;
+}
+
+@keyframes headBellPanelIn {
+  from {
+    opacity: 0;
+    transform: translateY(-7px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ============================================================
+   PANEL HEADER
+   ============================================================ */
+
+.head-bell-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 17px 17px 15px;
+
+  border-bottom: 1px solid
+    rgba(101, 67, 42, 0.08);
+}
+
+.head-bell-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.head-bell-panel-icon {
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 11px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #6f4326,
+      #9a633a
+    );
+
+  color: #fff;
+
+  box-shadow:
+    0 7px 16px rgba(111, 67, 38, 0.2);
+}
+
+.head-bell-panel-title strong {
+  display: block;
+
+  color: #2d2119;
+
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.head-bell-panel-title span {
+  display: block;
+
+  margin-top: 2px;
+
+  color: #8b7768;
+
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.head-bell-close {
+  width: 30px;
+  height: 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 0;
+  border-radius: 9px;
+
+  background: transparent;
+
+  color: #8b7768;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.head-bell-close:hover {
+  background: #f3ebe4;
+  color: #4c3020;
+}
+
+/* ============================================================
+   NOTIFICATION
+   ============================================================ */
+
+.head-bell-notification {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+
+  margin: 12px;
+
+  padding: 13px;
+
+  border: 1px solid
+    rgba(101, 67, 42, 0.09);
+
+  border-radius: 14px;
+
+  background: #fff;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.head-bell-notification.has-issues {
+  cursor: pointer;
+}
+
+.head-bell-notification.has-issues:hover {
+  transform: translateY(-1px);
+
+  border-color:
+    rgba(180, 35, 24, 0.18);
+
+  box-shadow:
+    0 8px 20px rgba(55, 35, 20, 0.08);
+}
+
+.head-bell-notification-icon {
+  width: 36px;
+  height: 36px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 11px;
+
+  background: #fff2f0;
+
+  color: #b42318;
+}
+
+.no-issues
+  .head-bell-notification-icon {
+  background: #edf9f0;
+  color: #18753a;
+}
+
+.head-bell-notification-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.head-bell-notification-content strong {
+  display: block;
+
+  color: #33251c;
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.head-bell-notification-content span {
+  display: block;
+
+  margin-top: 3px;
+
+  color: #89776a;
+
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.head-bell-arrow {
+  flex-shrink: 0;
+
+  color: #9a8779;
+
+  transition:
+    transform 0.2s ease;
+}
+
+.head-bell-notification:hover
+  .head-bell-arrow {
+  transform: translateX(3px);
+}
+
+/* ============================================================
+   AI STATUS
+   ============================================================ */
+
+.head-bell-ai-status {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  margin: 0 12px 12px;
+
+  padding: 11px 12px;
+
+  border-radius: 12px;
+
+  background: #f8f5f1;
+}
+
+.head-bell-ai-icon {
+  width: 29px;
+  height: 29px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 9px;
+
+  background: #eadfd4;
+
+  color: #68442a;
+}
+
+.head-bell-ai-status div:nth-child(2) {
+  flex: 1;
+  min-width: 0;
+}
+
+.head-bell-ai-status strong {
+  display: block;
+
+  color: #4b3525;
+
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.head-bell-ai-status span:not(.head-bell-online-dot) {
+  display: block;
+
+  margin-top: 2px;
+
+  color: #948276;
+
+  font-size: 9px;
+}
+
+.head-bell-online-dot {
+  width: 7px;
+  height: 7px;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+
+  background: #21a453;
+
+  box-shadow:
+    0 0 0 4px rgba(33, 164, 83, 0.1);
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+
+.head-bell-footer {
+  padding: 11px 16px;
+
+  border-top: 1px solid
+    rgba(101, 67, 42, 0.07);
+
+  background: #faf7f3;
+}
+
+.head-bell-footer span {
+  color: #9a8779;
+
+  font-size: 9px;
+  font-weight: 600;
+}
+
+/* ============================================================
+   MOBILE
+   ============================================================ */
+
+@media (max-width: 600px) {
+  .head-bell-panel {
+    position: fixed;
+
+    top: 72px;
+    right: 12px;
+    left: 12px;
+
+    width: auto;
+
+    max-width: none;
+  }
+
+  .head-bell-button {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media (max-width: 380px) {
+  .head-bell-panel {
+    top: 68px;
+    right: 8px;
+    left: 8px;
+
+    border-radius: 17px;
+  }
+}

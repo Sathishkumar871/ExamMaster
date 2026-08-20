@@ -1,613 +1,276 @@
-
-import {
-  Atom,
-  ArrowRight,
-  BookOpen,
-  Clock3,
-  Target,
-} from "lucide-react";
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-import { getStudentQuestions } from "../../services/api";
-
+import { Zap, BookOpen, ArrowRight } from "lucide-react";
+import TestInterface from "../../components/TestInterface";
 import "./Physics.css";
 
-
-// ============================================================
-// CHAPTER DATA
-// ============================================================
-
-const chapters = [
-  {
-    id: "01",
-    name: "Mechanics",
-    description:
-      "Motion, force, work, energy, momentum and rotational motion.",
-    icon: Atom,
-  },
-
-  {
-    id: "02",
-    name: "Thermodynamics",
-    description:
-      "Heat, temperature, laws of thermodynamics and thermal processes.",
-    icon: Target,
-  },
-
-  {
-    id: "03",
-    name: "Electrodynamics",
-    description:
-      "Electric fields, current electricity, magnetism and electromagnetic induction.",
-    icon: Atom,
-  },
-
-  {
-    id: "04",
-    name: "Optics",
-    description:
-      "Ray optics, wave optics, mirrors, lenses and optical instruments.",
-    icon: Target,
-  },
-
-  {
-    id: "05",
-    name: "Modern Physics",
-    description:
-      "Atoms, nuclei, dual nature, semiconductors and modern physics concepts.",
-    icon: Atom,
-  },
-
-  {
-    id: "06",
-    name: "Waves & Oscillations",
-    description:
-      "Simple harmonic motion, waves, sound and oscillatory motion.",
-    icon: Clock3,
-  },
-];
-
-
-// ============================================================
-// TYPES
-// ============================================================
+// ఆటోమేటిక్ డిటెక్షన్ (Local & Render)
+const API_BASE_URL = 
+  window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+    ? "http://localhost:5000"
+    : "https://exammaster-backend-up1y.onrender.com";
 
 interface Question {
   _id: string;
-
-  question: string;
-
+  question?: string;
+  questionText?: string;
   options: string[];
-
-  correctAnswer?: string;
-
+  correctAnswer: string;
   subject?: string;
-
   chapter?: string;
-
-  testType?: string;
-
-  testTitle?: string;
-
+  className?: string;
+  testCategory?: string;
   isPublished?: boolean;
 }
 
-
-// ============================================================
-// COMPONENT
-// ============================================================
-
 export default function Physics() {
-
   const navigate = useNavigate();
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
+  const [studentId, setStudentId] = useState<string>("STU1001");
+  const [studentName, setStudentName] = useState<string>("Student");
+  const [className, setClassName] = useState<string>("2nd PUC");
 
-  // ==========================================================
-  // STATES
-  // ==========================================================
-
-  const [questions, setQuestions] =
-    useState<Question[]>([]);
-
-  const [loading, setLoading] =
-    useState(true);
-
-  const [error, setError] =
-    useState("");
-
-
-
-  // ==========================================================
-  // LOAD PHYSICS QUESTIONS
-  // ==========================================================
+  const [selectedChapter, setSelectedChapter] = useState<string | null>(null);
+  
+  const [chapterUserAnswers, setChapterUserAnswers] = useState<Record<string, Record<string, string>>>({});
+  const [submittedChapters, setSubmittedChapters] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
+    try {
+      const storedUser = localStorage.getItem("user") || localStorage.getItem("student") || "{}";
+      const parsedUser = JSON.parse(storedUser);
 
-    const loadPhysicsQuestions =
-      async () => {
+      if (parsedUser.className) setClassName(parsedUser.className);
+      if (parsedUser.name) setStudentName(parsedUser.name);
+      if (parsedUser.studentId) setStudentId(parsedUser.studentId);
 
-        try {
-
-          setLoading(true);
-
-          setError("");
-
-
-          const data =
-            await getStudentQuestions({
-
-              subject: "Physics",
-
-              testType: "subject",
-
-            });
-
-
-          console.log(
-            "PHYSICS QUESTIONS:",
-            data
-          );
-
-
-          setQuestions(
-            data?.questions || []
-          );
-
-        } catch (error) {
-
-          console.error(
-            "Physics questions loading error:",
-            error
-          );
-
-          setError(
-            "Unable to load Physics questions."
-          );
-
-        } finally {
-
-          setLoading(false);
-
-        }
-
-      };
-
-
-    loadPhysicsQuestions();
-
+      if (localStorage.getItem("className")) setClassName(localStorage.getItem("className")!);
+      if (localStorage.getItem("studentName")) setStudentName(localStorage.getItem("studentName")!);
+      if (localStorage.getItem("studentId")) setStudentId(localStorage.getItem("studentId")!);
+    } catch (e) {
+      console.log("Error reading student data from localStorage", e);
+    }
   }, []);
 
+  useEffect(() => {
+    const loadDataFromDB = async () => {
+      try {
+        setLoading(true);
 
+        // 1. Fetch Physics Questions from Backend API
+        const queryParams = new URLSearchParams({
+          className: className,
+          subject: "Physics",
+          testCategory: "subject",
+        });
 
-  // ==========================================================
-  // GET CHAPTER QUESTION COUNT
-  // ==========================================================
+        const qResponse = await fetch(`${API_BASE_URL}/api/subjects/questions?${queryParams.toString()}`);
+        if (!qResponse.ok) throw new Error("Failed to load Physics questions from database");
+        
+        const qData = await qResponse.json();
+        const physicsQuestions = qData.questions || [];
+        setQuestions(physicsQuestions);
 
-  const getChapterCount =
-    (chapterName: string) => {
+        // 2. Fetch Student's Previous Results from MongoDB Database
+        const currentStudentId = localStorage.getItem("studentId") || studentId;
+        const resultsResponse = await fetch(`${API_BASE_URL}/api/results/student/${currentStudentId}`);
+        
+        if (resultsResponse.ok) {
+          const resultsData = await resultsResponse.json();
+          const resultsList = Array.isArray(resultsData) ? resultsData : (resultsData.results || resultsData.data || []);
 
-      return questions.filter(
-        (question) =>
-          question.chapter?.trim().toLowerCase() ===
-          chapterName.trim().toLowerCase()
-      ).length;
+          const loadedSubmittedChapters: Record<string, boolean> = {};
+          const loadedChapterAnswers: Record<string, Record<string, string>> = {};
 
-    };
+          resultsList.forEach((res: any) => {
+            if (res.examName && res.examName.includes("Physics -")) {
+              const parts = res.examName.split("Physics -");
+              const chapName = parts[1]?.trim();
 
+              if (chapName && res.review && Array.isArray(res.review)) {
+                loadedSubmittedChapters[chapName] = true;
+                const ansMap: Record<string, string> = {};
+                res.review.forEach((item: any) => {
+                  if (item.questionId && item.selectedAnswer) {
+                    ansMap[item.questionId] = item.selectedAnswer;
+                  }
+                });
+                loadedChapterAnswers[chapName] = ansMap;
+              }
+            }
+          });
 
+          setSubmittedChapters(loadedSubmittedChapters);
+          setChapterUserAnswers(loadedChapterAnswers);
+        }
 
-  // ==========================================================
-  // START PRACTICE
-  // ==========================================================
-
-  const startPractice =
-    (chapterName: string) => {
-
-      const chapterQuestions =
-        questions.filter(
-          (question) =>
-            question.chapter?.trim().toLowerCase() ===
-            chapterName.trim().toLowerCase()
-        );
-
-
-      console.log(
-        `Starting ${chapterName}`,
-        chapterQuestions
-      );
-
-
-      // ------------------------------------------------------
-      // If no questions available
-      // ------------------------------------------------------
-
-      if (chapterQuestions.length === 0) {
-
-        alert(
-          `No questions available for ${chapterName} yet.`
-        );
-
-        return;
-
+      } catch (err: any) {
+        setError(err.message || "Failed to load data");
+      } finally {
+        setLoading(false);
       }
-
-
-      // ------------------------------------------------------
-      // Navigate to practice page
-      // ------------------------------------------------------
-
-      navigate(
-        `/physics/practice/${encodeURIComponent(
-          chapterName
-        )}`
-      );
-
     };
 
+    loadDataFromDB();
+  }, [className]);
 
+  const chaptersList = (() => {
+    const map = new Map<string, number>();
+    questions.forEach((q) => {
+      const chap = String(q.chapter || "General Physics").trim();
+      map.set(chap, (map.get(chap) || 0) + 1);
+    });
+    return Array.from(map.entries()).map(([name, count]) => ({ name, count }));
+  })();
 
-  // ==========================================================
-  // TOTAL QUESTIONS
-  // ==========================================================
+  const currentChapterQuestions = selectedChapter
+    ? questions.filter((q) => String(q.chapter || "").trim() === selectedChapter)
+    : [];
 
-  const totalQuestions =
-    questions.length;
+  if (loading) {
+    return <div style={{ textAlign: "center", padding: "80px", color: "#64748b", fontSize: "16px" }}>Loading Physics data from database...</div>;
+  }
 
+  if (error) {
+    return <div style={{ textAlign: "center", padding: "80px", color: "red", fontSize: "16px" }}>{error}</div>;
+  }
 
+  // ================= 1. EXAM / QUESTIONS SCREEN (USING TestInterface) =================
+  if (selectedChapter) {
+    return (
+      <TestInterface
+        subject="Physics"
+        className={className}
+        chapterName={selectedChapter}
+        questions={currentChapterQuestions}
+        studentId={studentId}
+        studentName={studentName}
+        themeColor="#2563eb" // Physics Blue Theme
+        onBack={() => setSelectedChapter(null)}
+        isAlreadySubmitted={submittedChapters[selectedChapter] || false}
+        initialAnswers={chapterUserAnswers[selectedChapter] || {}}
+      />
+    );
+  }
 
-  // ==========================================================
-  // TOTAL CHAPTERS WITH QUESTIONS
-  // ==========================================================
-
-  const activeChapters =
-    chapters.filter(
-      (chapter) =>
-        getChapterCount(chapter.name) > 0
-    ).length;
-
-
-
-  // ==========================================================
-  // UI
-  // ==========================================================
-
+  // ================= 2. MAIN DASHBOARD VIEW =================
   return (
-
     <main className="physics-page">
-
       <div className="physics-container">
-
-
-        {/* ==================================================
-            HERO
-        ================================================== */}
-
         <section className="physics-hero">
-
           <div className="physics-hero-content">
-
-
             <div className="physics-badge">
-
-              <Atom size={15} />
-
-              NEET • JEE PHYSICS
-
+              <Zap size={15} />
+              JEE / NEET • {className.toUpperCase()} PHYSICS
             </div>
-
-
 
             <h1 className="physics-title">
-
               Physics
-
               <span>
-                Master Concepts. Improve Accuracy.
+                Master Concepts. Crack Exams.
               </span>
-
             </h1>
 
-
-
             <p className="physics-description">
-
-              Practice Physics chapter-wise with focused
-              questions and exam-oriented tests designed
-              for NEET & JEE preparation.
-
+              Welcome back, <strong>{studentName}</strong>! Practice {className} Physics chapter-wise with focused
+              numerical problems, laws, and exam-oriented tests.
             </p>
 
-
-
-            {/* ==================================================
-                STATS
-            ================================================== */}
-
             <div className="physics-stats">
-
-
               <div className="physics-stat">
-
                 <span className="physics-stat-value">
-
-                  {loading
-                    ? "..."
-                    : `${totalQuestions}+`}
-
+                  {questions.length}+
                 </span>
-
                 <span className="physics-stat-label">
-
-                  Questions
-
+                  {className} Questions
                 </span>
-
               </div>
 
-
-
               <div className="physics-stat">
-
                 <span className="physics-stat-value">
-
-                  {loading
-                    ? "..."
-                    : activeChapters}
-
+                  {chaptersList.length}
                 </span>
-
                 <span className="physics-stat-label">
-
-                  Active Chapters
-
+                  Chapters
                 </span>
-
               </div>
 
-
-
               <div className="physics-stat">
-
                 <span className="physics-stat-value">
-
-                  NEET
-
+                  JEE / NEET
                 </span>
-
                 <span className="physics-stat-label">
-
-                  Exam Pattern
-
+                  Exam Standard
                 </span>
-
               </div>
-
-
             </div>
-
           </div>
-
         </section>
-
-
-
-        {/* ==================================================
-            CHAPTER SECTION
-        ================================================== */}
 
         <section>
-
-
           <div className="physics-section-header">
-
             <div>
-
               <h2 className="physics-section-title">
-
-                Physics Chapters
-
+                {className} Physics Chapters
               </h2>
-
-
               <p className="physics-section-subtitle">
-
-                Select a chapter and start your practice.
-
+                Select a chapter and start your practice. (Student ID: {studentId})
               </p>
-
             </div>
-
           </div>
 
-
-
-          {/* ==================================================
-              ERROR
-          ================================================== */}
-
-          {error && (
-
-            <div className="physics-error">
-
-              {error}
-
+          {chaptersList.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "40px", color: "#64748b", background: "#fff", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
+              No Physics chapters found for {className}.
             </div>
-
-          )}
-
-
-
-          {/* ==================================================
-              LOADING
-          ================================================== */}
-
-          {loading ? (
-
-            <div className="physics-loading">
-
-              <div className="physics-loading-spinner" />
-
-              <p>
-                Loading Physics questions...
-              </p>
-
-            </div>
-
           ) : (
-
-
-            /* ==================================================
-               CHAPTER GRID
-            ================================================== */
-
             <div className="physics-chapter-grid">
+              {chaptersList.map((chap, idx) => {
+                const isCompleted = submittedChapters[chap.name];
 
-
-              {chapters.map(
-                (chapter) => {
-
-                  const Icon =
-                    chapter.icon;
-
-
-                  const questionCount =
-                    getChapterCount(
-                      chapter.name
-                    );
-
-
-                  return (
-
-                    <div
-                      className={`physics-chapter-card ${
-                        questionCount === 0
-                          ? "physics-chapter-empty"
-                          : ""
-                      }`}
-                      key={chapter.id}
-                    >
-
-
-                      {/* ======================================
-                          CARD TOP
-                      ====================================== */}
-
-                      <div className="physics-card-top">
-
-
-                        <div className="physics-chapter-icon">
-
-                          <Icon size={24} />
-
-                        </div>
-
-
-                        <span className="physics-chapter-number">
-
-                          {chapter.id}
-
-                        </span>
-
-
+                return (
+                  <div className="physics-chapter-card" key={idx}>
+                    <div className="physics-card-top">
+                      <div className="physics-chapter-icon">
+                        <Zap size={24} />
                       </div>
-
-
-
-                      {/* ======================================
-                          CARD CONTENT
-                      ====================================== */}
-
-                      <div className="physics-card-content">
-
-
-                        <h3>
-
-                          {chapter.name}
-
-                        </h3>
-
-
-                        <p>
-
-                          {chapter.description}
-
-                        </p>
-
-
-
-                        {/* ====================================
-                            QUESTION COUNT
-                        ==================================== */}
-
-                        <div className="physics-question-count">
-
-                          <BookOpen size={15} />
-
-                          <span>
-
-                            {questionCount}
-
-                            {" "}
-
-                            {questionCount === 1
-                              ? "Question"
-                              : "Questions"}
-
-                          </span>
-
-                        </div>
-
-
-
-                        {/* ====================================
-                            START BUTTON
-                        ==================================== */}
-
-                        <button
-                          className="physics-test-button"
-                          disabled={
-                            questionCount === 0
-                          }
-                          onClick={() =>
-                            startPractice(
-                              chapter.name
-                            )
-                          }
-                        >
-
-                          <BookOpen size={16} />
-
-                          {questionCount === 0
-                            ? "Coming Soon"
-                            : "Start Practice"}
-
-                          <ArrowRight size={15} />
-
-                        </button>
-
-
-                      </div>
-
+                      <span className="physics-chapter-number">
+                        {String(idx + 1).padStart(2, "0")}
+                      </span>
                     </div>
 
-                  );
+                    <div className="physics-card-content">
+                      <h3>
+                        {chap.name} {isCompleted && " ✅"}
+                      </h3>
+                      <p>
+                        Practice important multiple-choice questions and conceptual problems from this chapter.
+                      </p>
 
-                }
-              )}
+                      <div style={{ fontSize: "13px", fontWeight: "600", color: "#2563eb", marginBottom: "12px" }}>
+                        {chap.count} Questions Available {isCompleted && "• Saved in DB"}
+                      </div>
 
+                      <button
+                        type="button"
+                        className="physics-test-button"
+                        onClick={() => setSelectedChapter(chap.name)}
+                      >
+                        <BookOpen size={16} />
+                        {isCompleted ? "View DB History" : "Start Practice"}
+                        <ArrowRight size={15} />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-
           )}
-
         </section>
-
       </div>
-
     </main>
-
   );
-
 }
-

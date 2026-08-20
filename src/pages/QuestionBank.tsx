@@ -1,3831 +1,2583 @@
 import React, { useEffect, useState } from "react";
-import "./QuestionBank.css";
 
-/* ============================================================
-   TYPES
-============================================================ */
-
-type TestType =
-  | "mock"
-  | "daily"
-  | "physics"
-  | "chemistry"
-  | "mathematics"
-  | "botany"
-  | "zoology"
-  | "biology";
-
-type ExamCategory = "neet" | "jee";
-
-type AcademicYear = "1st-puc" | "2nd-puc";
-
-interface QuestionItem {
+interface Question {
   _id?: string;
-  id?: string;
-
-  subject?: string;
-  chapter?: string;
-
-  question?: string;
-  questionText?: string;
-
+  questionNumber: number;
+  question: string;
+  questionImage?: string;
   options: string[];
-
   correctAnswer: string;
-
-  ansNumber: string;
-
-  imageUrl?: string;
-
-  difficulty?: string;
-
-  testDate?: string;
-  testTime?: string;
-
-  testType?: TestType | string;
-
-  examCategory?: ExamCategory | string;
-
-  academicYear?: AcademicYear | string;
-
-  testTitle?: string;
-
-  isPublished?: boolean;
-
-  status?: string;
+  subject: string;
+  chapter: string;
+  examType: string;
+  testCategory: string;
+  className: string;
+  testTitle: string;
+  testId: string;
+  marksPerQuestion: number;
+  negativeMarks: number;
+  durationMinutes: number;
+  isPublished: boolean;
 }
 
-/* ============================================================
-   API
-============================================================ */
-
-const API_BASE =
-  "https://exammaster-backend-up1y.onrender.com/api/questions";
-
-/* ============================================================
-   SUBJECT TEST TYPES
-============================================================ */
-
-const SUBJECT_TEST_TYPES: TestType[] = [
-  "physics",
-  "chemistry",
-  "mathematics",
-  "botany",
-  "zoology",
-  "biology",
-];
-
-/* ============================================================
-   HELPER
-============================================================ */
-
-const isSubjectWiseTest = (testType?: string) => {
-  if (!testType) return false;
-
-  return SUBJECT_TEST_TYPES.includes(
-    testType.toLowerCase() as TestType
-  );
-};
-
-/* ============================================================
-   COMPONENT
-============================================================ */
+const API_BASE_URL = "http://localhost:5000/api";
 
 export default function QuestionBank() {
-  /* ==========================================================
-     MODE
-  ========================================================== */
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const [mode, setMode] = useState<"bulk" | "pdf">("bulk");
+  const [showAddForm, setShowAddForm] =
+    useState<boolean>(false);
 
-  /* ==========================================================
-     DATABASE
-  ========================================================== */
+  const [showPdfModal, setShowPdfModal] =
+    useState<boolean>(false);
 
-  const [existingQuestions, setExistingQuestions] =
-    useState<QuestionItem[]>([]);
+  const [editingId, setEditingId] =
+    useState<string | null>(null);
 
-  const [showAllTotalView, setShowAllTotalView] =
-    useState(false);
+  // ============================================================
+  // FILTERS
+  // ============================================================
 
-  const [viewCategoryTab, setViewCategoryTab] =
-    useState<"all" | "mock" | "daily">("all");
+  const [activeTab, setActiveTab] =
+    useState<string>("ALL");
 
-  /* ==========================================================
-     SEARCH
-  ========================================================== */
+  const [selectedExam, setSelectedExam] =
+    useState<string>("ALL");
 
-  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedSubject, setSelectedSubject] =
+    useState<string>("ALL");
 
-  /* ==========================================================
-     PAGINATION
-  ========================================================== */
+  const [selectedClassName, setSelectedClassName] =
+    useState<string>("ALL");
 
-  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] =
+    useState<string>("");
 
-  const itemsPerPage = 10;
-
-  /* ==========================================================
-     BULK IMPORT
-  ========================================================== */
-
-  const [bulkQuestionsText, setBulkQuestionsText] =
-    useState("");
-
-  const [bulkAnswersText, setBulkAnswersText] =
-    useState("");
-
-  const [parsedQuestions, setParsedQuestions] =
-    useState<QuestionItem[]>([]);
-
-  /* ==========================================================
-     PDF
-  ========================================================== */
+  // ============================================================
+  // PDF STATE
+  // ============================================================
 
   const [pdfFile, setPdfFile] =
     useState<File | null>(null);
 
-  const [pdfLoading, setPdfLoading] =
-    useState(false);
+  const [pdfClassName, setPdfClassName] =
+    useState<string>("2nd PUC");
 
-  /* ==========================================================
-     TEST SETTINGS
-  ========================================================== */
+  const [pdfExamType, setPdfExamType] =
+    useState<string>("JEE");
 
-  const [publishTestType, setPublishTestType] =
-    useState<TestType>("mock");
+  const [pdfTestCategory, setPdfTestCategory] =
+    useState<string>("mock");
 
-  const [examCategory, setExamCategory] =
-    useState<ExamCategory>("neet");
+  const [parsing, setParsing] =
+    useState<boolean>(false);
 
-  const [academicYear, setAcademicYear] =
-    useState<AcademicYear>("1st-puc");
+  // ============================================================
+  // FORM DATA
+  // ============================================================
 
-  const [publishTestTitle, setPublishTestTitle] =
-    useState("");
+  const [formData, setFormData] =
+    useState<Question>({
+      questionNumber: 1,
+      question: "",
+      questionImage: "",
+      options: ["", "", "", ""],
+      correctAnswer: "",
+      subject: "Physics",
+      chapter: "",
+      examType: "JEE",
+      testCategory: "mock",
+      className: "2nd PUC",
+      testTitle: "JEE Mains Full Mock Test 1",
+      testId: "JEE-MOCK-01",
+      marksPerQuestion: 4,
+      negativeMarks: 1,
+      durationMinutes: 180,
+      isPublished: false,
+    });
 
-  const [publishDate, setPublishDate] =
-    useState("");
-
-  const [publishTime, setPublishTime] =
-    useState("");
-
-  /* ==========================================================
-     TIME
-  ========================================================== */
-
-  const [tHour, setTHour] = useState("10");
-
-  const [tMin, setTMin] = useState("00");
-
-  const [tAmPm, setTAmPm] = useState("AM");
-
-  /* ==========================================================
-     EDITING
-  ========================================================== */
-
-  const [editingQuestionId, setEditingQuestionId] =
-    useState<string | null>(null);
-
-  const [editFormData, setEditFormData] =
-    useState<QuestionItem | null>(null);
-
-  const [editImageFile, setEditImageFile] =
-    useState<File | null>(null);
-
-  const [editImagePreview, setEditImagePreview] =
-    useState("");
-
-  /* ==========================================================
-     GENERAL
-  ========================================================== */
-
-  const [message, setMessage] = useState("");
-
-  const [loading, setLoading] = useState(false);
-
-  /* ==========================================================
-     TOKEN
-  ========================================================== */
+  // ============================================================
+  // TOKEN
+  // ============================================================
 
   const getToken = () => {
     return (
+      localStorage.getItem("studentToken") ||
       localStorage.getItem("token") ||
-      localStorage.getItem("authToken") ||
-      localStorage.getItem("jwt") ||
-      localStorage.getItem("staffToken") ||
-      localStorage.getItem("teacherToken") ||
-      localStorage.getItem("headToken")
+      ""
     );
   };
 
-  /* ==========================================================
-     QUESTION TEXT
-  ========================================================== */
+  // ============================================================
+  // FETCH QUESTIONS
+  // ============================================================
 
-  const getQuestionText = (q: QuestionItem) => {
-    return (
-      q.question ||
-      q.questionText ||
-      "Question text unavailable"
-    );
-  };
+  const fetchQuestions = async () => {
+    setLoading(true);
 
-  /* ==========================================================
-     TEST TYPE LABEL
-  ========================================================== */
-
-  const getTestTypeLabel = (type?: string) => {
-    switch (type) {
-      case "mock":
-        return "📝 Mock Test";
-
-      case "daily":
-        return "⚡ Daily Test";
-
-      case "physics":
-        return "⚛️ Physics";
-
-      case "chemistry":
-        return "🧪 Chemistry";
-
-      case "mathematics":
-        return "📐 Mathematics";
-
-      case "botany":
-        return "🌿 Botany";
-
-      case "zoology":
-        return "🦴 Zoology";
-
-      case "biology":
-        return "🧬 Biology";
-
-      default:
-        return "📚 General";
-    }
-  };
-
-  /* ==========================================================
-     INITIAL LOAD
-  ========================================================== */
-
-  useEffect(() => {
-    fetchExistingQuestions();
-  }, []);
-
-  /* ==========================================================
-     RESET PAGINATION
-  ========================================================== */
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, viewCategoryTab]);
-
-  /* ==========================================================
-     FETCH QUESTIONS
-  ========================================================== */
-
-  const fetchExistingQuestions = async () => {
     try {
-      const token = getToken();
+      const response = await fetch(
+        `${API_BASE_URL}/questions`
+      );
 
-      if (!token) {
-        setMessage(
-          "⚠️ Authentication token not found! Please login again."
+      if (!response.ok) {
+        throw new Error(
+          `HTTP Error: ${response.status}`
         );
-
-        return;
       }
 
-      const res = await fetch(API_BASE, {
-        method: "GET",
-
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (res.status === 401) {
-        setMessage(
-          "❌ Session Expired (401 Unauthorized). Please re-login!"
-        );
-
-        return;
-      }
-
-      const data = await res.json();
+      const data = await response.json();
 
       console.log(
-        "QUESTION BANK RESPONSE:",
+        "QUESTIONS RESPONSE:",
         data
       );
 
-      if (
-        data.success &&
-        Array.isArray(data.questions)
-      ) {
-        const normalizedQuestions =
-          data.questions.map(
-            (q: any): QuestionItem => ({
-              ...q,
-
-              question:
-                q.question ||
-                q.questionText ||
-                "",
-
-              questionText:
-                q.question ||
-                q.questionText ||
-                "",
-
-              options:
-                Array.isArray(q.options)
-                  ? q.options
-                  : [],
-
-              correctAnswer:
-                q.correctAnswer || "",
-
-              ansNumber: q.ansNumber
-                ? String(q.ansNumber)
-                : "1",
-
-              testType:
-                q.testType || "mock",
-
-              examCategory:
-                q.examCategory || "neet",
-
-              academicYear:
-                q.academicYear || "1st-puc",
-            })
-          );
-
-        setExistingQuestions(
-          normalizedQuestions
+      if (data.success) {
+        setQuestions(
+          data.questions || []
         );
       } else {
-        setExistingQuestions([]);
+        setQuestions([]);
       }
-    } catch (err) {
+    } catch (error) {
       console.error(
-        "Question Load Error:",
-        err
+        "QUESTION FETCH ERROR:",
+        error
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchQuestions();
+  }, []);
+
+  // ============================================================
+  // OPTION CHANGE
+  // ============================================================
+
+  const handleOptionChange = (
+    index: number,
+    value: string
+  ) => {
+    const newOptions = [
+      ...formData.options,
+    ];
+
+    newOptions[index] = value;
+
+    setFormData({
+      ...formData,
+      options: newOptions,
+    });
+  };
+
+  // ============================================================
+  // ADD / UPDATE QUESTION
+  // ============================================================
+
+  const handleSubmit = async (
+    e: React.FormEvent
+  ) => {
+    e.preventDefault();
+
+    const token = getToken();
+
+    try {
+      let url =
+        `${API_BASE_URL}/questions`;
+
+      let method = "POST";
+
+      if (editingId) {
+        url =
+          `${API_BASE_URL}/questions/${editingId}`;
+
+        method = "PUT";
+      }
+
+      const response = await fetch(
+        url,
+        {
+          method,
+
+          headers: {
+            "Content-Type":
+              "application/json",
+
+            ...(token
+              ? {
+                  Authorization:
+                    `Bearer ${token}`,
+                }
+              : {}),
+          },
+
+          body:
+            JSON.stringify(formData),
+        }
       );
 
-      setMessage(
-        "❌ Failed to load questions"
+      const result =
+        await response.json();
+
+      console.log(
+        "QUESTION SAVE RESPONSE:",
+        result
+      );
+
+      if (response.ok) {
+        alert(
+          editingId
+            ? "Question updated successfully!"
+            : "Question added successfully as Draft!"
+        );
+
+        resetForm();
+
+        await fetchQuestions();
+      } else {
+        alert(
+          result.message ||
+            result.error ||
+            "Operation failed"
+        );
+      }
+    } catch (error) {
+      console.error(
+        "QUESTION SAVE ERROR:",
+        error
+      );
+
+      alert(
+        "Network or server error occurred."
       );
     }
   };
 
-  /* ==========================================================
-     BULK PARSER
-  ========================================================== */
+  // ============================================================
+  // EDIT
+  // ============================================================
 
-  const processBulkImport = () => {
-    if (!bulkQuestionsText.trim()) {
-      setMessage(
-        "⚠️ First, paste questions text into the box!"
-      );
+  const handleEdit = (
+    q: Question
+  ) => {
+    setEditingId(
+      q._id || null
+    );
 
+    setFormData({
+      questionNumber:
+        q.questionNumber || 1,
+
+      question:
+        q.question || "",
+
+      questionImage:
+        q.questionImage || "",
+
+      options:
+        q.options?.length === 4
+          ? q.options
+          : ["", "", "", ""],
+
+      correctAnswer:
+        q.correctAnswer || "",
+
+      subject:
+        q.subject || "Physics",
+
+      chapter:
+        q.chapter || "",
+
+      examType:
+        q.examType || "JEE",
+
+      testCategory:
+        q.testCategory || "mock",
+
+      className:
+        q.className || "2nd PUC",
+
+      testTitle:
+        q.testTitle || "",
+
+      testId:
+        q.testId || "",
+
+      marksPerQuestion:
+        q.marksPerQuestion || 4,
+
+      negativeMarks:
+        q.negativeMarks || 1,
+
+      durationMinutes:
+        q.durationMinutes || 180,
+
+      isPublished:
+        q.isPublished ?? false,
+    });
+
+    setShowAddForm(true);
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
+  // ============================================================
+  // DELETE
+  // ============================================================
+
+  const handleDelete = async (
+    id?: string
+  ) => {
+    if (!id) return;
+
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this question?"
+      )
+    ) {
       return;
     }
 
-    const rawAnsText =
-      bulkAnswersText.trim();
+    try {
+      const token = getToken();
 
-    const answerKeyMap: {
-      [key: number]: number;
-    } = {};
+      const response =
+        await fetch(
+          `${API_BASE_URL}/questions/${id}`,
+          {
+            method: "DELETE",
 
-    /* ========================================================
-       ANSWER KEY
-    ======================================================== */
-
-    if (rawAnsText) {
-      const explicitPairs = [
-        ...rawAnsText.matchAll(
-          /(\d+)[\.\s\:\-\)]+(\d+)/g
-        ),
-      ];
-
-      if (explicitPairs.length > 0) {
-        explicitPairs.forEach((m) => {
-          const qNum = parseInt(m[1]);
-
-          const aNum = parseInt(m[2]);
-
-          if (
-            qNum &&
-            aNum >= 1 &&
-            aNum <= 4
-          ) {
-            answerKeyMap[qNum] =
-              aNum;
+            headers: {
+              ...(token
+                ? {
+                    Authorization:
+                      `Bearer ${token}`,
+                  }
+                : {}),
+            },
           }
-        });
-      } else {
-        const cleanNums =
-          rawAnsText.match(/[1-4]/g);
-
-        if (cleanNums) {
-          cleanNums.forEach(
-            (numStr, index) => {
-              answerKeyMap[index + 1] =
-                parseInt(numStr);
-            }
-          );
-        }
-      }
-    }
-
-    /* ========================================================
-       OPTION TOKEN
-    ======================================================== */
-
-    const text =
-      bulkQuestionsText;
-
-    const tokenRegex =
-      /(?:\s|^)(?:\(([1-4]|[A-Da-d])\)|([1-4]|[A-Da-d])[\)]|([1-4]|[A-Da-d])\.(?!\d))\s*/g;
-
-    interface TokenMatch {
-      index: number;
-      length: number;
-      num: number;
-    }
-
-    const tokens: TokenMatch[] = [];
-
-    let m;
-
-    while (
-      (m = tokenRegex.exec(text)) !==
-      null
-    ) {
-      const valStr =
-        m[1] ||
-        m[2] ||
-        m[3];
-
-      let num =
-        parseInt(valStr);
-
-      if (isNaN(num)) {
-        num =
-          valStr
-            .toUpperCase()
-            .charCodeAt(0) - 64;
-      }
-
-      tokens.push({
-        index: m.index,
-        length: m[0].length,
-        num,
-      });
-    }
-
-    /* ========================================================
-       QUESTION BLOCKS
-    ======================================================== */
-
-    const questionBlocks: {
-      qText: string;
-      options: string[];
-    }[] = [];
-
-    let currentCluster: TokenMatch[] =
-      [];
-
-    const pushClusterToQuestions = (
-      fullText: string,
-      cluster: TokenMatch[],
-      out: {
-        qText: string;
-        options: string[];
-      }[]
-    ) => {
-      if (cluster.length === 0)
-        return;
-
-      const firstOptIndex =
-        cluster[0].index;
-
-      const prevQEnd =
-        (out as any)._lastEnd || 0;
-
-      let rawQText =
-        fullText
-          .substring(
-            prevQEnd,
-            firstOptIndex
-          )
-          .trim();
-
-      rawQText =
-        rawQText
-          .replace(
-            /^(?:Q(?:uestion)?\s*\d*[\.\:\)]|\d+[\.\:\)])\s*/i,
-            ""
-          )
-          .trim();
-
-      const extractedOpts = [
-        "",
-        "",
-        "",
-        "",
-      ];
-
-      cluster.forEach(
-        (optToken, idx) => {
-          if (idx < 4) {
-            const start =
-              optToken.index +
-              optToken.length;
-
-            const end =
-              idx <
-              cluster.length - 1
-                ? cluster[idx + 1].index
-                : fullText.length;
-
-            let optVal =
-              fullText
-                .substring(
-                  start,
-                  end
-                )
-                .trim();
-
-            const nextQMatch =
-              optVal.match(
-                /\n?\s*(?:Q\d+|\d+)[\.\)]\s+/i
-              );
-
-            if (
-              nextQMatch &&
-              nextQMatch.index !==
-                undefined
-            ) {
-              optVal =
-                optVal
-                  .substring(
-                    0,
-                    nextQMatch.index
-                  )
-                  .trim();
-            }
-
-            extractedOpts[idx] =
-              optVal;
-          }
-        }
-      );
-
-      (
-        out as any
-      )._lastEnd =
-        cluster[
-          cluster.length - 1
-        ].index;
-
-      if (rawQText) {
-        out.push({
-          qText: rawQText,
-
-          options:
-            extractedOpts,
-        });
-      }
-    };
-
-    /* ========================================================
-       BUILD CLUSTERS
-    ======================================================== */
-
-    for (
-      let i = 0;
-      i < tokens.length;
-      i++
-    ) {
-      const token = tokens[i];
-
-      if (
-        token.num === 1 &&
-        currentCluster.length >=
-          2
-      ) {
-        pushClusterToQuestions(
-          text,
-          currentCluster,
-          questionBlocks
         );
 
-        currentCluster = [
-          token,
-        ];
+      const result =
+        await response.json();
+
+      if (response.ok) {
+        alert(
+          result.message ||
+            "Question deleted successfully!"
+        );
+
+        await fetchQuestions();
       } else {
-        currentCluster.push(
-          token
+        alert(
+          result.message ||
+            "Failed to delete question"
         );
       }
-    }
-
-    if (
-      currentCluster.length >=
-      2
-    ) {
-      pushClusterToQuestions(
-        text,
-        currentCluster,
-        questionBlocks
-      );
-    }
-
-    /* ========================================================
-       FINAL ITEMS
-    ======================================================== */
-
-    const finalItems: QuestionItem[] =
-      questionBlocks.map(
-        (block, idx) => {
-          const qIndex =
-            idx + 1;
-
-          const ansNumber =
-            answerKeyMap[qIndex]
-              ? answerKeyMap[
-                  qIndex
-                ].toString()
-              : "1";
-
-          const correctText =
-            block.options[
-              parseInt(
-                ansNumber
-              ) - 1
-            ] ||
-            block.options[0] ||
-            "";
-
-          /*
-           * SUBJECT-WISE TEST
-           *
-           * Physics -> subject = Physics
-           * Chemistry -> subject = Chemistry
-           * etc.
-           *
-           * Mock/Daily -> General
-           */
-
-          const isSubjectTest =
-            isSubjectWiseTest(
-              publishTestType
-            );
-
-          return {
-            id:
-              "q_" +
-              Date.now() +
-              "_" +
-              idx,
-
-            subject:
-              isSubjectTest
-                ? publishTestType
-                : "General",
-
-            chapter:
-              publishTestTitle ||
-              "General Practice Test",
-
-            question:
-              block.qText,
-
-            questionText:
-              block.qText,
-
-            options:
-              block.options,
-
-            ansNumber,
-
-            correctAnswer:
-              correctText,
-
-            imageUrl: "",
-
-            difficulty:
-              "Medium",
-
-            testDate:
-              publishDate ||
-              new Date()
-                .toISOString()
-                .split("T")[0],
-
-            testTime:
-              publishTime ||
-              "10:00",
-
-            testType:
-              publishTestType,
-
-            examCategory:
-              examCategory,
-
-            academicYear:
-              academicYear,
-
-            testTitle:
-              publishTestTitle,
-
-            isPublished:
-              false,
-
-            status:
-              "scheduled",
-          };
-        }
-      );
-
-    setParsedQuestions(
-      finalItems
-    );
-
-    if (
-      finalItems.length > 0
-    ) {
-      setMessage(
-        `⚡ Successfully parsed ${finalItems.length} questions! Review and save.`
-      );
-    } else {
-      setMessage(
-        "❌ No questions detected. Please check question format."
+    } catch (error) {
+      console.error(
+        "DELETE ERROR:",
+        error
       );
     }
   };
 
-  /* ==========================================================
-     PDF UPLOAD
-  ========================================================== */
+  // ============================================================
+  // PUBLISH ALL
+  // ============================================================
 
-  const handlePdfUpload = async (
+  const handlePublishAll = async () => {
+    if (
+      !window.confirm(
+        "Are you sure you want to publish ALL questions?"
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const token = getToken();
+
+      const response =
+        await fetch(
+          `${API_BASE_URL}/questions/publish-all`,
+          {
+            method: "PUT",
+
+            headers: {
+              ...(token
+                ? {
+                    Authorization:
+                      `Bearer ${token}`,
+                  }
+                : {}),
+            },
+          }
+        );
+
+      const result =
+        await response.json();
+
+      if (response.ok) {
+        alert(
+          result.message ||
+            "All questions published successfully!"
+        );
+
+        await fetchQuestions();
+      } else {
+        alert(
+          result.message ||
+            "Failed to publish questions"
+        );
+      }
+    } catch (error) {
+      console.error(
+        "PUBLISH ALL ERROR:",
+        error
+      );
+    }
+  };
+
+  // ============================================================
+  // DELETE ALL
+  // ============================================================
+
+  const handleDeleteAll = async () => {
+    if (
+      !window.confirm(
+        "⚠️ WARNING: This will delete ALL questions permanently! Are you sure?"
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const token = getToken();
+
+      const response =
+        await fetch(
+          `${API_BASE_URL}/questions/delete-all`,
+          {
+            method: "DELETE",
+
+            headers: {
+              ...(token
+                ? {
+                    Authorization:
+                      `Bearer ${token}`,
+                  }
+                : {}),
+            },
+          }
+        );
+
+      const result =
+        await response.json();
+
+      if (response.ok) {
+        alert(
+          result.message ||
+            "All questions deleted successfully!"
+        );
+
+        await fetchQuestions();
+      } else {
+        alert(
+          result.message ||
+            "Failed to delete questions"
+        );
+      }
+    } catch (error) {
+      console.error(
+        "DELETE ALL ERROR:",
+        error
+      );
+    }
+  };
+
+  // ============================================================
+  // PDF SUBMIT - FIXED
+  // ============================================================
+
+  const handlePdfSubmit = async (
     e: React.FormEvent
   ) => {
     e.preventDefault();
 
     if (!pdfFile) {
-      setMessage(
-        "⚠️ Please select a PDF file!"
+      alert(
+        "Please select a PDF file first!"
       );
-
       return;
     }
 
-    if (!publishTestTitle.trim()) {
-      setMessage(
-        "⚠️ Please enter a Test Title!"
-      );
-
-      return;
-    }
-
-    if (!publishDate) {
-      setMessage(
-        "⚠️ Please select the Test Date!"
-      );
-
-      return;
-    }
-
-    const token = getToken();
-
-    if (!token) {
-      setMessage(
-        "⚠️ Authentication token missing! Please login again."
-      );
-
-      return;
-    }
-
-    const formData =
-      new FormData();
-
-    /* ========================================================
-       PDF
-    ======================================================== */
-
-    formData.append(
-      "pdf",
-      pdfFile
-    );
-
-    /* ========================================================
-       SUBJECT
-    ======================================================== */
-
-    const subjectForBackend =
-      isSubjectWiseTest(
-        publishTestType
-      )
-        ? publishTestType
-        : "General";
-
-    formData.append(
-      "subject",
-      subjectForBackend
-    );
-
-    /* ========================================================
-       TEST DETAILS
-    ======================================================== */
-
-    formData.append(
-      "chapter",
-      publishTestTitle
-    );
-
-    formData.append(
-      "testTitle",
-      publishTestTitle
-    );
-
-    formData.append(
-      "testType",
-      publishTestType
-    );
-
-    formData.append(
-      "examCategory",
-      examCategory
-    );
-
-    formData.append(
-      "academicYear",
-      academicYear
-    );
-
-    formData.append(
-      "publishDate",
-      publishDate
-    );
-
-    formData.append(
-      "publishTime",
-      publishTime
-    );
+    setParsing(true);
 
     try {
-      setPdfLoading(true);
+      const token = getToken();
 
-      setMessage(
-        "⏳ Extracting questions from PDF..."
+      const data = new FormData();
+
+      // IMPORTANT:
+      // Backend:
+      // upload.single("pdfFile")
+      data.append(
+        "pdfFile",
+        pdfFile
       );
 
-      const res =
+      data.append(
+        "academicYear",
+        pdfClassName
+      );
+
+      data.append(
+        "className",
+        pdfClassName
+      );
+
+      data.append(
+        "examType",
+        pdfExamType
+      );
+
+      data.append(
+        "testCategory",
+        pdfTestCategory
+      );
+
+      console.log(
+        "================================"
+      );
+
+      console.log(
+        "PDF UPLOAD STARTED"
+      );
+
+      console.log(
+        "File:",
+        pdfFile.name
+      );
+
+      console.log(
+        "Class:",
+        pdfClassName
+      );
+
+      console.log(
+        "Exam Type:",
+        pdfExamType
+      );
+
+      console.log(
+        "Test Category:",
+        pdfTestCategory
+      );
+
+      console.log(
+        "================================"
+      );
+
+      // IMPORTANT:
+      // Backend route:
+      // router.post(
+      //   "/parse-pdf",
+      //   upload.single("pdfFile"),
+      //   ...
+      // )
+
+      const response =
         await fetch(
-          `${API_BASE}/generate-from-pdf`,
+          `${API_BASE_URL}/questions/parse-pdf`,
           {
             method: "POST",
 
             headers: {
-              Authorization:
-                `Bearer ${token}`,
+              ...(token
+                ? {
+                    Authorization:
+                      `Bearer ${token}`,
+                  }
+                : {}),
             },
 
-            body: formData,
+            body: data,
           }
         );
 
-      if (res.status === 401) {
-        setMessage(
-          "❌ Session Expired (401). Please re-login!"
-        );
-
-        return;
-      }
-
-      const data =
-        await res.json();
+      const result =
+        await response.json();
 
       console.log(
-        "PDF RESPONSE:",
-        data
+        "PDF PARSE RESPONSE:",
+        result
       );
 
-      if (data.success) {
-        setMessage(
-          `🎉 Success! Published ${
-            data.totalQuestions ||
-            data.totalSaved ||
-            0
-          } questions!`
+      if (response.ok) {
+        const count =
+          result.parsedQuestions ??
+          result.count ??
+          result.questions?.length ??
+          0;
+
+        alert(
+          `PDF processed successfully!\n\n` +
+            `Questions Parsed: ${count}\n` +
+            `Exam Type: ${
+              result.examType ||
+              pdfExamType
+            }\n` +
+            `Class: ${
+              result.academicYear ||
+              pdfClassName
+            }\n` +
+            `Test Type: ${pdfTestCategory}`
+        );
+
+        setShowPdfModal(
+          false
         );
 
         setPdfFile(null);
 
-        setPublishTestTitle("");
-
-        setPublishDate("");
-
-        setPublishTime("");
-
-        setTHour("10");
-
-        setTMin("00");
-
-        setTAmPm("AM");
-
-        await fetchExistingQuestions();
+        await fetchQuestions();
       } else {
-        setMessage(
-          `❌ Error: ${
-            data.message ||
-            "Failed to process PDF"
-          }`
+        console.error(
+          "PDF PARSE ERROR:",
+          result
+        );
+
+        alert(
+          result.message ||
+            result.error ||
+            "Failed to parse PDF"
         );
       }
-    } catch (err) {
+    } catch (error) {
       console.error(
-        "PDF ERROR:",
-        err
+        "PDF PARSE ERROR:",
+        error
       );
 
-      setMessage(
-        "❌ Network or Server error occurred"
+      alert(
+        "PDF upload failed. Please check whether backend server is running."
       );
     } finally {
-      setPdfLoading(false);
+      setParsing(false);
     }
   };
 
-  /* ==========================================================
-     SAVE BULK QUESTIONS
-  ========================================================== */
+  // ============================================================
+  // RESET FORM
+  // ============================================================
 
-  const saveBulkQuestions =
-    async () => {
-      const token = getToken();
+  const resetForm = () => {
+    setEditingId(null);
 
-      if (!token) {
-        setMessage(
-          "⚠️ Authentication token missing!"
-        );
+    setShowAddForm(false);
 
-        return;
-      }
-
-      if (
-        parsedQuestions.length ===
-        0
-      ) {
-        setMessage(
-          "⚠️ No parsed questions found!"
-        );
-
-        return;
-      }
-
-      setLoading(true);
-
-      setMessage(
-        "⏳ Saving questions..."
-      );
-
-      try {
-        let successCount = 0;
-
-        for (
-          const item of
-            parsedQuestions
-        ) {
-          const payload = {
-            ...item,
-
-            question:
-              item.question ||
-              item.questionText ||
-              "",
-
-            questionText:
-              item.question ||
-              item.questionText ||
-              "",
-
-            subject:
-              item.subject ||
-              (
-                isSubjectWiseTest(
-                  item.testType
-                )
-                  ? item.testType
-                  : "General"
-              ),
-
-            testType:
-              item.testType ||
-              publishTestType,
-
-            examCategory:
-              item.examCategory ||
-              examCategory,
-
-            academicYear:
-              item.academicYear ||
-              academicYear,
-
-            testTitle:
-              item.testTitle ||
-              publishTestTitle,
-          };
-
-          const res =
-            await fetch(
-              API_BASE,
-              {
-                method: "POST",
-
-                headers: {
-                  "Content-Type":
-                    "application/json",
-
-                  Authorization:
-                    `Bearer ${token}`,
-                },
-
-                body:
-                  JSON.stringify(
-                    payload
-                  ),
-              }
-            );
-
-          if (res.ok) {
-            successCount++;
-          } else {
-            console.error(
-              "Question save failed:",
-              await res.text()
-            );
-          }
-        }
-
-        setMessage(
-          `🚀 Successfully Saved ${successCount} Questions!`
-        );
-
-        setParsedQuestions([]);
-
-        setBulkQuestionsText("");
-
-        setBulkAnswersText("");
-
-        await fetchExistingQuestions();
-      } catch (err) {
-        console.error(err);
-
-        setMessage(
-          "❌ Error saving questions"
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
-  /* ==========================================================
-     DELETE SINGLE
-  ========================================================== */
-
-  const handleDeleteExistingQuestion =
-    async (
-      qId: string
-    ) => {
-      if (!qId) return;
-
-      if (
-        !window.confirm(
-          "Are you sure you want to delete this question?"
-        )
-      ) {
-        return;
-      }
-
-      const token = getToken();
-
-      if (!token) return;
-
-      try {
-        const res =
-          await fetch(
-            `${API_BASE}/${qId}`,
-            {
-              method: "DELETE",
-
-              headers: {
-                Authorization:
-                  `Bearer ${token}`,
-              },
-            }
-          );
-
-        if (res.ok) {
-          setMessage(
-            "🗑️ Question deleted successfully!"
-          );
-
-          await fetchExistingQuestions();
-        } else {
-          setMessage(
-            "❌ Failed to delete question"
-          );
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-  /* ==========================================================
-     DELETE ALL
-  ========================================================== */
-
-  const handleDeleteAllQuestions =
-    async () => {
-      if (
-        !window.confirm(
-          "⚠️ WARNING: This will delete ALL stored questions and tests. Are you sure?"
-        )
-      ) {
-        return;
-      }
-
-      const token = getToken();
-
-      if (!token) return;
-
-      try {
-        const res =
-          await fetch(
-            `${API_BASE}/all`,
-            {
-              method: "DELETE",
-
-              headers: {
-                Authorization:
-                  `Bearer ${token}`,
-              },
-            }
-          );
-
-        if (res.ok) {
-          setMessage(
-            "🗑️ All questions cleared successfully!"
-          );
-
-          setExistingQuestions([]);
-        } else {
-          setMessage(
-            "❌ Failed to delete all questions"
-          );
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-  /* ==========================================================
-     START EDITING
-  ========================================================== */
-
-  const startEditing = (
-    q: QuestionItem
-  ) => {
-    const id =
-      q._id ||
-      q.id ||
-      null;
-
-    setEditingQuestionId(id);
-
-    const questionText =
-      q.question ||
-      q.questionText ||
-      "";
-
-    const options =
-      Array.isArray(q.options)
-        ? [...q.options]
-        : [
-            "",
-            "",
-            "",
-            "",
-          ];
-
-    while (
-      options.length < 4
-    ) {
-      options.push("");
-    }
-
-    const editData: QuestionItem = {
-      ...q,
-
-      question:
-        questionText,
-
-      questionText:
-        questionText,
-
-      options,
-
-      ansNumber:
-        q.ansNumber
-          ? String(
-              q.ansNumber
-            )
-          : "1",
-
-      correctAnswer:
-        q.correctAnswer ||
-        options[
-          parseInt(
-            q.ansNumber ||
-              "1"
-          ) - 1
-        ] ||
-        "",
-
-      testType:
-        q.testType ||
-        "mock",
-
-      examCategory:
-        q.examCategory ||
-        "neet",
-
-      academicYear:
-        q.academicYear ||
-        "1st-puc",
-    };
-
-    setEditFormData(
-      editData
-    );
-
-    setEditImagePreview(
-      q.imageUrl || ""
-    );
-
-    setEditImageFile(null);
+    setFormData({
+      questionNumber: 1,
+      question: "",
+      questionImage: "",
+      options: ["", "", "", ""],
+      correctAnswer: "",
+      subject: "Physics",
+      chapter: "",
+      examType: "JEE",
+      testCategory: "mock",
+      className: "2nd PUC",
+      testTitle:
+        "JEE Mains Full Mock Test 1",
+      testId: "JEE-MOCK-01",
+      marksPerQuestion: 4,
+      negativeMarks: 1,
+      durationMinutes: 180,
+      isPublished: false,
+    });
   };
 
-  /* ==========================================================
-     EDIT IMAGE
-  ========================================================== */
+  // ============================================================
+  // FILTER
+  // ============================================================
 
-  const handleEditImageChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file =
-      e.target.files?.[0];
+  const filteredQuestions =
+    questions.filter((q) => {
+      const matchesTab =
+        activeTab === "ALL" ||
+        q.testCategory ===
+          activeTab;
 
-    if (!file) {
-      return;
-    }
+      const matchesExam =
+        selectedExam === "ALL" ||
+        q.examType ===
+          selectedExam;
 
-    if (
-      !file.type.startsWith(
-        "image/"
-      )
-    ) {
-      setMessage(
-        "❌ Please select an image file."
+      const matchesSubject =
+        selectedSubject === "ALL" ||
+        q.subject ===
+          selectedSubject;
+
+      const matchesClass =
+        selectedClassName ===
+          "ALL" ||
+        q.className ===
+          selectedClassName;
+
+      const search =
+        searchTerm.toLowerCase();
+
+      const matchesSearch =
+        q.question
+          ?.toLowerCase()
+          .includes(search) ||
+        q.chapter
+          ?.toLowerCase()
+          .includes(search) ||
+        q.testTitle
+          ?.toLowerCase()
+          .includes(search);
+
+      return (
+        matchesTab &&
+        matchesExam &&
+        matchesSubject &&
+        matchesClass &&
+        matchesSearch
       );
-
-      e.target.value = "";
-
-      return;
-    }
-
-    setEditImageFile(file);
-
-    const previewUrl =
-      URL.createObjectURL(
-        file
-      );
-
-    setEditImagePreview(
-      previewUrl
-    );
-  };
-
-  /* ==========================================================
-     SAVE EDITED QUESTION
-  ========================================================== */
-
-  const saveEditedQuestion =
-    async () => {
-      if (
-        !editingQuestionId ||
-        !editFormData
-      ) {
-        return;
-      }
-
-      const token = getToken();
-
-      if (!token) {
-        setMessage(
-          "⚠️ Authentication token missing!"
-        );
-
-        return;
-      }
-
-      const questionText =
-        editFormData.question ||
-        editFormData.questionText ||
-        "";
-
-      if (!questionText.trim()) {
-        setMessage(
-          "⚠️ Question text cannot be empty."
-        );
-
-        return;
-      }
-
-      try {
-        setLoading(true);
-
-        setMessage(
-          "⏳ Updating question..."
-        );
-
-        const formData =
-          new FormData();
-
-        /* ====================================================
-           QUESTION
-        ==================================================== */
-
-        formData.append(
-          "question",
-          questionText
-        );
-
-        formData.append(
-          "questionText",
-          questionText
-        );
-
-        /* ====================================================
-           SUBJECT
-        ==================================================== */
-
-        const currentTestType =
-          editFormData.testType ||
-          "mock";
-
-        const currentSubject =
-          isSubjectWiseTest(
-            currentTestType
-          )
-            ? currentTestType
-            : editFormData.subject ||
-              "General";
-
-        formData.append(
-          "subject",
-          currentSubject
-        );
-
-        /* ====================================================
-           CHAPTER
-        ==================================================== */
-
-        formData.append(
-          "chapter",
-          editFormData.chapter ||
-            "General"
-        );
-
-        /* ====================================================
-           OPTIONS
-        ==================================================== */
-
-        formData.append(
-          "options",
-          JSON.stringify(
-            editFormData.options ||
-              []
-          )
-        );
-
-        /* ====================================================
-           ANSWER
-        ==================================================== */
-
-        formData.append(
-          "ansNumber",
-          editFormData.ansNumber ||
-            "1"
-        );
-
-        const answerIndex =
-          Math.max(
-            0,
-            parseInt(
-              editFormData.ansNumber ||
-                "1"
-            ) - 1
-          );
-
-        const correctAnswer =
-          editFormData.options?.[
-            answerIndex
-          ] ||
-          editFormData.correctAnswer ||
-          "";
-
-        formData.append(
-          "correctAnswer",
-          correctAnswer
-        );
-
-        /* ====================================================
-           DIFFICULTY
-        ==================================================== */
-
-        formData.append(
-          "difficulty",
-          editFormData.difficulty ||
-            "Medium"
-        );
-
-        /* ====================================================
-           TEST TYPE
-        ==================================================== */
-
-        formData.append(
-          "testType",
-          currentTestType
-        );
-
-        /* ====================================================
-           EXAM CATEGORY
-        ==================================================== */
-
-        formData.append(
-          "examCategory",
-          editFormData.examCategory ||
-            "neet"
-        );
-
-        /* ====================================================
-           ACADEMIC YEAR
-        ==================================================== */
-
-        formData.append(
-          "academicYear",
-          editFormData.academicYear ||
-            "1st-puc"
-        );
-
-        /* ====================================================
-           DATE
-        ==================================================== */
-
-        if (
-          editFormData.testDate
-        ) {
-          formData.append(
-            "testDate",
-            editFormData.testDate
-          );
-        }
-
-        /* ====================================================
-           TIME
-        ==================================================== */
-
-        if (
-          editFormData.testTime
-        ) {
-          formData.append(
-            "testTime",
-            editFormData.testTime
-          );
-        }
-
-        /* ====================================================
-           TEST TITLE
-        ==================================================== */
-
-        if (
-          editFormData.testTitle
-        ) {
-          formData.append(
-            "testTitle",
-            editFormData.testTitle
-          );
-        }
-
-        /* ====================================================
-           IMAGE
-        ==================================================== */
-
-        if (editImageFile) {
-          formData.append(
-            "image",
-            editImageFile
-          );
-        }
-
-        /* ====================================================
-           API
-        ==================================================== */
-
-        const res =
-          await fetch(
-            `${API_BASE}/${editingQuestionId}`,
-            {
-              method: "PUT",
-
-              headers: {
-                Authorization:
-                  `Bearer ${token}`,
-              },
-
-              body: formData,
-            }
-          );
-
-        const data =
-          await res.json();
-
-        console.log(
-          "UPDATE RESPONSE:",
-          data
-        );
-
-        if (
-          res.ok &&
-          data.success
-        ) {
-          setMessage(
-            "✨ Question and test details updated successfully!"
-          );
-
-          setEditingQuestionId(
-            null
-          );
-
-          setEditFormData(null);
-
-          setEditImageFile(null);
-
-          setEditImagePreview("");
-
-          await fetchExistingQuestions();
-        } else {
-          setMessage(
-            `❌ ${
-              data.message ||
-              "Failed to update question"
-            }`
-          );
-        }
-      } catch (err) {
-        console.error(
-          "UPDATE ERROR:",
-          err
-        );
-
-        setMessage(
-          "❌ Error updating question"
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
-  /* ==========================================================
-     CANCEL EDIT
-  ========================================================== */
-
-  const cancelEdit = () => {
-    setEditingQuestionId(null);
-
-    setEditFormData(null);
-
-    setEditImageFile(null);
-
-    setEditImagePreview("");
-  };
-
-  /* ==========================================================
-     FILTER
-  ========================================================== */
-
-  const processedQuestions =
-    existingQuestions.filter(
-      (q) => {
-        if (
-          viewCategoryTab ===
-            "mock" &&
-          q.testType !== "mock" &&
-          !q.chapter
-            ?.toLowerCase()
-            .includes("mock")
-        ) {
-          return false;
-        }
-
-        if (
-          viewCategoryTab ===
-            "daily" &&
-          q.testType !== "daily" &&
-          !q.chapter
-            ?.toLowerCase()
-            .includes("daily")
-        ) {
-          return false;
-        }
-
-        const question =
-          getQuestionText(q);
-
-        const search =
-          searchQuery.toLowerCase();
-
-        return (
-          question
-            .toLowerCase()
-            .includes(search) ||
-          q.chapter
-            ?.toLowerCase()
-            .includes(search) ||
-          q.subject
-            ?.toLowerCase()
-            .includes(search) ||
-          q.testType
-            ?.toLowerCase()
-            .includes(search) ||
-          q.examCategory
-            ?.toLowerCase()
-            .includes(search) ||
-          q.academicYear
-            ?.toLowerCase()
-            .includes(search)
-        );
-      }
-    );
-
-  /* ==========================================================
-     PAGINATION
-  ========================================================== */
-
-  const totalPages =
-    Math.ceil(
-      processedQuestions.length /
-        itemsPerPage
-    );
-
-  const indexOfLastItem =
-    currentPage *
-    itemsPerPage;
-
-  const indexOfFirstItem =
-    indexOfLastItem -
-    itemsPerPage;
-
-  const currentQuestions =
-    processedQuestions.slice(
-      indexOfFirstItem,
-      indexOfLastItem
-    );
-
-  /* ==========================================================
-     TIME SYNC
-  ========================================================== */
-
-  useEffect(() => {
-    let h =
-      parseInt(
-        tHour,
-        10
-      );
-
-    if (
-      tAmPm === "PM" &&
-      h < 12
-    ) {
-      h += 12;
-    }
-
-    if (
-      tAmPm === "AM" &&
-      h === 12
-    ) {
-      h = 0;
-    }
-
-    const formattedHour =
-      String(h).padStart(
-        2,
-        "0"
-      );
-
-    setPublishTime(
-      `${formattedHour}:${tMin}`
-    );
-  }, [
-    tHour,
-    tMin,
-    tAmPm,
-  ]);
-
-  /* ==========================================================
-     JSX
-  ========================================================== */
+    });
+
+  // ============================================================
+  // UI
+  // ============================================================
 
   return (
-    <div className="question-bank-page">
+    <div
+      style={{
+        padding: "30px",
+        maxWidth: "1350px",
+        margin: "0 auto",
+        fontFamily:
+          "Segoe UI, sans-serif",
+        background:
+          "#f8fafc",
+        minHeight: "100vh",
+      }}
+    >
+      {/* HEADER */}
 
-      {/* ======================================================
-          STATS
-      ====================================================== */}
-
-      <div className="qb-stats-banner">
-
-        <div
-          className="stat-pill clickable-pill"
-          onClick={() =>
-            setShowAllTotalView(
-              !showAllTotalView
-            )
-          }
-        >
-          <span className="stat-label">
-            📂 Database Explorer
-          </span>
-
-          <div className="stat-value">
-            {existingQuestions.length} Total
-          </div>
-        </div>
-
-        <div className="stat-pill glow-blue">
-          <span className="stat-label">
-            ⚡ Daily Practice
-          </span>
-
-          <div className="stat-value">
-            {
-              existingQuestions.filter(
-                (q) =>
-                  q.testType ===
-                    "daily" ||
-                  q.chapter
-                    ?.toLowerCase()
-                    .includes(
-                      "daily"
-                    )
-              ).length
-            }
-          </div>
-        </div>
-
-        <div className="stat-pill glow-purple">
-          <span className="stat-label">
-            📝 Live Mock Tests
-          </span>
-
-          <div className="stat-value">
-            {
-              existingQuestions.filter(
-                (q) =>
-                  q.testType ===
-                    "mock" ||
-                  q.chapter
-                    ?.toLowerCase()
-                    .includes(
-                      "mock"
-                    )
-              ).length
-            }
-          </div>
-        </div>
-
-      </div>
-
-      {/* ======================================================
-          HEADER
-      ====================================================== */}
-
-      <div className="qb-header">
-
-        <div className="qb-header-text">
-
-          <h1>
-            🚀 Exam Command Center
+      <div
+        style={{
+          display: "flex",
+          justifyContent:
+            "space-between",
+          alignItems: "center",
+          marginBottom: "25px",
+          background:
+            "#ffffff",
+          padding: "20px",
+          borderRadius:
+            "12px",
+          boxShadow:
+            "0 2px 4px rgba(0,0,0,0.05)",
+          flexWrap: "wrap",
+          gap: "15px",
+        }}
+      >
+        <div>
+          <h1
+            style={{
+              margin: 0,
+              color:
+                "#1e293b",
+              fontSize:
+                "24px",
+            }}
+          >
+            🎯 Master Question Bank
+            & PDF Parser
           </h1>
 
-          <p className="qb-subtitle">
-            Publish tests, edit questions,
-            options & images
+          <p
+            style={{
+              margin:
+                "5px 0 0 0",
+              color:
+                "#64748b",
+              fontSize:
+                "14px",
+            }}
+          >
+            Manage drafts, test
+            categories and upload
+            question paper PDFs.
           </p>
-
         </div>
 
-        <div className="qb-mode-toggle">
-
+        <div
+          style={{
+            display: "flex",
+            gap: "10px",
+            flexWrap: "wrap",
+          }}
+        >
           <button
-            className={
-              mode === "bulk" &&
-              !showAllTotalView
-                ? "active-tab"
-                : "inactive-tab"
+            onClick={
+              handlePublishAll
             }
-            onClick={() => {
-              setMode("bulk");
-
-              setShowAllTotalView(
-                false
-              );
+            style={{
+              background:
+                "#16a34a",
+              color: "#fff",
+              padding:
+                "10px 16px",
+              border: "none",
+              borderRadius:
+                "8px",
+              cursor:
+                "pointer",
+              fontWeight:
+                "600",
             }}
           >
-            ⚡ Bulk Auto-Parser
+            🚀 Publish All
           </button>
 
           <button
-            className={
-              mode === "pdf" &&
-              !showAllTotalView
-                ? "active-tab"
-                : "inactive-tab"
+            onClick={
+              handleDeleteAll
             }
-            onClick={() => {
-              setMode("pdf");
-
-              setShowAllTotalView(
-                false
-              );
+            style={{
+              background:
+                "#dc2626",
+              color: "#fff",
+              padding:
+                "10px 16px",
+              border: "none",
+              borderRadius:
+                "8px",
+              cursor:
+                "pointer",
+              fontWeight:
+                "600",
             }}
           >
-            📄 AI PDF Extractor
+            🗑️ Delete All
           </button>
 
-        </div>
+          <button
+            onClick={() =>
+              setShowPdfModal(
+                true
+              )
+            }
+            style={{
+              background:
+                "#7c3aed",
+              color: "#fff",
+              padding:
+                "10px 16px",
+              border: "none",
+              borderRadius:
+                "8px",
+              cursor:
+                "pointer",
+              fontWeight:
+                "600",
+            }}
+          >
+            📄 Upload PDF
+          </button>
 
+          <button
+            onClick={() => {
+              if (
+                showAddForm
+              ) {
+                resetForm();
+              } else {
+                setShowAddForm(
+                  true
+                );
+              }
+            }}
+            style={{
+              background:
+                "#2563eb",
+              color: "#fff",
+              padding:
+                "10px 16px",
+              border: "none",
+              borderRadius:
+                "8px",
+              cursor:
+                "pointer",
+              fontWeight:
+                "600",
+            }}
+          >
+            {showAddForm
+              ? "Close Form"
+              : "+ Add Question"}
+          </button>
+        </div>
       </div>
 
-      {/* ======================================================
-          MESSAGE
-      ====================================================== */}
+      {/* TABS */}
 
-      {message && (
-        <div className="qb-message-banner animate-fade">
-          {message}
-        </div>
-      )}
-
-      {/* ======================================================
-          DATABASE EXPLORER
-      ====================================================== */}
-
-      {showAllTotalView ? (
-
-        <div className="manage-section animate-fade">
-
-          <div className="explorer-top-flex">
-
-            <div>
-
-              <h3>
-                🗄️ All Stored Tests & Questions
-              </h3>
-
-              <p className="explorer-sub">
-                Edit questions, options,
-                correct answers and images.
-              </p>
-
-            </div>
-
-            <div className="explorer-actions">
-
-              <button
-                onClick={
-                  handleDeleteAllQuestions
-                }
-                className="btn-danger-all"
-              >
-                🗑️ Delete All Data
-              </button>
-
-              <button
-                onClick={
-                  fetchExistingQuestions
-                }
-                className="btn-refresh"
-              >
-                🔄 Refresh
-              </button>
-
-              <button
-                onClick={() =>
-                  setShowAllTotalView(
-                    false
-                  )
-                }
-                className="btn-close-explorer"
-              >
-                ❌ Close
-              </button>
-
-            </div>
-
-          </div>
-
-          {/* CATEGORY */}
-
-          <div className="category-tabs-scroll">
-
-            <button
-              onClick={() =>
-                setViewCategoryTab(
-                  "all"
-                )
-              }
-              className={`cat-pill-btn ${
-                viewCategoryTab ===
-                "all"
-                  ? "active"
-                  : ""
-              }`}
-            >
-              📁 All (
-              {
-                existingQuestions.length
-              }
-              )
-            </button>
-
-            <button
-              onClick={() =>
-                setViewCategoryTab(
+      <div
+        style={{
+          display: "flex",
+          gap: "10px",
+          marginBottom:
+            "20px",
+          borderBottom:
+            "2px solid #e2e8f0",
+          paddingBottom:
+            "10px",
+          flexWrap: "wrap",
+        }}
+      >
+        {[
+          {
+            key: "ALL",
+            label: `All Questions (${questions.length})`,
+          },
+          {
+            key: "mock",
+            label: `Mock Tests (${
+              questions.filter(
+                (q) =>
+                  q.testCategory ===
                   "mock"
-                )
-              }
-              className={`cat-pill-btn ${
-                viewCategoryTab ===
-                "mock"
-                  ? "active"
-                  : ""
-              }`}
-            >
-              📝 Mock Tests
-            </button>
-
-            <button
-              onClick={() =>
-                setViewCategoryTab(
+              ).length
+            })`,
+          },
+          {
+            key: "daily",
+            label: `Daily Tests (${
+              questions.filter(
+                (q) =>
+                  q.testCategory ===
                   "daily"
+              ).length
+            })`,
+          },
+          {
+            key: "subject",
+            label: `Subject Tests (${
+              questions.filter(
+                (q) =>
+                  q.testCategory ===
+                  "subject"
+              ).length
+            })`,
+          },
+        ].map(
+          (tab) => (
+            <button
+              key={
+                tab.key
+              }
+              onClick={() =>
+                setActiveTab(
+                  tab.key
                 )
               }
-              className={`cat-pill-btn ${
-                viewCategoryTab ===
-                "daily"
-                  ? "active"
-                  : ""
-              }`}
+              style={{
+                padding:
+                  "10px 20px",
+                borderRadius:
+                  "8px",
+                border:
+                  "none",
+                cursor:
+                  "pointer",
+                fontWeight:
+                  "600",
+                fontSize:
+                  "14px",
+                background:
+                  activeTab ===
+                  tab.key
+                    ? "#2563eb"
+                    : "#ffffff",
+                color:
+                  activeTab ===
+                  tab.key
+                    ? "#ffffff"
+                    : "#64748b",
+              }}
             >
-              ⚡ Daily Tests
+              {tab.label}
             </button>
+          )
+        )}
+      </div>
 
-          </div>
+      {/* PDF MODAL */}
 
-          {/* SEARCH */}
+      {showPdfModal && (
+        <div
+          style={{
+            position:
+              "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height:
+              "100%",
+            background:
+              "rgba(0,0,0,0.5)",
+            display:
+              "flex",
+            justifyContent:
+              "center",
+            alignItems:
+              "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              background:
+                "#fff",
+              padding:
+                "30px",
+              borderRadius:
+                "12px",
+              width:
+                "480px",
+              maxWidth:
+                "90%",
+              boxShadow:
+                "0 10px 25px rgba(0,0,0,0.1)",
+            }}
+          >
+            <h3
+              style={{
+                marginTop: 0,
+                color:
+                  "#1e293b",
+              }}
+            >
+              📄 Upload Question
+              Paper PDF
+            </h3>
 
-          <div className="filter-grid-stack">
+            <p
+              style={{
+                fontSize:
+                  "13px",
+                color:
+                  "#64748b",
+                marginBottom:
+                  "15px",
+              }}
+            >
+              Select Class, Exam Type
+              and Test Type before
+              uploading.
+            </p>
 
-            <input
-              type="text"
-              placeholder="🔍 Search test, subject, exam or question..."
-              value={
-                searchQuery
+            <form
+              onSubmit={
+                handlePdfSubmit
               }
-              onChange={(e) =>
-                setSearchQuery(
-                  e.target.value
-                )
-              }
-              className="search-input-box-premium"
-            />
-
-          </div>
-
-          {/* EMPTY */}
-
-          {processedQuestions.length ===
-          0 ? (
-
-            <div className="empty-warning-card">
-
-              <p>
-                ⚠️ No records match
-                your criteria.
-              </p>
-
-            </div>
-
-          ) : (
-
-            <>
-
-              <div className="parsed-list">
-
-                {currentQuestions.map(
-                  (
-                    q,
-                    idx
-                  ) => {
-
-                    const globalIdx =
-                      indexOfFirstItem +
-                      idx;
-
-                    const qId =
-                      q._id ||
-                      q.id ||
-                      "";
-
-                    const isEditing =
-                      editingQuestionId ===
-                      qId;
-
-                    const questionText =
-                      getQuestionText(
-                        q
-                      );
-
-                    const subjectWise =
-                      isSubjectWiseTest(
-                        q.testType
-                      );
-
-                    return (
-
-                      <div
-                        className="parsed-editable-card premium-card"
-                        key={
-                          qId ||
-                          globalIdx
-                        }
-                      >
-
-                        {/* TOP */}
-
-                        <div className="card-top-bar">
-
-                          <div className="card-badge-group">
-
-                            <span className="q-badge">
-                              Q#
-                              {globalIdx + 1}
-                            </span>
-
-                            <span className="chapter-tag">
-                              📌{" "}
-                              {q.chapter ||
-                                q.testTitle ||
-                                "Untitled Test"}
-                            </span>
-
-                            {q.testType && (
-                              <span className="chapter-tag">
-                                {getTestTypeLabel(
-                                  q.testType
-                                )}
-                              </span>
-                            )}
-
-                            {q.examCategory && (
-                              <span className="chapter-tag">
-                                🎯{" "}
-                                {q.examCategory
-                                  .toUpperCase()}
-                              </span>
-                            )}
-
-                            {q.academicYear && (
-                              <span className="chapter-tag">
-                                🎓{" "}
-                                {q.academicYear ===
-                                "1st-puc"
-                                  ? "1st PUC"
-                                  : q.academicYear ===
-                                    "2nd-puc"
-                                  ? "2nd PUC"
-                                  : q.academicYear}
-                              </span>
-                            )}
-
-                            {subjectWise && (
-                              <span className="chapter-tag">
-                                📚 Subject Wise
-                              </span>
-                            )}
-
-                            {q.testDate && (
-                              <span className="date-tag">
-                                📅{" "}
-                                {q.testDate}
-                              </span>
-                            )}
-
-                            {q.testTime && (
-                              <span className="time-tag">
-                                ⏰{" "}
-                                {q.testTime}
-                              </span>
-                            )}
-
-                          </div>
-
-                          <div className="card-action-buttons">
-
-                            {!isEditing ? (
-
-                              <>
-
-                                <button
-                                  onClick={() =>
-                                    startEditing(
-                                      q
-                                    )
-                                  }
-                                  className="btn-edit-sm"
-                                >
-                                  ✏️ Edit Question
-                                </button>
-
-                                <button
-                                  onClick={() =>
-                                    handleDeleteExistingQuestion(
-                                      qId
-                                    )
-                                  }
-                                  className="btn-delete-sm"
-                                >
-                                  🗑️ Delete
-                                </button>
-
-                              </>
-
-                            ) : (
-
-                              <div className="edit-action-group">
-
-                                <button
-                                  onClick={
-                                    saveEditedQuestion
-                                  }
-                                  disabled={
-                                    loading
-                                  }
-                                  className="btn-save-sm"
-                                >
-                                  {loading
-                                    ? "⏳ Updating..."
-                                    : "💾 Update Changes"}
-                                </button>
-
-                                <button
-                                  onClick={
-                                    cancelEdit
-                                  }
-                                  className="btn-cancel-sm"
-                                >
-                                  ❌ Cancel
-                                </button>
-
-                              </div>
-
-                            )}
-
-                          </div>
-
-                        </div>
-
-                        {/* ==================================================
-                            EDIT MODE
-                        ================================================== */}
-
-                        {isEditing &&
-                        editFormData ? (
-
-                          <div className="edit-form-inline">
-
-                            {/* TEST TITLE */}
-
-                            <div className="qb-input-group mb-2">
-
-                              <label>
-                                📝 Test Title / Chapter
-                              </label>
-
-                              <input
-                                type="text"
-                                value={
-                                  editFormData.chapter ||
-                                  ""
-                                }
-                                onChange={(e) =>
-                                  setEditFormData(
-                                    {
-                                      ...editFormData,
-
-                                      chapter:
-                                        e.target
-                                          .value,
-
-                                      testTitle:
-                                        e.target
-                                          .value,
-                                    }
-                                  )
-                                }
-                                className="input-box"
-                              />
-
-                            </div>
-
-                            {/* TEST TYPE */}
-
-                            <div className="qb-grid-3">
-
-                              <div className="qb-input-group">
-
-                                <label>
-                                  📝 Test Type
-                                </label>
-
-                                <select
-                                  value={
-                                    editFormData.testType ||
-                                    "mock"
-                                  }
-                                  onChange={(e) => {
-
-                                    const newType =
-                                      e.target
-                                        .value as TestType;
-
-                                    setEditFormData(
-                                      {
-                                        ...editFormData,
-
-                                        testType:
-                                          newType,
-
-                                        subject:
-                                          isSubjectWiseTest(
-                                            newType
-                                          )
-                                            ? newType
-                                            : "General",
-                                      }
-                                    );
-
-                                  }}
-                                  className="select-box-premium"
-                                >
-
-                                  <option value="mock">
-                                    📝 Mock Test
-                                  </option>
-
-                                  <option value="daily">
-                                    ⚡ Daily Test
-                                  </option>
-
-                                  <option value="physics">
-                                    ⚛️ Physics
-                                  </option>
-
-                                  <option value="chemistry">
-                                    🧪 Chemistry
-                                  </option>
-
-                                  <option value="mathematics">
-                                    📐 Mathematics
-                                  </option>
-
-                                  <option value="botany">
-                                    🌿 Botany
-                                  </option>
-
-                                  <option value="zoology">
-                                    🦴 Zoology
-                                  </option>
-
-                                  <option value="biology">
-                                    🧬 Biology
-                                  </option>
-
-                                </select>
-
-                              </div>
-
-                              <div className="qb-input-group">
-
-                                <label>
-                                  🎯 Exam Category
-                                </label>
-
-                                <select
-                                  value={
-                                    editFormData.examCategory ||
-                                    "neet"
-                                  }
-                                  onChange={(e) =>
-                                    setEditFormData(
-                                      {
-                                        ...editFormData,
-
-                                        examCategory:
-                                          e.target
-                                            .value as ExamCategory,
-                                      }
-                                    )
-                                  }
-                                  className="select-box-premium"
-                                >
-
-                                  <option value="neet">
-                                    🩺 NEET
-                                  </option>
-
-                                  <option value="jee">
-                                    ⚙️ JEE
-                                  </option>
-
-                                </select>
-
-                              </div>
-
-                              <div className="qb-input-group">
-
-                                <label>
-                                  🎓 Academic Year
-                                </label>
-
-                                <select
-                                  value={
-                                    editFormData.academicYear ||
-                                    "1st-puc"
-                                  }
-                                  onChange={(e) =>
-                                    setEditFormData(
-                                      {
-                                        ...editFormData,
-
-                                        academicYear:
-                                          e.target
-                                            .value as AcademicYear,
-                                      }
-                                    )
-                                  }
-                                  className="select-box-premium"
-                                >
-
-                                  <option value="1st-puc">
-                                    📘 1st PUC
-                                  </option>
-
-                                  <option value="2nd-puc">
-                                    📕 2nd PUC
-                                  </option>
-
-                                </select>
-
-                              </div>
-
-                            </div>
-
-                            {/* QUESTION */}
-
-                            <div className="qb-input-group mb-2">
-
-                              <label>
-                                Question Text
-                              </label>
-
-                              <textarea
-                                value={
-                                  editFormData.question ||
-                                  editFormData.questionText ||
-                                  ""
-                                }
-                                onChange={(e) =>
-                                  setEditFormData(
-                                    {
-                                      ...editFormData,
-
-                                      question:
-                                        e.target
-                                          .value,
-
-                                      questionText:
-                                        e.target
-                                          .value,
-                                    }
-                                  )
-                                }
-                                className="textarea-box"
-                                rows={4}
-                              />
-
-                            </div>
-
-                            {/* IMAGE */}
-
-                            <div className="qb-input-group mb-2">
-
-                              <label>
-                                🖼️ Question Image
-                              </label>
-
-                              <input
-                                type="file"
-                                accept="image/*"
-                                onChange={
-                                  handleEditImageChange
-                                }
-                                className="file-input-box-premium"
-                              />
-
-                              {editImagePreview && (
-
-                                <div
-                                  style={{
-                                    marginTop:
-                                      "12px",
-
-                                    padding:
-                                      "10px",
-
-                                    border:
-                                      "1px solid #ddd",
-
-                                    borderRadius:
-                                      "10px",
-
-                                    background:
-                                      "#fafafa",
-                                  }}
-                                >
-
-                                  <p
-                                    style={{
-                                      marginBottom:
-                                        "8px",
-
-                                      fontWeight:
-                                        600,
-                                    }}
-                                  >
-                                    {editImageFile
-                                      ? "🆕 New Image Preview"
-                                      : "🖼️ Current Image"}
-                                  </p>
-
-                                  <img
-                                    src={
-                                      editImagePreview
-                                    }
-                                    alt="Question Preview"
-                                    style={{
-                                      maxWidth:
-                                        "100%",
-
-                                      maxHeight:
-                                        "300px",
-
-                                      objectFit:
-                                        "contain",
-
-                                      borderRadius:
-                                        "8px",
-
-                                      display:
-                                        "block",
-                                    }}
-                                  />
-
-                                </div>
-
-                              )}
-
-                            </div>
-
-                            {/* OPTIONS */}
-
-                            <div className="qb-input-group mb-2">
-
-                              <label>
-                                Options (1 to 4)
-                              </label>
-
-                              <div
-                                className="edit-options-grid"
-                                style={{
-                                  display:
-                                    "grid",
-
-                                  gap:
-                                    "8px",
-                                }}
-                              >
-
-                                {editFormData.options.map(
-                                  (
-                                    opt,
-                                    oI
-                                  ) => (
-
-                                    <div
-                                      key={
-                                        oI
-                                      }
-                                      style={{
-                                        display:
-                                          "flex",
-
-                                        gap:
-                                          "10px",
-
-                                        alignItems:
-                                          "center",
-                                      }}
-                                    >
-
-                                      <span
-                                        style={{
-                                          fontWeight:
-                                            700,
-
-                                          minWidth:
-                                            "30px",
-                                        }}
-                                      >
-                                        (
-                                        {oI + 1}
-                                        )
-                                      </span>
-
-                                      <input
-                                        type="text"
-                                        value={
-                                          opt
-                                        }
-                                        onChange={(
-                                          e
-                                        ) => {
-
-                                          const newOpts =
-                                            [
-                                              ...editFormData.options,
-                                            ];
-
-                                          newOpts[
-                                            oI
-                                          ] =
-                                            e.target
-                                              .value;
-
-                                          const answerIndex =
-                                            parseInt(
-                                              editFormData.ansNumber ||
-                                                "1"
-                                            ) - 1;
-
-                                          setEditFormData(
-                                            {
-                                              ...editFormData,
-
-                                              options:
-                                                newOpts,
-
-                                              correctAnswer:
-                                                newOpts[
-                                                  answerIndex
-                                                ] ||
-                                                "",
-                                            }
-                                          );
-
-                                        }}
-                                        className="input-box"
-                                      />
-
-                                    </div>
-
-                                  )
-                                )}
-
-                              </div>
-
-                            </div>
-
-                            {/* ANSWER */}
-
-                            <div className="qb-input-group mb-2">
-
-                              <label>
-                                Correct Answer Option Number
-                              </label>
-
-                              <select
-                                value={
-                                  editFormData.ansNumber ||
-                                  "1"
-                                }
-                                onChange={(e) => {
-
-                                  const newAnswer =
-                                    e.target
-                                      .value;
-
-                                  const answerIndex =
-                                    parseInt(
-                                      newAnswer
-                                    ) - 1;
-
-                                  const correct =
-                                    editFormData
-                                      .options?.[
-                                      answerIndex
-                                    ] || "";
-
-                                  setEditFormData(
-                                    {
-                                      ...editFormData,
-
-                                      ansNumber:
-                                        newAnswer,
-
-                                      correctAnswer:
-                                        correct,
-                                    }
-                                  );
-
-                                }}
-                                className="select-box-premium"
-                                style={{
-                                  width:
-                                    "180px",
-                                }}
-                              >
-
-                                <option value="1">
-                                  Option 1
-                                </option>
-
-                                <option value="2">
-                                  Option 2
-                                </option>
-
-                                <option value="3">
-                                  Option 3
-                                </option>
-
-                                <option value="4">
-                                  Option 4
-                                </option>
-
-                              </select>
-
-                            </div>
-
-                          </div>
-
-                        ) : (
-
-                          /* ==================================================
-                             VIEW MODE
-                          ================================================== */
-
-                          <>
-
-                            <p className="pq-text">
-                              {questionText}
-                            </p>
-
-                            {/* IMAGE */}
-
-                            {q.imageUrl && (
-
-                              <div className="question-image-preview">
-
-                                <img
-                                  src={
-                                    q.imageUrl
-                                  }
-                                  alt="Question Diagram"
-                                />
-
-                              </div>
-
-                            )}
-
-                            {/* OPTIONS */}
-
-                            <div className="pq-options">
-
-                              {(q.options || []).map(
-                                (
-                                  opt,
-                                  oI
-                                ) => (
-
-                                  <div
-                                    key={
-                                      oI
-                                    }
-                                    className={`pq-opt ${
-                                      q.ansNumber ===
-                                      String(
-                                        oI + 1
-                                      )
-                                        ? "correct-opt"
-                                        : ""
-                                    }`}
-                                  >
-
-                                    <span className="opt-num">
-                                      (
-                                      {oI + 1}
-                                      )
-                                    </span>
-
-                                    {" "}
-
-                                    {opt ||
-                                      "Option unavailable"}
-
-                                  </div>
-
-                                )
-                              )}
-
-                            </div>
-
-                          </>
-
-                        )}
-
-                      </div>
-
-                    );
-                  }
-                )}
-
-              </div>
-
-              {/* PAGINATION */}
-
-              {totalPages > 1 && (
-
-                <div
-                  className="pagination-container"
+            >
+              <div
+                style={{
+                  marginBottom:
+                    "12px",
+                }}
+              >
+                <label
                   style={{
-                    display:
-                      "flex",
-
-                    justifyContent:
-                      "center",
-
-                    alignItems:
-                      "center",
-
-                    gap:
+                    fontSize:
                       "12px",
-
-                    marginTop:
-                      "20px",
-
-                    padding:
-                      "10px",
+                    fontWeight:
+                      "700",
+                    color:
+                      "#475569",
+                    display:
+                      "block",
+                    marginBottom:
+                      "4px",
                   }}
                 >
+                  CLASS NAME
+                </label>
 
-                  <button
-                    onClick={() =>
-                      setCurrentPage(
-                        (prev) =>
-                          Math.max(
-                            prev - 1,
-                            1
-                          )
-                      )
-                    }
-                    disabled={
-                      currentPage ===
-                      1
-                    }
-                    className="btn-refresh"
-                  >
-                    ◀ Previous
-                  </button>
+                <select
+                  value={
+                    pdfClassName
+                  }
+                  onChange={(e) =>
+                    setPdfClassName(
+                      e.target.value
+                    )
+                  }
+                  style={{
+                    width:
+                      "100%",
+                    padding:
+                      "9px",
+                    borderRadius:
+                      "6px",
+                    border:
+                      "1px solid #cbd5e1",
+                  }}
+                >
+                  <option value="1st PUC">
+                    1st PUC
+                  </option>
 
-                  <span
-                    style={{
-                      fontWeight:
-                        600,
-
-                      fontSize:
-                        "14px",
-                    }}
-                  >
-                    Page{" "}
-                    {currentPage}{" "}
-                    of{" "}
-                    {totalPages}
-                  </span>
-
-                  <button
-                    onClick={() =>
-                      setCurrentPage(
-                        (prev) =>
-                          Math.min(
-                            prev + 1,
-                            totalPages
-                          )
-                      )
-                    }
-                    disabled={
-                      currentPage ===
-                      totalPages
-                    }
-                    className="btn-refresh"
-                  >
-                    Next ▶
-                  </button>
-
-                </div>
-
-              )}
-
-            </>
-
-          )}
-
-        </div>
-
-      ) : (
-
-        /* ======================================================
-           MAIN CREATE AREA
-        ====================================================== */
-
-        <>
-
-          {mode === "bulk" ? (
-
-            <div className="qb-bulk-section animate-fade">
-
-              {/* ==================================================
-                  TEST INFORMATION
-              ================================================== */}
-
-              <div className="qb-grid-3">
-
-                {/* TEST TITLE */}
-
-                <div className="qb-input-group">
-
-                  <label>
-                    📝 Test Title / Exam Name
-                  </label>
-
-                  <input
-                    type="text"
-                    placeholder="e.g. NEET Chemistry Test 01"
-                    value={
-                      publishTestTitle
-                    }
-                    onChange={(e) =>
-                      setPublishTestTitle(
-                        e.target
-                          .value
-                      )
-                    }
-                    className="input-box-premium"
-                  />
-
-                </div>
-
-                {/* TEST TYPE */}
-
-                <div className="qb-input-group">
-
-                  <label>
-                    📝 Test Publishing Type
-                  </label>
-
-                  <select
-                    value={
-                      publishTestType
-                    }
-                    onChange={(e) =>
-                      setPublishTestType(
-                        e.target
-                          .value as TestType
-                      )
-                    }
-                    className="select-box-premium"
-                  >
-
-                    <option value="mock">
-                      📝 Mock Test
-                    </option>
-
-                    <option value="daily">
-                      ⚡ Daily Test
-                    </option>
-
-                    <option value="physics">
-                      ⚛️ Physics
-                    </option>
-
-                    <option value="chemistry">
-                      🧪 Chemistry
-                    </option>
-
-                    <option value="mathematics">
-                      📐 Mathematics
-                    </option>
-
-                    <option value="botany">
-                      🌿 Botany
-                    </option>
-
-                    <option value="zoology">
-                      🦴 Zoology
-                    </option>
-
-                    <option value="biology">
-                      🧬 Biology
-                    </option>
-
-                  </select>
-
-                </div>
-
-                {/* EXAM CATEGORY */}
-
-                <div className="qb-input-group">
-
-                  <label>
-                    🎯 Exam Category
-                  </label>
-
-                  <select
-                    value={
-                      examCategory
-                    }
-                    onChange={(e) =>
-                      setExamCategory(
-                        e.target
-                          .value as ExamCategory
-                      )
-                    }
-                    className="select-box-premium"
-                  >
-
-                    <option value="neet">
-                      🩺 NEET
-                    </option>
-
-                    <option value="jee">
-                      ⚙️ JEE
-                    </option>
-
-                  </select>
-
-                </div>
-
+                  <option value="2nd PUC">
+                    2nd PUC
+                  </option>
+                </select>
               </div>
 
-              {/* ==================================================
-                  YEAR + DATE
-              ================================================== */}
+              <div
+                style={{
+                  marginBottom:
+                    "12px",
+                }}
+              >
+                <label
+                  style={{
+                    fontSize:
+                      "12px",
+                    fontWeight:
+                      "700",
+                    color:
+                      "#475569",
+                    display:
+                      "block",
+                    marginBottom:
+                      "4px",
+                  }}
+                >
+                  EXAM TYPE
+                </label>
 
-              <div className="qb-grid-3 mt-3">
+                <select
+                  value={
+                    pdfExamType
+                  }
+                  onChange={(e) =>
+                    setPdfExamType(
+                      e.target.value
+                    )
+                  }
+                  style={{
+                    width:
+                      "100%",
+                    padding:
+                      "9px",
+                    borderRadius:
+                      "6px",
+                    border:
+                      "1px solid #cbd5e1",
+                  }}
+                >
+                  <option value="JEE">
+                    JEE Mains
+                  </option>
 
-                {/* YEAR */}
+                  <option value="NEET">
+                    NEET UG
+                  </option>
+                </select>
+              </div>
 
-                <div className="qb-input-group">
+              <div
+                style={{
+                  marginBottom:
+                    "12px",
+                }}
+              >
+                <label
+                  style={{
+                    fontSize:
+                      "12px",
+                    fontWeight:
+                      "700",
+                    color:
+                      "#475569",
+                    display:
+                      "block",
+                    marginBottom:
+                      "4px",
+                  }}
+                >
+                  TEST TYPE
+                </label>
 
-                  <label>
-                    🎓 Academic Year
-                  </label>
+                <select
+                  value={
+                    pdfTestCategory
+                  }
+                  onChange={(e) =>
+                    setPdfTestCategory(
+                      e.target.value
+                    )
+                  }
+                  style={{
+                    width:
+                      "100%",
+                    padding:
+                      "9px",
+                    borderRadius:
+                      "6px",
+                    border:
+                      "1px solid #cbd5e1",
+                  }}
+                >
+                  <option value="mock">
+                    Mock Test
+                  </option>
 
-                  <select
-                    value={
-                      academicYear
-                    }
-                    onChange={(e) =>
-                      setAcademicYear(
-                        e.target
-                          .value as AcademicYear
-                      )
-                    }
-                    className="select-box-premium"
-                  >
+                  <option value="daily">
+                    Daily Test
+                  </option>
 
-                    <option value="1st-puc">
-                      📘 1st PUC
-                    </option>
+                  <option value="subject">
+                    Subject Test
+                  </option>
+                </select>
+              </div>
 
-                    <option value="2nd-puc">
-                      📕 2nd PUC
-                    </option>
+              <div
+                style={{
+                  marginBottom:
+                    "15px",
+                }}
+              >
+                <label
+                  style={{
+                    fontSize:
+                      "12px",
+                    fontWeight:
+                      "700",
+                    color:
+                      "#475569",
+                    display:
+                      "block",
+                    marginBottom:
+                      "4px",
+                  }}
+                >
+                  SELECT PDF FILE
+                </label>
 
-                  </select>
+                <input
+                  type="file"
+                  accept=".pdf,application/pdf"
+                  onChange={(e) => {
+                    const file =
+                      e.target.files?.[0] ||
+                      null;
 
-                </div>
+                    setPdfFile(
+                      file
+                    );
+                  }}
+                  style={{
+                    width:
+                      "100%",
+                    padding:
+                      "8px",
+                    border:
+                      "1px dashed #cbd5e1",
+                    borderRadius:
+                      "6px",
+                    boxSizing:
+                      "border-box",
+                  }}
+                  required
+                />
 
-                {/* DATE */}
-
-                <div className="qb-input-group">
-
-                  <label>
-                    📅 Exam Date
-                  </label>
-
-                  <input
-                    type="date"
-                    value={
-                      publishDate
-                    }
-                    onChange={(e) =>
-                      setPublishDate(
-                        e.target
-                          .value
-                      )
-                    }
-                    className="input-box-premium"
-                  />
-
-                </div>
-
-                {/* TIME */}
-
-                <div className="qb-input-group">
-
-                  <label>
-                    ⏰ Exam Start Time
-                  </label>
-
-                  <div
+                {pdfFile && (
+                  <p
                     style={{
-                      display:
-                        "flex",
-
-                      gap:
+                      fontSize:
+                        "12px",
+                      color:
+                        "#475569",
+                      marginTop:
                         "6px",
                     }}
                   >
-
-                    <select
-                      value={
-                        tHour
-                      }
-                      onChange={(e) =>
-                        setTHour(
-                          e.target
-                            .value
-                        )
-                      }
-                      className="select-box-premium"
-                    >
-
-                      {Array.from(
-                        {
-                          length:
-                            12,
-                        },
-                        (
-                          _,
-                          i
-                        ) =>
-                          i + 1
-                      ).map(
-                        (h) => (
-
-                          <option
-                            key={
-                              h
-                            }
-                            value={String(
-                              h
-                            )}
-                          >
-                            {h}
-                          </option>
-
-                        )
-                      )}
-
-                    </select>
-
-                    <select
-                      value={
-                        tMin
-                      }
-                      onChange={(e) =>
-                        setTMin(
-                          e.target
-                            .value
-                        )
-                      }
-                      className="select-box-premium"
-                    >
-
-                      {[
-                        "00",
-                        "05",
-                        "10",
-                        "15",
-                        "20",
-                        "25",
-                        "30",
-                        "35",
-                        "40",
-                        "45",
-                        "50",
-                        "55",
-                      ].map(
-                        (m) => (
-
-                          <option
-                            key={
-                              m
-                            }
-                            value={
-                              m
-                            }
-                          >
-                            {m}
-                          </option>
-
-                        )
-                      )}
-
-                    </select>
-
-                    <select
-                      value={
-                        tAmPm
-                      }
-                      onChange={(e) =>
-                        setTAmPm(
-                          e.target
-                            .value
-                        )
-                      }
-                      className="select-box-premium"
-                    >
-
-                      <option value="AM">
-                        AM
-                      </option>
-
-                      <option value="PM">
-                        PM
-                      </option>
-
-                    </select>
-
-                  </div>
-
-                </div>
-
+                    Selected:{" "}
+                    {
+                      pdfFile.name
+                    }
+                  </p>
+                )}
               </div>
 
-              {/* ==================================================
-                  SUBJECT INFORMATION
-              ================================================== */}
-
-              {isSubjectWiseTest(
-                publishTestType
-              ) && (
-
-                <div
-                  className="qb-message-banner animate-fade"
-                  style={{
-                    marginTop:
-                      "18px",
-                  }}
-                >
-                  📚{" "}
-                  <strong>
-                    Subject Wise Test:
-                  </strong>{" "}
-                  {getTestTypeLabel(
-                    publishTestType
-                  )}{" "}
-                  questions will be stored
-                  separately under the selected
-                  subject.
-                </div>
-
-              )}
-
-              {/* ==================================================
-                  QUESTIONS
-              ================================================== */}
-
-              <div className="qb-grid-2 mt-4">
-
-                <div className="qb-input-group">
-
-                  <label>
-                    📝 Paste Questions Text Block
-                  </label>
-
-                  <textarea
-                    rows={8}
-                    placeholder="Paste your complete test questions block here..."
-                    value={
-                      bulkQuestionsText
-                    }
-                    onChange={(e) =>
-                      setBulkQuestionsText(
-                        e.target
-                          .value
-                      )
-                    }
-                    className="textarea-box-premium"
-                  />
-
-                </div>
-
-                <div className="qb-input-group">
-
-                  <label>
-                    🔑 Answer Key
-                  </label>
-
-                  <textarea
-                    rows={8}
-                    placeholder="1 3 2 4..."
-                    value={
-                      bulkAnswersText
-                    }
-                    onChange={(e) =>
-                      setBulkAnswersText(
-                        e.target
-                          .value
-                      )
-                    }
-                    className="textarea-box-premium"
-                  />
-
-                </div>
-
-              </div>
-
-              {/* ==================================================
-                  PARSE
-              ================================================== */}
-
-              <div className="qb-action-row">
-
+              <div
+                style={{
+                  display:
+                    "flex",
+                  justifyContent:
+                    "flex-end",
+                  gap:
+                    "10px",
+                  marginTop:
+                    "20px",
+                }}
+              >
                 <button
                   type="button"
-                  onClick={
-                    processBulkImport
+                  onClick={() => {
+                    setShowPdfModal(
+                      false
+                    );
+                    setPdfFile(
+                      null
+                    );
+                  }}
+                  disabled={
+                    parsing
                   }
-                  className="btn-primary-glow"
+                  style={{
+                    background:
+                      "#e2e8f0",
+                    border:
+                      "none",
+                    padding:
+                      "8px 16px",
+                    borderRadius:
+                      "6px",
+                    cursor:
+                      "pointer",
+                    fontWeight:
+                      "600",
+                  }}
                 >
-                  ⚡ Auto-Detect & Parse Questions
+                  Cancel
                 </button>
 
+                <button
+                  type="submit"
+                  disabled={
+                    parsing
+                  }
+                  style={{
+                    background:
+                      "#7c3aed",
+                    color:
+                      "#fff",
+                    border:
+                      "none",
+                    padding:
+                      "8px 16px",
+                    borderRadius:
+                      "6px",
+                    cursor:
+                      parsing
+                        ? "not-allowed"
+                        : "pointer",
+                    fontWeight:
+                      "600",
+                    opacity:
+                      parsing
+                        ? 0.7
+                        : 1,
+                  }}
+                >
+                  {parsing
+                    ? "Processing PDF..."
+                    : "Extract & Save"}
+                </button>
               </div>
+            </form>
+          </div>
+        </div>
+      )}
+            {/* ======================================================
+          FILTERS
+      ====================================================== */}
 
-              {/* ==================================================
-                  PARSED
-              ================================================== */}
+      <div
+        style={{
+          background: "#ffffff",
+          padding: "20px",
+          borderRadius: "12px",
+          boxShadow:
+            "0 2px 4px rgba(0,0,0,0.05)",
+          marginBottom: "25px",
+          display: "grid",
+          gridTemplateColumns:
+            "repeat(auto-fit, minmax(200px, 1fr))",
+          gap: "15px",
+        }}
+      >
+        {/* CLASS */}
 
-              {parsedQuestions.length >
-                0 && (
+        <div>
+          <label
+            style={{
+              fontSize: "12px",
+              fontWeight: "700",
+              color: "#475569",
+              display: "block",
+              marginBottom: "5px",
+            }}
+          >
+            CLASS NAME
+          </label>
 
-                <div className="parsed-preview-container animate-fade">
+          <select
+            value={selectedClassName}
+            onChange={(e) =>
+              setSelectedClassName(
+                e.target.value
+              )
+            }
+            style={{
+              width: "100%",
+              padding: "10px",
+              borderRadius: "8px",
+              border:
+                "1px solid #cbd5e1",
+              background: "#f8fafc",
+            }}
+          >
+            <option value="ALL">
+              All Classes
+            </option>
 
-                  <h3>
-                    📋 Parsed Ready Queue (
-                    {
-                      parsedQuestions.length
-                    } Questions)
-                  </h3>
+            <option value="1st PUC">
+              1st PUC
+            </option>
 
-                  <div
-                    style={{
-                      margin:
-                        "12px 0",
+            <option value="2nd PUC">
+              2nd PUC
+            </option>
+          </select>
+        </div>
 
-                      display:
-                        "flex",
+        {/* EXAM */}
 
-                      flexWrap:
-                        "wrap",
+        <div>
+          <label
+            style={{
+              fontSize: "12px",
+              fontWeight: "700",
+              color: "#475569",
+              display: "block",
+              marginBottom: "5px",
+            }}
+          >
+            EXAM TYPE
+          </label>
 
-                      gap:
-                        "8px",
-                    }}
-                  >
+          <select
+            value={selectedExam}
+            onChange={(e) =>
+              setSelectedExam(
+                e.target.value
+              )
+            }
+            style={{
+              width: "100%",
+              padding: "10px",
+              borderRadius: "8px",
+              border:
+                "1px solid #cbd5e1",
+              background: "#f8fafc",
+            }}
+          >
+            <option value="ALL">
+              All Exams
+            </option>
 
-                    <span className="chapter-tag">
-                      {getTestTypeLabel(
-                        publishTestType
-                      )}
-                    </span>
+            <option value="JEE">
+              JEE Mains
+            </option>
 
-                    <span className="chapter-tag">
-                      🎯{" "}
-                      {examCategory.toUpperCase()}
-                    </span>
+            <option value="NEET">
+              NEET UG
+            </option>
+          </select>
+        </div>
 
-                    <span className="chapter-tag">
-                      🎓{" "}
-                      {academicYear ===
-                      "1st-puc"
-                        ? "1st PUC"
-                        : "2nd PUC"}
-                    </span>
+        {/* SUBJECT */}
 
-                  </div>
+        <div>
+          <label
+            style={{
+              fontSize: "12px",
+              fontWeight: "700",
+              color: "#475569",
+              display: "block",
+              marginBottom: "5px",
+            }}
+          >
+            SUBJECT
+          </label>
 
-                  <div className="qb-save-row">
+          <select
+            value={selectedSubject}
+            onChange={(e) =>
+              setSelectedSubject(
+                e.target.value
+              )
+            }
+            style={{
+              width: "100%",
+              padding: "10px",
+              borderRadius: "8px",
+              border:
+                "1px solid #cbd5e1",
+              background: "#f8fafc",
+            }}
+          >
+            <option value="ALL">
+              All Subjects
+            </option>
 
-                    <button
-                      type="button"
-                      onClick={
-                        saveBulkQuestions
-                      }
-                      disabled={
-                        loading
-                      }
-                      className="btn-success-glow"
-                    >
-                      {loading
-                        ? "⏳ Uploading..."
-                        : `💾 Publish ${parsedQuestions.length} Items`}
-                    </button>
+            <option value="Physics">
+              Physics
+            </option>
 
-                  </div>
+            <option value="Chemistry">
+              Chemistry
+            </option>
 
-                </div>
+            <option value="Mathematics">
+              Mathematics
+            </option>
 
-              )}
+            <option value="Botany">
+              Botany
+            </option>
 
-            </div>
+            <option value="Zoology">
+              Zoology
+            </option>
+          </select>
+        </div>
 
-          ) : (
+        {/* SEARCH */}
 
-            /* ==================================================
-               PDF
-            ================================================== */
+        <div>
+          <label
+            style={{
+              fontSize: "12px",
+              fontWeight: "700",
+              color: "#475569",
+              display: "block",
+              marginBottom: "5px",
+            }}
+          >
+            SEARCH KEYWORD
+          </label>
 
-            <div className="qb-pdf-section animate-fade">
+          <input
+            type="text"
+            placeholder="Search questions or test titles..."
+            value={searchTerm}
+            onChange={(e) =>
+              setSearchTerm(
+                e.target.value
+              )
+            }
+            style={{
+              width: "100%",
+              padding: "10px",
+              borderRadius: "8px",
+              border:
+                "1px solid #cbd5e1",
+              background: "#f8fafc",
+              boxSizing:
+                "border-box",
+            }}
+          />
+        </div>
+      </div>
 
-              <form
-                onSubmit={
-                  handlePdfUpload
-                }
-                className="pdf-form-card premium-form"
+      {/* ======================================================
+          ADD / EDIT FORM
+      ====================================================== */}
+
+      {showAddForm && (
+        <form
+          onSubmit={handleSubmit}
+          style={{
+            background: "#ffffff",
+            padding: "25px",
+            borderRadius: "12px",
+            boxShadow:
+              "0 4px 25px rgba(0,0,0,0.06)",
+            marginBottom: "30px",
+            border:
+              "1px solid #e2e8f0",
+          }}
+        >
+          <h3
+            style={{
+              marginTop: 0,
+              color: "#1e293b",
+              borderBottom:
+                "1px solid #f1f5f9",
+              paddingBottom: "10px",
+            }}
+          >
+            {editingId
+              ? "✏️ Edit Question"
+              : "➕ Add New Question Manually"}
+          </h3>
+
+          {/* BASIC INFO */}
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns:
+                "repeat(auto-fit, minmax(200px, 1fr))",
+              gap: "15px",
+              marginBottom: "15px",
+            }}
+          >
+            {/* CLASS */}
+
+            <div>
+              <label
+                style={{
+                  fontSize: "13px",
+                  fontWeight: "600",
+                }}
               >
-
-                <h3>
-                  📄 AI PDF Question Extractor & Publisher
-                </h3>
-
-                <p className="pdf-sub">
-                  Upload question sheets directly.
-                </p>
-
-                {/* ==================================================
-                    PDF + TITLE
-                ================================================== */}
-
-                <div className="qb-grid-2">
-
-                  <div className="qb-input-group">
-
-                    <label>
-                      Select Document File (.PDF)
-                    </label>
-
-                    <input
-                      type="file"
-                      accept="application/pdf"
-                      onChange={(e) =>
-                        setPdfFile(
-                          e.target
-                            .files?.[0] ||
-                          null
-                        )
-                      }
-                      className="file-input-box-premium"
-                    />
-
-                  </div>
-
-                  <div className="qb-input-group">
-
-                    <label>
-                      📝 Test Title / Name
-                    </label>
-
-                    <input
-                      type="text"
-                      placeholder="e.g. National Level Mock Test 04"
-                      value={
-                        publishTestTitle
-                      }
-                      onChange={(e) =>
-                        setPublishTestTitle(
-                          e.target
-                            .value
-                        )
-                      }
-                      className="input-box-premium"
-                    />
-
-                  </div>
-
-                </div>
-
-                {/* ==================================================
-                    TYPE / CATEGORY / YEAR
-                ================================================== */}
-
-                <div className="qb-grid-3 mt-3">
-
-                  {/* TEST TYPE */}
-
-                  <div className="qb-input-group">
-
-                    <label>
-                      📝 Test Publishing Type
-                    </label>
-
-                    <select
-                      value={
-                        publishTestType
-                      }
-                      onChange={(e) =>
-                        setPublishTestType(
-                          e.target
-                            .value as TestType
-                        )
-                      }
-                      className="select-box-premium"
-                    >
-
-                      <option value="mock">
-                        📝 Mock Test
-                      </option>
-
-                      <option value="daily">
-                        ⚡ Daily Test
-                      </option>
-
-                      <option value="physics">
-                        ⚛️ Physics
-                      </option>
-
-                      <option value="chemistry">
-                        🧪 Chemistry
-                      </option>
-
-                      <option value="mathematics">
-                        📐 Mathematics
-                      </option>
-
-                      <option value="botany">
-                        🌿 Botany
-                      </option>
-
-                      <option value="zoology">
-                        🦴 Zoology
-                      </option>
-
-                      <option value="biology">
-                        🧬 Biology
-                      </option>
-
-                    </select>
-
-                  </div>
-
-                  {/* EXAM CATEGORY */}
-
-                  <div className="qb-input-group">
-
-                    <label>
-                      🎯 Exam Category
-                    </label>
-
-                    <select
-                      value={
-                        examCategory
-                      }
-                      onChange={(e) =>
-                        setExamCategory(
-                          e.target
-                            .value as ExamCategory
-                        )
-                      }
-                      className="select-box-premium"
-                    >
-
-                      <option value="neet">
-                        🩺 NEET
-                      </option>
-
-                      <option value="jee">
-                        ⚙️ JEE
-                      </option>
-
-                    </select>
-
-                  </div>
-
-                  {/* ACADEMIC YEAR */}
-
-                  <div className="qb-input-group">
-
-                    <label>
-                      🎓 Academic Year
-                    </label>
-
-                    <select
-                      value={
-                        academicYear
-                      }
-                      onChange={(e) =>
-                        setAcademicYear(
-                          e.target
-                            .value as AcademicYear
-                        )
-                      }
-                      className="select-box-premium"
-                    >
-
-                      <option value="1st-puc">
-                        📘 1st PUC
-                      </option>
-
-                      <option value="2nd-puc">
-                        📕 2nd PUC
-                      </option>
-
-                    </select>
-
-                  </div>
-
-                </div>
-
-                {/* ==================================================
-                    DATE + TIME
-                ================================================== */}
-
-                <div className="qb-grid-2 mt-3">
-
-                  <div className="qb-input-group">
-
-                    <label>
-                      📅 Scheduled Date
-                    </label>
-
-                    <input
-                      type="date"
-                      value={
-                        publishDate
-                      }
-                      onChange={(e) =>
-                        setPublishDate(
-                          e.target
-                            .value
-                        )
-                      }
-                      className="input-box-premium"
-                    />
-
-                  </div>
-
-                  <div className="qb-input-group">
-
-                    <label>
-                      ⏰ Exam Start Time
-                    </label>
-
-                    <div
-                      style={{
-                        display:
-                          "flex",
-
-                        gap:
-                          "6px",
-                      }}
-                    >
-
-                      <select
-                        value={
-                          tHour
-                        }
-                        onChange={(e) =>
-                          setTHour(
-                            e.target
-                              .value
-                          )
-                        }
-                        className="select-box-premium"
-                      >
-
-                        {Array.from(
-                          {
-                            length:
-                              12,
-                          },
-                          (
-                            _,
-                            i
-                          ) =>
-                            i + 1
-                        ).map(
-                          (h) => (
-
-                            <option
-                              key={
-                                h
-                              }
-                              value={String(
-                                h
-                              )}
-                            >
-                              {h}
-                            </option>
-
-                          )
-                        )}
-
-                      </select>
-
-                      <select
-                        value={
-                          tMin
-                        }
-                        onChange={(e) =>
-                          setTMin(
-                            e.target
-                              .value
-                          )
-                        }
-                        className="select-box-premium"
-                      >
-
-                        {[
-                          "00",
-                          "05",
-                          "10",
-                          "15",
-                          "20",
-                          "25",
-                          "30",
-                          "35",
-                          "40",
-                          "45",
-                          "50",
-                          "55",
-                        ].map(
-                          (m) => (
-
-                            <option
-                              key={
-                                m
-                              }
-                              value={
-                                m
-                              }
-                            >
-                              {m}
-                            </option>
-
-                          )
-                        )}
-
-                      </select>
-
-                      <select
-                        value={
-                          tAmPm
-                        }
-                        onChange={(e) =>
-                          setTAmPm(
-                            e.target
-                              .value
-                          )
-                        }
-                        className="select-box-premium"
-                      >
-
-                        <option value="AM">
-                          AM
-                        </option>
-
-                        <option value="PM">
-                          PM
-                        </option>
-
-                      </select>
-
-                    </div>
-
-                  </div>
-
-                </div>
-
-                {/* ==================================================
-                    SUBJECT NOTICE
-                ================================================== */}
-
-                {isSubjectWiseTest(
-                  publishTestType
-                ) && (
-
-                  <div
-                    className="qb-message-banner animate-fade"
-                    style={{
-                      marginTop:
-                        "18px",
-                    }}
-                  >
-                    📚{" "}
-                    <strong>
-                      Subject Wise:
-                    </strong>{" "}
-                    {getTestTypeLabel(
-                      publishTestType
-                    )}{" "}
-                    questions will be stored
-                    separately.
-                  </div>
-
-                )}
-
-                {/* ==================================================
-                    SUBMIT
-                ================================================== */}
-
-                <div className="qb-action-row mt-4">
-
-                  <button
-                    type="submit"
-                    disabled={
-                      pdfLoading
-                    }
-                    className="btn-primary-glow"
-                  >
-                    {pdfLoading
-                      ? "⏳ Processing PDF..."
-                      : "🚀 Upload & Publish Test"}
-                  </button>
-
-                </div>
-
-              </form>
-
+                Class Name:
+              </label>
+
+              <select
+                value={formData.className}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    className:
+                      e.target.value,
+                  })
+                }
+                style={{
+                  width: "100%",
+                  padding: "9px",
+                  marginTop: "5px",
+                  borderRadius: "6px",
+                  border:
+                    "1px solid #cbd5e1",
+                }}
+              >
+                <option value="1st PUC">
+                  1st PUC
+                </option>
+
+                <option value="2nd PUC">
+                  2nd PUC
+                </option>
+              </select>
             </div>
 
-          )}
+            {/* EXAM */}
 
-        </>
+            <div>
+              <label
+                style={{
+                  fontSize: "13px",
+                  fontWeight: "600",
+                }}
+              >
+                Exam Type:
+              </label>
 
+              <select
+                value={formData.examType}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    examType:
+                      e.target.value,
+                  })
+                }
+                style={{
+                  width: "100%",
+                  padding: "9px",
+                  marginTop: "5px",
+                  borderRadius: "6px",
+                  border:
+                    "1px solid #cbd5e1",
+                }}
+              >
+                <option value="JEE">
+                  JEE
+                </option>
+
+                <option value="NEET">
+                  NEET
+                </option>
+              </select>
+            </div>
+
+            {/* TEST CATEGORY */}
+
+            <div>
+              <label
+                style={{
+                  fontSize: "13px",
+                  fontWeight: "600",
+                }}
+              >
+                Test Category:
+              </label>
+
+              <select
+                value={
+                  formData.testCategory
+                }
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    testCategory:
+                      e.target.value,
+                  })
+                }
+                style={{
+                  width: "100%",
+                  padding: "9px",
+                  marginTop: "5px",
+                  borderRadius: "6px",
+                  border:
+                    "1px solid #cbd5e1",
+                }}
+              >
+                <option value="mock">
+                  Mock Test
+                </option>
+
+                <option value="daily">
+                  Daily Test
+                </option>
+
+                <option value="subject">
+                  Subject Test
+                </option>
+              </select>
+            </div>
+
+            {/* SUBJECT */}
+
+            <div>
+              <label
+                style={{
+                  fontSize: "13px",
+                  fontWeight: "600",
+                }}
+              >
+                Subject:
+              </label>
+
+              <select
+                value={formData.subject}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    subject:
+                      e.target.value,
+                  })
+                }
+                style={{
+                  width: "100%",
+                  padding: "9px",
+                  marginTop: "5px",
+                  borderRadius: "6px",
+                  border:
+                    "1px solid #cbd5e1",
+                }}
+              >
+                <option value="Physics">
+                  Physics
+                </option>
+
+                <option value="Chemistry">
+                  Chemistry
+                </option>
+
+                <option value="Mathematics">
+                  Mathematics
+                </option>
+
+                <option value="Botany">
+                  Botany
+                </option>
+
+                <option value="Zoology">
+                  Zoology
+                </option>
+              </select>
+            </div>
+          </div>
+
+          {/* TITLE / CHAPTER */}
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns:
+                "2fr 1fr",
+              gap: "15px",
+              marginBottom: "15px",
+            }}
+          >
+            <div>
+              <label
+                style={{
+                  fontSize: "13px",
+                  fontWeight: "600",
+                }}
+              >
+                Test Title:
+              </label>
+
+              <input
+                type="text"
+                value={
+                  formData.testTitle
+                }
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    testTitle:
+                      e.target.value,
+                  })
+                }
+                required
+                style={{
+                  width: "100%",
+                  padding: "9px",
+                  marginTop: "5px",
+                  borderRadius: "6px",
+                  border:
+                    "1px solid #cbd5e1",
+                  boxSizing:
+                    "border-box",
+                }}
+              />
+            </div>
+
+            <div>
+              <label
+                style={{
+                  fontSize: "13px",
+                  fontWeight: "600",
+                }}
+              >
+                Chapter Name:
+              </label>
+
+              <input
+                type="text"
+                value={
+                  formData.chapter
+                }
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    chapter:
+                      e.target.value,
+                  })
+                }
+                placeholder="e.g. Kinematics"
+                style={{
+                  width: "100%",
+                  padding: "9px",
+                  marginTop: "5px",
+                  borderRadius: "6px",
+                  border:
+                    "1px solid #cbd5e1",
+                  boxSizing:
+                    "border-box",
+                }}
+              />
+            </div>
+          </div>
+
+          {/* QUESTION */}
+
+          <div
+            style={{
+              marginBottom: "15px",
+            }}
+          >
+            <label
+              style={{
+                fontSize: "13px",
+                fontWeight: "600",
+              }}
+            >
+              Question Text:
+            </label>
+
+            <textarea
+              rows={3}
+              value={formData.question}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  question:
+                    e.target.value,
+                })
+              }
+              required
+              style={{
+                width: "100%",
+                padding: "9px",
+                marginTop: "5px",
+                borderRadius: "6px",
+                border:
+                  "1px solid #cbd5e1",
+                boxSizing:
+                  "border-box",
+              }}
+            />
+          </div>
+
+          {/* IMAGE */}
+
+          <div
+            style={{
+              marginBottom: "15px",
+            }}
+          >
+            <label
+              style={{
+                fontSize: "13px",
+                fontWeight: "600",
+              }}
+            >
+              Question Image URL
+              (Optional):
+            </label>
+
+            <input
+              type="text"
+              value={
+                formData.questionImage
+              }
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  questionImage:
+                    e.target.value,
+                })
+              }
+              placeholder="https://example.com/diagram.png"
+              style={{
+                width: "100%",
+                padding: "9px",
+                marginTop: "5px",
+                borderRadius: "6px",
+                border:
+                  "1px solid #cbd5e1",
+                boxSizing:
+                  "border-box",
+              }}
+            />
+          </div>
+
+          {/* OPTIONS */}
+
+          <div
+            style={{
+              marginBottom: "15px",
+            }}
+          >
+            <label
+              style={{
+                fontSize: "13px",
+                fontWeight: "600",
+              }}
+            >
+              Options:
+            </label>
+
+            {formData.options.map(
+              (opt, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    display: "flex",
+                    gap: "10px",
+                    marginBottom:
+                      "8px",
+                    alignItems:
+                      "center",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontWeight:
+                        "bold",
+                      width: "20px",
+                    }}
+                  >
+                    {String.fromCharCode(
+                      65 + idx
+                    )}
+                  </span>
+
+                  <input
+                    type="text"
+                    value={opt}
+                    onChange={(e) =>
+                      handleOptionChange(
+                        idx,
+                        e.target.value
+                      )
+                    }
+                    required
+                    style={{
+                      width: "100%",
+                      padding:
+                        "8px",
+                      borderRadius:
+                        "6px",
+                      border:
+                        "1px solid #cbd5e1",
+                    }}
+                  />
+                </div>
+              )
+            )}
+          </div>
+
+          {/* CORRECT ANSWER */}
+
+          <div
+            style={{
+              marginBottom: "20px",
+            }}
+          >
+            <label
+              style={{
+                fontSize: "13px",
+                fontWeight: "600",
+              }}
+            >
+              Correct Answer:
+            </label>
+
+            <input
+              type="text"
+              value={
+                formData.correctAnswer
+              }
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  correctAnswer:
+                    e.target.value,
+                })
+              }
+              required
+              style={{
+                width: "100%",
+                padding: "9px",
+                marginTop: "5px",
+                borderRadius: "6px",
+                border:
+                  "1px solid #cbd5e1",
+                boxSizing:
+                  "border-box",
+              }}
+            />
+          </div>
+
+          {/* BUTTONS */}
+
+          <div
+            style={{
+              display: "flex",
+              gap: "10px",
+            }}
+          >
+            <button
+              type="submit"
+              style={{
+                background:
+                  "#16a34a",
+                color: "#fff",
+                padding:
+                  "10px 20px",
+                border: "none",
+                borderRadius:
+                  "6px",
+                cursor:
+                  "pointer",
+                fontWeight:
+                  "600",
+              }}
+            >
+              {editingId
+                ? "Update Question"
+                : "Save as Draft"}
+            </button>
+
+            <button
+              type="button"
+              onClick={resetForm}
+              style={{
+                background:
+                  "#e2e8f0",
+                color:
+                  "#334155",
+                padding:
+                  "10px 16px",
+                border: "none",
+                borderRadius:
+                  "6px",
+                cursor:
+                  "pointer",
+                fontWeight:
+                  "600",
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
       )}
 
+      {/* ======================================================
+          QUESTIONS LIST
+      ====================================================== */}
+
+      <h3
+        style={{
+          color: "#1e293b",
+          marginBottom: "15px",
+        }}
+      >
+        📋 Filtered Results (
+        {filteredQuestions.length})
+      </h3>
+
+      {loading ? (
+        <p>
+          Loading questions...
+        </p>
+      ) : filteredQuestions.length ===
+        0 ? (
+        <div
+          style={{
+            background: "#fff",
+            padding: "40px",
+            textAlign:
+              "center",
+            borderRadius:
+              "12px",
+            color:
+              "#64748b",
+          }}
+        >
+          No questions found
+          matching your filter
+          criteria.
+        </div>
+      ) : (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns:
+              "1fr",
+            gap: "15px",
+          }}
+        >
+          {filteredQuestions.map(
+            (q, index) => (
+              <div
+                key={
+                  q._id ||
+                  index
+                }
+                style={{
+                  background:
+                    "#ffffff",
+                  padding:
+                    "20px",
+                  borderRadius:
+                    "12px",
+                  boxShadow:
+                    "0 2px 5px rgba(0,0,0,0.04)",
+                  border:
+                    "1px solid #e2e8f0",
+                  display:
+                    "flex",
+                  justifyContent:
+                    "space-between",
+                  alignItems:
+                    "flex-start",
+                  gap:
+                    "20px",
+                }}
+              >
+                {/* QUESTION CONTENT */}
+
+                <div
+                  style={{
+                    flex: 1,
+                  }}
+                >
+                  {/* TAGS */}
+
+                  <div
+                    style={{
+                      display:
+                        "flex",
+                      gap: "8px",
+                      marginBottom:
+                        "8px",
+                      alignItems:
+                        "center",
+                      flexWrap:
+                        "wrap",
+                    }}
+                  >
+                    <span
+                      style={{
+                        background:
+                          "#f3e8ff",
+                        color:
+                          "#6b21a8",
+                        padding:
+                          "2px 8px",
+                        borderRadius:
+                          "4px",
+                        fontSize:
+                          "11px",
+                        fontWeight:
+                          "700",
+                      }}
+                    >
+                      {q.className ||
+                        "2nd PUC"}
+                    </span>
+
+                    <span
+                      style={{
+                        background:
+                          q.examType ===
+                          "JEE"
+                            ? "#e0e7ff"
+                            : "#dcfce7",
+                        color:
+                          q.examType ===
+                          "JEE"
+                            ? "#3730a3"
+                            : "#166534",
+                        padding:
+                          "2px 8px",
+                        borderRadius:
+                          "4px",
+                        fontSize:
+                          "11px",
+                        fontWeight:
+                          "700",
+                      }}
+                    >
+                      {q.examType}
+                    </span>
+
+                    <span
+                      style={{
+                        background:
+                          "#f1f5f9",
+                        color:
+                          "#475569",
+                        padding:
+                          "2px 8px",
+                        borderRadius:
+                          "4px",
+                        fontSize:
+                          "11px",
+                        fontWeight:
+                          "700",
+                        textTransform:
+                          "uppercase",
+                      }}
+                    >
+                      {q.testCategory}{" "}
+                      Test
+                    </span>
+
+                    <span
+                      style={{
+                        background:
+                          "#fef3c7",
+                        color:
+                          "#92400e",
+                        padding:
+                          "2px 8px",
+                        borderRadius:
+                          "4px",
+                        fontSize:
+                          "11px",
+                        fontWeight:
+                          "700",
+                      }}
+                    >
+                      {q.subject}
+                    </span>
+
+                    <span
+                      style={{
+                        background:
+                          q.isPublished
+                            ? "#dcfce7"
+                            : "#fee2e2",
+                        color:
+                          q.isPublished
+                            ? "#166534"
+                            : "#991b1b",
+                        padding:
+                          "2px 8px",
+                        borderRadius:
+                          "4px",
+                        fontSize:
+                          "11px",
+                        fontWeight:
+                          "700",
+                      }}
+                    >
+                      {q.isPublished
+                        ? "🟢 Published"
+                        : "🟠 Draft"}
+                    </span>
+
+                    {q.testTitle && (
+                      <span
+                        style={{
+                          background:
+                            "#e0f2fe",
+                          color:
+                            "#0369a1",
+                          padding:
+                            "2px 8px",
+                          borderRadius:
+                            "4px",
+                          fontSize:
+                            "11px",
+                          fontWeight:
+                            "600",
+                        }}
+                      >
+                        📁{" "}
+                        {
+                          q.testTitle
+                        }
+                      </span>
+                    )}
+                  </div>
+
+                  {/* QUESTION */}
+
+                  <h4
+                    style={{
+                      margin:
+                        "0 0 10px 0",
+                      color:
+                        "#1e293b",
+                      fontSize:
+                        "16px",
+                    }}
+                  >
+                    Q
+                    {q.questionNumber ||
+                      index + 1}
+                    .{" "}
+                    {q.question}
+                  </h4>
+
+                  {/* IMAGE */}
+
+                  {q.questionImage && (
+                    <div
+                      style={{
+                        marginBottom:
+                          "12px",
+                      }}
+                    >
+                      <img
+                        src={
+                          q.questionImage
+                        }
+                        alt="Question Diagram"
+                        style={{
+                          maxWidth:
+                            "250px",
+                          maxHeight:
+                            "150px",
+                          borderRadius:
+                            "6px",
+                          border:
+                            "1px solid #cbd5e1",
+                        }}
+                      />
+                    </div>
+                  )}
+
+                  {/* OPTIONS */}
+
+                  <div
+                    style={{
+                      display:
+                        "grid",
+                      gridTemplateColumns:
+                        "1fr 1fr",
+                      gap: "8px",
+                      marginTop:
+                        "10px",
+                    }}
+                  >
+                    {q.options?.map(
+                      (
+                        opt,
+                        optIdx
+                      ) => {
+                        const isCorrect =
+                          opt ===
+                          q.correctAnswer;
+
+                        return (
+                          <div
+                            key={
+                              optIdx
+                            }
+                            style={{
+                              fontSize:
+                                "13px",
+                              padding:
+                                "6px 10px",
+                              background:
+                                isCorrect
+                                  ? "#dcfce7"
+                                  : "#f8fafc",
+                              border:
+                                `1px solid ${
+                                  isCorrect
+                                    ? "#86efac"
+                                    : "#e2e8f0"
+                                }`,
+                              borderRadius:
+                                "6px",
+                              color:
+                                isCorrect
+                                  ? "#166534"
+                                  : "#334155",
+                            }}
+                          >
+                            <strong>
+                              {String.fromCharCode(
+                                65 +
+                                  optIdx
+                              )}
+                              .
+                            </strong>{" "}
+                            {opt}{" "}
+                            {isCorrect &&
+                              "✓ (Correct)"}
+                          </div>
+                        );
+                      }
+                    )}
+                  </div>
+                </div>
+
+                {/* ACTIONS */}
+
+                <div
+                  style={{
+                    display:
+                      "flex",
+                    flexDirection:
+                      "column",
+                    gap: "8px",
+                    minWidth:
+                      "90px",
+                  }}
+                >
+                  <button
+                    onClick={() =>
+                      handleEdit(q)
+                    }
+                    style={{
+                      background:
+                        "#eab308",
+                      color:
+                        "#fff",
+                      border:
+                        "none",
+                      padding:
+                        "8px 12px",
+                      borderRadius:
+                        "6px",
+                      cursor:
+                        "pointer",
+                      fontWeight:
+                        "600",
+                      fontSize:
+                        "13px",
+                    }}
+                  >
+                    Edit
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      handleDelete(
+                        q._id
+                      )
+                    }
+                    style={{
+                      background:
+                        "#ef4444",
+                      color:
+                        "#fff",
+                      border:
+                        "none",
+                      padding:
+                        "8px 12px",
+                      borderRadius:
+                        "6px",
+                      cursor:
+                        "pointer",
+                      fontWeight:
+                        "600",
+                      fontSize:
+                        "13px",
+                    }}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            )
+          )}
+        </div>
+      )}
     </div>
   );
 }

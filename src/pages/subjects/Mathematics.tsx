@@ -1,626 +1,276 @@
-import {
-  Calculator,
-  ArrowRight,
-  BookOpen,
-  Sigma,
-  Triangle,
-  FunctionSquare,
-  BarChart3,
-  Target,
-} from "lucide-react";
-
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Calculator, BookOpen, ArrowRight } from "lucide-react";
+import TestInterface from "../../components/TestInterface";
 import "./Mathematics.css";
 
+// ఆటోమేటిక్ డిటెక్షన్ (Local & Render)
+const API_BASE_URL = 
+  window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+    ? "http://localhost:5000"
+    : "https://exammaster-backend-up1y.onrender.com";
+
+interface Question {
+  _id: string;
+  question?: string;
+  questionText?: string;
+  options: string[];
+  correctAnswer: string;
+  subject?: string;
+  chapter?: string;
+  className?: string;
+  testCategory?: string;
+  isPublished?: boolean;
+}
+
 export default function Mathematics() {
+  const navigate = useNavigate();
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const [studentId, setStudentId] = useState<string>("STU1001");
+  const [studentName, setStudentName] = useState<string>("Student");
+  const [className, setClassName] = useState<string>("1st PUC");
+
+  const [selectedChapter, setSelectedChapter] = useState<string | null>(null);
+  
+  const [chapterUserAnswers, setChapterUserAnswers] = useState<Record<string, Record<string, string>>>({});
+  const [submittedChapters, setSubmittedChapters] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    try {
+      const storedUser = localStorage.getItem("user") || localStorage.getItem("student") || "{}";
+      const parsedUser = JSON.parse(storedUser);
+
+      if (parsedUser.className) setClassName(parsedUser.className);
+      if (parsedUser.name) setStudentName(parsedUser.name);
+      if (parsedUser.studentId) setStudentId(parsedUser.studentId);
+
+      if (localStorage.getItem("className")) setClassName(localStorage.getItem("className")!);
+      if (localStorage.getItem("studentName")) setStudentName(localStorage.getItem("studentName")!);
+      if (localStorage.getItem("studentId")) setStudentId(localStorage.getItem("studentId")!);
+    } catch (e) {
+      console.log("Error reading student data from localStorage", e);
+    }
+  }, []);
+
+  useEffect(() => {
+    const loadDataFromDB = async () => {
+      try {
+        setLoading(true);
+
+        // 1. Fetch Mathematics Questions from Backend API
+        const queryParams = new URLSearchParams({
+          className: className,
+          subject: "Mathematics",
+          testCategory: "subject",
+        });
+
+        const qResponse = await fetch(`${API_BASE_URL}/api/subjects/questions?${queryParams.toString()}`);
+        if (!qResponse.ok) throw new Error("Failed to load Mathematics questions from database");
+        
+        const qData = await qResponse.json();
+        const mathQuestions = qData.questions || [];
+        setQuestions(mathQuestions);
+
+        // 2. Fetch Student's Previous Results from MongoDB Database
+        const currentStudentId = localStorage.getItem("studentId") || studentId;
+        const resultsResponse = await fetch(`${API_BASE_URL}/api/results/student/${currentStudentId}`);
+        
+        if (resultsResponse.ok) {
+          const resultsData = await resultsResponse.json();
+          const resultsList = Array.isArray(resultsData) ? resultsData : (resultsData.results || resultsData.data || []);
+
+          const loadedSubmittedChapters: Record<string, boolean> = {};
+          const loadedChapterAnswers: Record<string, Record<string, string>> = {};
+
+          resultsList.forEach((res: any) => {
+            if (res.examName && res.examName.includes("Mathematics -")) {
+              const parts = res.examName.split("Mathematics -");
+              const chapName = parts[1]?.trim();
+
+              if (chapName && res.review && Array.isArray(res.review)) {
+                loadedSubmittedChapters[chapName] = true;
+                const ansMap: Record<string, string> = {};
+                res.review.forEach((item: any) => {
+                  if (item.questionId && item.selectedAnswer) {
+                    ansMap[item.questionId] = item.selectedAnswer;
+                  }
+                });
+                loadedChapterAnswers[chapName] = ansMap;
+              }
+            }
+          });
+
+          setSubmittedChapters(loadedSubmittedChapters);
+          setChapterUserAnswers(loadedChapterAnswers);
+        }
+
+      } catch (err: any) {
+        setError(err.message || "Failed to load data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDataFromDB();
+  }, [className]);
+
+  const chaptersList = (() => {
+    const map = new Map<string, number>();
+    questions.forEach((q) => {
+      const chap = String(q.chapter || "General Mathematics").trim();
+      map.set(chap, (map.get(chap) || 0) + 1);
+    });
+    return Array.from(map.entries()).map(([name, count]) => ({ name, count }));
+  })();
+
+  const currentChapterQuestions = selectedChapter
+    ? questions.filter((q) => String(q.chapter || "").trim() === selectedChapter)
+    : [];
+
+  if (loading) {
+    return <div style={{ textAlign: "center", padding: "80px", color: "#64748b", fontSize: "16px" }}>Loading Mathematics data from database...</div>;
+  }
+
+  if (error) {
+    return <div style={{ textAlign: "center", padding: "80px", color: "red", fontSize: "16px" }}>{error}</div>;
+  }
+
+  // ================= 1. EXAM / QUESTIONS SCREEN (USING TestInterface) =================
+  if (selectedChapter) {
+    return (
+      <TestInterface
+        subject="Mathematics"
+        className={className}
+        chapterName={selectedChapter}
+        questions={currentChapterQuestions}
+        studentId={studentId}
+        studentName={studentName}
+        themeColor="#6366f1" // Mathematics Indigo Theme
+        onBack={() => setSelectedChapter(null)}
+        isAlreadySubmitted={submittedChapters[selectedChapter] || false}
+        initialAnswers={chapterUserAnswers[selectedChapter] || {}}
+      />
+    );
+  }
+
+  // ================= 2. MAIN DASHBOARD VIEW =================
   return (
     <main className="mathematics-page">
-
       <div className="mathematics-container">
-
-        {/* =====================================================
-            HERO
-        ====================================================== */}
-
         <section className="mathematics-hero">
-
-          <div className="mathematics-hero-glow"></div>
-
           <div className="mathematics-hero-content">
-
             <div className="mathematics-badge">
               <Calculator size={15} />
-              JEE • MATHEMATICS
+              JEE / KCET • {className.toUpperCase()} MATHEMATICS
             </div>
 
             <h1 className="mathematics-title">
               Mathematics
-
               <span>
-                Master Problems. Maximize Your Score.
+                Solve Equations. Crack JEE.
               </span>
             </h1>
 
             <p className="mathematics-description">
-              Strengthen your JEE Mathematics preparation
-              with chapter-wise practice, concept-based
-              questions and exam-oriented tests.
+              Welcome back, <strong>{studentName}</strong>! Practice {className} Mathematics chapter-wise with focused
+              problems, formulas, and exam-oriented tests.
             </p>
 
-            {/* =================================================
-                STATS
-            ================================================== */}
-
             <div className="mathematics-stats">
-
               <div className="mathematics-stat">
-
                 <span className="mathematics-stat-value">
-                  50+
+                  {questions.length}+
                 </span>
-
                 <span className="mathematics-stat-label">
-                  Questions
+                  {className} Questions
                 </span>
-
               </div>
 
-
               <div className="mathematics-stat">
-
                 <span className="mathematics-stat-value">
-                  12+
+                  {chaptersList.length}
                 </span>
-
                 <span className="mathematics-stat-label">
                   Chapters
                 </span>
-
               </div>
-
 
               <div className="mathematics-stat">
-
                 <span className="mathematics-stat-value">
-                  JEE
+                  JEE Pattern
                 </span>
-
                 <span className="mathematics-stat-label">
-                  Exam Pattern
+                  Exam Standard
                 </span>
-
               </div>
-
             </div>
-
           </div>
-
         </section>
 
-
-        {/* =====================================================
-            CHAPTER SECTION
-        ====================================================== */}
-
-        <section className="mathematics-chapters-section">
-
+        <section>
           <div className="mathematics-section-header">
-
             <div>
-
-              <span className="mathematics-section-eyebrow">
-                JEE PREPARATION
-              </span>
-
               <h2 className="mathematics-section-title">
-                Mathematics Chapters
+                {className} Mathematics Chapters
               </h2>
-
               <p className="mathematics-section-subtitle">
-                Select a chapter and start your focused practice.
+                Select a chapter and start your practice. (Student ID: {studentId})
               </p>
-
             </div>
-
           </div>
 
-
-          {/* =================================================
-              CHAPTER GRID
-          ================================================== */}
-
-          <div className="mathematics-chapter-grid">
-
-
-            {/* =================================================
-                ALGEBRA
-            ================================================== */}
-
-            <div className="mathematics-chapter-card">
-
-              <div className="mathematics-card-top">
-
-                <div className="mathematics-chapter-icon algebra">
-                  <Sigma size={24} />
-                </div>
-
-                <span className="mathematics-chapter-number">
-                  01
-                </span>
-
-              </div>
-
-
-              <div className="mathematics-card-content">
-
-                <span className="mathematics-card-tag">
-                  ALGEBRA
-                </span>
-
-                <h3>
-                  Algebra
-                </h3>
-
-                <p>
-                  Quadratic equations, sequences, series,
-                  permutations, combinations and complex numbers.
-                </p>
-
-
-                <button
-                  className="mathematics-test-button"
-                  onClick={() =>
-                    console.log("Algebra clicked")
-                  }
-                >
-
-                  <BookOpen size={16} />
-
-                  Start Practice
-
-                  <ArrowRight size={15} />
-
-                </button>
-
-              </div>
-
+          {chaptersList.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "40px", color: "#64748b", background: "#fff", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
+              No Mathematics chapters found for {className}.
             </div>
+          ) : (
+            <div className="mathematics-chapter-grid">
+              {chaptersList.map((chap, idx) => {
+                const isCompleted = submittedChapters[chap.name];
 
+                return (
+                  <div className="mathematics-chapter-card" key={idx}>
+                    <div className="mathematics-card-top">
+                      <div className="mathematics-chapter-icon">
+                        <Calculator size={24} />
+                      </div>
+                      <span className="mathematics-chapter-number">
+                        {String(idx + 1).padStart(2, "0")}
+                      </span>
+                    </div>
 
-            {/* =================================================
-                CALCULUS
-            ================================================== */}
+                    <div className="mathematics-card-content">
+                      <h3>
+                        {chap.name} {isCompleted && " ✅"}
+                      </h3>
+                      <p>
+                        Practice important multiple-choice questions and problems from this chapter.
+                      </p>
 
-            <div className="mathematics-chapter-card">
+                      <div style={{ fontSize: "13px", fontWeight: "600", color: "#6366f1", marginBottom: "12px" }}>
+                        {chap.count} Questions Available {isCompleted && "• Saved in DB"}
+                      </div>
 
-              <div className="mathematics-card-top">
-
-                <div className="mathematics-chapter-icon calculus">
-                  <FunctionSquare size={24} />
-                </div>
-
-                <span className="mathematics-chapter-number">
-                  02
-                </span>
-
-              </div>
-
-
-              <div className="mathematics-card-content">
-
-                <span className="mathematics-card-tag">
-                  CALCULUS
-                </span>
-
-                <h3>
-                  Calculus
-                </h3>
-
-                <p>
-                  Limits, continuity, differentiation,
-                  integration and differential equations.
-                </p>
-
-
-                <button
-                  className="mathematics-test-button"
-                  onClick={() =>
-                    console.log("Calculus clicked")
-                  }
-                >
-
-                  <BookOpen size={16} />
-
-                  Start Practice
-
-                  <ArrowRight size={15} />
-
-                </button>
-
-              </div>
-
+                      <button
+                        type="button"
+                        className="mathematics-test-button"
+                        onClick={() => setSelectedChapter(chap.name)}
+                      >
+                        <BookOpen size={16} />
+                        {isCompleted ? "View DB History" : "Start Practice"}
+                        <ArrowRight size={15} />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-
-
-            {/* =================================================
-                COORDINATE GEOMETRY
-            ================================================== */}
-
-            <div className="mathematics-chapter-card">
-
-              <div className="mathematics-card-top">
-
-                <div className="mathematics-chapter-icon coordinate">
-                  <Triangle size={24} />
-                </div>
-
-                <span className="mathematics-chapter-number">
-                  03
-                </span>
-
-              </div>
-
-
-              <div className="mathematics-card-content">
-
-                <span className="mathematics-card-tag">
-                  GEOMETRY
-                </span>
-
-                <h3>
-                  Coordinate Geometry
-                </h3>
-
-                <p>
-                  Straight lines, circles, parabola, ellipse
-                  and hyperbola with JEE-level problems.
-                </p>
-
-
-                <button
-                  className="mathematics-test-button"
-                  onClick={() =>
-                    console.log("Coordinate Geometry clicked")
-                  }
-                >
-
-                  <BookOpen size={16} />
-
-                  Start Practice
-
-                  <ArrowRight size={15} />
-
-                </button>
-
-              </div>
-
-            </div>
-
-
-            {/* =================================================
-                TRIGONOMETRY
-            ================================================== */}
-
-            <div className="mathematics-chapter-card">
-
-              <div className="mathematics-card-top">
-
-                <div className="mathematics-chapter-icon trigonometry">
-                  <Triangle size={24} />
-                </div>
-
-                <span className="mathematics-chapter-number">
-                  04
-                </span>
-
-              </div>
-
-
-              <div className="mathematics-card-content">
-
-                <span className="mathematics-card-tag">
-                  TRIGONOMETRY
-                </span>
-
-                <h3>
-                  Trigonometry
-                </h3>
-
-                <p>
-                  Trigonometric ratios, identities, equations
-                  and inverse trigonometric functions.
-                </p>
-
-
-                <button
-                  className="mathematics-test-button"
-                  onClick={() =>
-                    console.log("Trigonometry clicked")
-                  }
-                >
-
-                  <BookOpen size={16} />
-
-                  Start Practice
-
-                  <ArrowRight size={15} />
-
-                </button>
-
-              </div>
-
-            </div>
-
-
-            {/* =================================================
-                MATRICES & DETERMINANTS
-            ================================================== */}
-
-            <div className="mathematics-chapter-card">
-
-              <div className="mathematics-card-top">
-
-                <div className="mathematics-chapter-icon matrices">
-                  <BarChart3 size={24} />
-                </div>
-
-                <span className="mathematics-chapter-number">
-                  05
-                </span>
-
-              </div>
-
-
-              <div className="mathematics-card-content">
-
-                <span className="mathematics-card-tag">
-                  LINEAR ALGEBRA
-                </span>
-
-                <h3>
-                  Matrices & Determinants
-                </h3>
-
-                <p>
-                  Matrix operations, determinants,
-                  inverse matrices and system of equations.
-                </p>
-
-
-                <button
-                  className="mathematics-test-button"
-                  onClick={() =>
-                    console.log("Matrices clicked")
-                  }
-                >
-
-                  <BookOpen size={16} />
-
-                  Start Practice
-
-                  <ArrowRight size={15} />
-
-                </button>
-
-              </div>
-
-            </div>
-
-
-            {/* =================================================
-                VECTOR & 3D
-            ================================================== */}
-
-            <div className="mathematics-chapter-card">
-
-              <div className="mathematics-card-top">
-
-                <div className="mathematics-chapter-icon vector">
-                  <Target size={24} />
-                </div>
-
-                <span className="mathematics-chapter-number">
-                  06
-                </span>
-
-              </div>
-
-
-              <div className="mathematics-card-content">
-
-                <span className="mathematics-card-tag">
-                  VECTOR & 3D
-                </span>
-
-                <h3>
-                  Vector & 3D Geometry
-                </h3>
-
-                <p>
-                  Vectors, lines, planes, direction ratios
-                  and three-dimensional geometry.
-                </p>
-
-
-                <button
-                  className="mathematics-test-button"
-                  onClick={() =>
-                    console.log("Vector & 3D clicked")
-                  }
-                >
-
-                  <BookOpen size={16} />
-
-                  Start Practice
-
-                  <ArrowRight size={15} />
-
-                </button>
-
-              </div>
-
-            </div>
-
-
-            {/* =================================================
-                PROBABILITY
-            ================================================== */}
-
-            <div className="mathematics-chapter-card">
-
-              <div className="mathematics-card-top">
-
-                <div className="mathematics-chapter-icon probability">
-                  <BarChart3 size={24} />
-                </div>
-
-                <span className="mathematics-chapter-number">
-                  07
-                </span>
-
-              </div>
-
-
-              <div className="mathematics-card-content">
-
-                <span className="mathematics-card-tag">
-                  PROBABILITY
-                </span>
-
-                <h3>
-                  Probability
-                </h3>
-
-                <p>
-                  Probability concepts, conditional probability,
-                  Bayes theorem and random variables.
-                </p>
-
-
-                <button
-                  className="mathematics-test-button"
-                  onClick={() =>
-                    console.log("Probability clicked")
-                  }
-                >
-
-                  <BookOpen size={16} />
-
-                  Start Practice
-
-                  <ArrowRight size={15} />
-
-                </button>
-
-              </div>
-
-            </div>
-
-
-            {/* =================================================
-                STATISTICS
-            ================================================== */}
-
-            <div className="mathematics-chapter-card">
-
-              <div className="mathematics-card-top">
-
-                <div className="mathematics-chapter-icon statistics">
-                  <BarChart3 size={24} />
-                </div>
-
-                <span className="mathematics-chapter-number">
-                  08
-                </span>
-
-              </div>
-
-
-              <div className="mathematics-card-content">
-
-                <span className="mathematics-card-tag">
-                  STATISTICS
-                </span>
-
-                <h3>
-                  Statistics
-                </h3>
-
-                <p>
-                  Mean, variance, standard deviation and
-                  statistical analysis for JEE preparation.
-                </p>
-
-
-                <button
-                  className="mathematics-test-button"
-                  onClick={() =>
-                    console.log("Statistics clicked")
-                  }
-                >
-
-                  <BookOpen size={16} />
-
-                  Start Practice
-
-                  <ArrowRight size={15} />
-
-                </button>
-
-              </div>
-
-            </div>
-
-
-          </div>
-
-
-          {/* =================================================
-              BOTTOM CTA
-          ================================================== */}
-
-          <div className="mathematics-bottom-cta">
-
-            <div className="mathematics-cta-icon">
-              <Calculator size={26} />
-            </div>
-
-            <div className="mathematics-cta-content">
-
-              <span>
-                JEE MATHEMATICS
-              </span>
-
-              <h2>
-                Ready to challenge yourself?
-              </h2>
-
-              <p>
-                Practice chapter-wise questions and improve
-                your problem-solving speed.
-              </p>
-
-            </div>
-
-
-            <button
-              className="mathematics-cta-button"
-              onClick={() =>
-                console.log("Mathematics practice clicked")
-              }
-            >
-
-              Start Practice
-
-              <ArrowRight size={16} />
-
-            </button>
-
-          </div>
-
+          )}
         </section>
-
       </div>
-
     </main>
   );
 }

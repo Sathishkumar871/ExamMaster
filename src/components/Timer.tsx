@@ -1,73 +1,106 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
-interface Props{
+interface Props {
+  timeLeft: number;
 
-timeLeft:number;
+  setTimeLeft: React.Dispatch<
+    React.SetStateAction<number>
+  >;
 
-setTimeLeft:React.Dispatch<React.SetStateAction<number>>;
-
-onTimeOver:()=>void;
-
+  onTimeOver: () => void;
 }
 
 export default function Timer({
+  timeLeft,
+  setTimeLeft,
+  onTimeOver,
+}: Props) {
+  // ============================================================
+  // PREVENT MULTIPLE TIME-OVER CALLS
+  // ============================================================
 
-timeLeft,
+  const timeOverCalled = useRef(false);
 
-setTimeLeft,
+  // ============================================================
+  // TIMER
+  // ============================================================
 
-onTimeOver
+  useEffect(() => {
+    if (timeLeft <= 0) {
+      if (!timeOverCalled.current) {
+        timeOverCalled.current = true;
+        onTimeOver();
+      }
 
-}:Props){
+      return;
+    }
 
+    const timer = window.setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          return 0;
+        }
 
-useEffect(()=>{
+        return prev - 1;
+      });
+    }, 1000);
 
-if(timeLeft<=0){
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, [timeLeft, setTimeLeft, onTimeOver]);
 
-onTimeOver();
+  // ============================================================
+  // FORMAT TIME
+  // ============================================================
 
-return;
+  const safeTime = Math.max(0, timeLeft);
 
-}
+  const minutes = Math.floor(
+    safeTime / 60
+  );
 
+  const seconds = safeTime % 60;
 
-const timer = setInterval(()=>{
+  // ============================================================
+  // TIMER CLASS
+  // ============================================================
 
-setTimeLeft((prev)=>prev-1);
+  const isDanger =
+    safeTime <= 60;
 
-},1000);
+  const isWarning =
+    safeTime <= 300 &&
+    safeTime > 60;
 
+  let timerClass = "timer-box";
 
-return()=>clearInterval(timer);
+  if (isDanger) {
+    timerClass += " timer-danger";
+  } else if (isWarning) {
+    timerClass += " timer-warning";
+  }
 
+  // ============================================================
+  // RENDER
+  // ============================================================
 
-},[timeLeft]);
+  return (
+    <div className={timerClass}>
+      <span className="timer-icon">
+        ⏰
+      </span>
 
+      <div className="timer-content">
+        <span className="timer-label">
+          Time Remaining
+        </span>
 
-const minutes =
-Math.floor(timeLeft/60);
-
-const seconds =
-timeLeft%60;
-
-
-return(
-
-<div className="timer-box">
-
-<h3>
-
-⏰
-
-{String(minutes).padStart(2,"0")}:
-
-{String(seconds).padStart(2,"0")}
-
-</h3>
-
-</div>
-
-);
-
+        <h3>
+          {String(minutes).padStart(2, "0")}:
+          {String(seconds).padStart(2, "0")}
+        </h3>
+      </div>
+    </div>
+  );
 }

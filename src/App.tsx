@@ -11,12 +11,15 @@ import Profile from "./pages/Profile";
 import Dashboard from "./pages/Dashboard";
 import StudentRegister from "./pages/StudentRegister";
 import Exam from "./pages/Exam";
+import SubjectsExam from "./pages/SubjectsExam";
 import Result from "./pages/Result";
 import AnswerReview from "./pages/AnswerReview";
 import Subjects from "./pages/Subjects";
 import MockTests from "./pages/MockTests";
+import JEEMockTest from "./pages/JEEMockTest";
 import DailyTest from "./pages/DailyTest";
 import StudentComplaints from "./pages/StudentComplaints";
+
 import Gallery from "./components/college/Gallery";
 import AboutCollege from "./components/college/AboutCollege";
 import Admission from "./components/college/Admissions";
@@ -28,7 +31,7 @@ import TermsConditions from "./components/college/TermsConditions";
 // ================= TEACHER PAGES =================
 import MentorDashboard from "./pages/MentorDashboard";
 import MentorStudentProgress from "./pages/MentorStudentProgress";
-import ProgressCard from "./pages/ProgressCard"; 
+import ProgressCard from "./pages/ProgressCard";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import CreateDailyTest from "./pages/CreateDailyTest";
 import DailyTestsManager from "./pages/DailyTestsManager";
@@ -52,83 +55,537 @@ import NotFound from "./pages/NotFound";
 
 // ================= PROTECTED =================
 import ProtectedRoute from "./ProtectedRoute";
-// ================= subjects =================
+
+// ================= SUBJECTS =================
 import Physics from "./pages/subjects/Physics";
 import Chemistry from "./pages/subjects/Chemistry";
 import Botany from "./pages/subjects/Botany";
 import Zoology from "./pages/subjects/Zoology";
 import Mathematics from "./pages/subjects/Mathematics";
+
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* ================= PUBLIC ROUTES ================= */}
-        <Route path="/" element={<Home />} />
-         // ================= subjects =================
-        <Route path="/subjects/physics" element={<ProtectedRoute><Physics /></ProtectedRoute>} />
-          <Route path="/subjects/chemistry" element={<ProtectedRoute><Chemistry /></ProtectedRoute>} />
-          <Route path="/subjects/botany" element={<ProtectedRoute><Botany /></ProtectedRoute>} />
-          <Route path="/subjects/zoology" element={<ProtectedRoute><Zoology /></ProtectedRoute>} />
-          <Route path="/subjects/mathematics" element={<ProtectedRoute><Mathematics /></ProtectedRoute>} />
 
-          // ================= logins  =================
-        <Route path="/login" element={<Login />} />
-        <Route path="/teacher/login" element={<TeacherLogin />} />
-        <Route path="/staff/login" element={<StaffLogin />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/student/register" element={<StudentRegister />} />
-        <Route path="/staff/register" element={<StaffRegister />} />
-        <Route path="/gallery" element={<Gallery />} />
-        <Route path="/about" element={<AboutCollege />} />
-        <Route path="/admissions" element={<Admission />} />
-        <Route path="/faculty" element={<Faculty />} />
-        <Route path="/faq" element={<FAQ />} />
-         <Route path="/privacy" element={<PrivacyPolicy />} />
-         <Route path="/terms" element={<TermsConditions />} />
+        {/* =====================================================
+            PUBLIC ROUTES
+        ====================================================== */}
 
-        {/* ================= STUDENT ROUTES ================= */}
-        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-        <Route path="/subjects" element={<ProtectedRoute><Subjects /></ProtectedRoute>} />
-        <Route path="/student/daily-test" element={<ProtectedRoute><DailyTest /></ProtectedRoute>} />
-        <Route path="/student/complaints" element={<ProtectedRoute><StudentComplaints /></ProtectedRoute>} />
-         
-        {/* MENTOR / STUDENT EVALUATION ROUTES */}
-        <Route path="/mentor/student/:studentId/history" element={<ProtectedRoute><StudentHistory /></ProtectedRoute>} />
-        <Route path="/mentor/evaluation/:studentId/health" element={<ProtectedRoute><HealthEvaluation /></ProtectedRoute>} />
-        <Route path="/mentor/evaluation/:studentId/food" element={<ProtectedRoute><FoodEvaluation /></ProtectedRoute>} />
-        <Route path="/mentor/evaluation/:studentId/hostel" element={<ProtectedRoute><HostelEvaluation /></ProtectedRoute>} />
-        <Route path="/mentor/evaluation/:studentId/academic" element={<ProtectedRoute><AcademicEvaluation /></ProtectedRoute>} />
-        <Route path="/mentor/evaluation/:studentId/action" element={<ProtectedRoute><MentorActionPlan /></ProtectedRoute>} />
-        <Route path="/mentor/student/:studentId" element={<ProtectedRoute><MentorStudentProgress /></ProtectedRoute>} />
-        <Route path="/mentor/student/:studentId/progress-card" element={<ProtectedRoute><ProgressCard /></ProtectedRoute>} />
+        <Route
+          path="/"
+          element={<Home />}
+        />
 
-        {/* ================= TEST ROUTES ================= */}
-        <Route path="/mock-tests" element={<ProtectedRoute><MockTests /></ProtectedRoute>} />
-        <Route path="/exam/:id" element={<ProtectedRoute><Exam /></ProtectedRoute>} />
-        <Route path="/result" element={<ProtectedRoute><Result /></ProtectedRoute>} />
-        <Route path="/review/:id" element={<ProtectedRoute><AnswerReview /></ProtectedRoute>} />
 
-        {/* ================= TEACHER / MENTOR ROUTES ================= */}
-        <Route path="/teacher/dashboard" element={<ProtectedRoute><TeacherDashboard /></ProtectedRoute>} />
-        <Route path="/mentor/dashboard" element={<ProtectedRoute><MentorDashboard /></ProtectedRoute>} />
-        <Route path="/teacher/questions" element={<ProtectedRoute><QuestionBank /></ProtectedRoute>} />
-        <Route path="/teacher/exams/create" element={<ProtectedRoute><CreateDailyTest /></ProtectedRoute>} />
-        <Route path="/teacher/exams" element={<ProtectedRoute><DailyTestsManager /></ProtectedRoute>} />
-        <Route path="/teacher/exam-management" element={<ProtectedRoute><ExamManagement /></ProtectedRoute>} />
-        <Route path="/teacher/students" element={<ProtectedRoute><StudentManagement /></ProtectedRoute>} />
-        <Route path="/teacher/results" element={<ProtectedRoute><ResultsManagement /></ProtectedRoute>} />
-        <Route path="/teacher/complaints" element={<ProtectedRoute><TeacherComplaints /></ProtectedRoute>} />
+        {/* =====================================================
+            SUBJECT ROUTES
+        ====================================================== */}
 
-        {/* ================= HEAD ROUTES ================= */}
-        <Route path="/head/dashboard" element={<ProtectedRoute><HeadDashboard /></ProtectedRoute>} />
-        <Route path="/question-bank" element={<ProtectedRoute><QuestionBank /></ProtectedRoute>} />
-        <Route path="/create-exam" element={<ProtectedRoute><CreateDailyTest /></ProtectedRoute>} />
-         
+        <Route
+          path="/subjects/physics"
+          element={
+            <ProtectedRoute>
+              <Physics />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/subjects/chemistry"
+          element={
+            <ProtectedRoute>
+              <Chemistry />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/subjects/botany"
+          element={
+            <ProtectedRoute>
+              <Botany />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/subjects/zoology"
+          element={
+            <ProtectedRoute>
+              <Zoology />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/subjects/mathematics"
+          element={
+            <ProtectedRoute>
+              <Mathematics />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* =====================================================
+            LOGIN ROUTES
+        ====================================================== */}
+
+        <Route
+          path="/login"
+          element={<Login />}
+        />
+
+        <Route
+          path="/teacher/login"
+          element={<TeacherLogin />}
+        />
+
+        <Route
+          path="/staff/login"
+          element={<StaffLogin />}
+        />
+
+        <Route
+          path="/register"
+          element={<Register />}
+        />
+
+        <Route
+          path="/student/register"
+          element={<StudentRegister />}
+        />
+
+        <Route
+          path="/staff/register"
+          element={<StaffRegister />}
+        />
+
+
+        {/* =====================================================
+            COLLEGE ROUTES
+        ====================================================== */}
+
+        <Route
+          path="/gallery"
+          element={<Gallery />}
+        />
+
+        <Route
+          path="/about"
+          element={<AboutCollege />}
+        />
+
+        <Route
+          path="/admissions"
+          element={<Admission />}
+        />
+
+        <Route
+          path="/faculty"
+          element={<Faculty />}
+        />
+
+        <Route
+          path="/faq"
+          element={<FAQ />}
+        />
+
+        <Route
+          path="/privacy"
+          element={<PrivacyPolicy />}
+        />
+
+        <Route
+          path="/terms"
+          element={<TermsConditions />}
+        />
+
+
+        {/* =====================================================
+            STUDENT ROUTES
+        ====================================================== */}
+
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/subjects"
+          element={
+            <ProtectedRoute>
+              <Subjects />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* =====================================================
+            DAILY TEST
+        ====================================================== */}
+
+        <Route
+          path="/student/daily-test"
+          element={
+            <ProtectedRoute>
+              <DailyTest />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* =====================================================
+            MOCK TEST
+        ====================================================== */}
+
+        {/* Home.tsx uses /mock-tests */}
+        <Route
+          path="/mock-tests"
+          element={
+            <ProtectedRoute>
+              <MockTests />
+            </ProtectedRoute>
+          }
+        />
         
-        
-        {/* ================= 404 ================= */}
-        <Route path="*" element={<NotFound />} />
+        {/* Optional: keep old URL also working */}
+        <Route
+          path="/student/mock-test"
+          element={
+            <ProtectedRoute>
+              <MockTests />
+            </ProtectedRoute>
+          }
+        />
+         {/* JEE Mock Tests (ఇక్కడ కొత్తగా యాడ్ చేయండి) */}
+        <Route
+          path="/jee-mock-tests"
+          element={
+            <ProtectedRoute>
+              <JEEMockTest />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* =====================================================
+            STUDENT COMPLAINTS
+        ====================================================== */}
+
+        <Route
+          path="/student/complaints"
+          element={
+            <ProtectedRoute>
+              <StudentComplaints />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* =====================================================
+            MENTOR / STUDENT EVALUATION
+        ====================================================== */}
+
+        <Route
+          path="/mentor/student/:studentId/history"
+          element={
+            <ProtectedRoute>
+              <StudentHistory />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/mentor/evaluation/:studentId/health"
+          element={
+            <ProtectedRoute>
+              <HealthEvaluation />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/mentor/evaluation/:studentId/food"
+          element={
+            <ProtectedRoute>
+              <FoodEvaluation />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/mentor/evaluation/:studentId/hostel"
+          element={
+            <ProtectedRoute>
+              <HostelEvaluation />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/mentor/evaluation/:studentId/academic"
+          element={
+            <ProtectedRoute>
+              <AcademicEvaluation />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/mentor/evaluation/:studentId/action"
+          element={
+            <ProtectedRoute>
+              <MentorActionPlan />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/mentor/student/:studentId"
+          element={
+            <ProtectedRoute>
+              <MentorStudentProgress />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/mentor/student/:studentId/progress-card"
+          element={
+            <ProtectedRoute>
+              <ProgressCard />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* =====================================================
+            NORMAL EXAM
+        ====================================================== */}
+
+        <Route
+          path="/exam/:id"
+          element={
+            <ProtectedRoute>
+              <Exam />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* =====================================================
+            SUBJECT EXAM
+        ====================================================== */}
+
+        <Route
+          path="/subjects/:subject/exam/:id"
+          element={
+            <ProtectedRoute>
+              <SubjectsExam />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* =====================================================
+            RESULT
+        ====================================================== */}
+
+        <Route
+          path="/result"
+          element={
+            <ProtectedRoute>
+              <Result />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* =====================================================
+            ANSWER REVIEW
+        ====================================================== */}
+
+        <Route
+          path="/review/:id"
+          element={
+            <ProtectedRoute>
+              <AnswerReview />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* =====================================================
+            TEACHER / MENTOR ROUTES
+        ====================================================== */}
+
+        <Route
+          path="/teacher/dashboard"
+          element={
+            <ProtectedRoute>
+              <TeacherDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/mentor/dashboard"
+          element={
+            <ProtectedRoute>
+              <MentorDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* =====================================================
+            QUESTION BANK
+        ====================================================== */}
+
+        <Route
+          path="/teacher/questions"
+          element={
+            <ProtectedRoute>
+              <QuestionBank />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/question-bank"
+          element={
+            <ProtectedRoute>
+              <QuestionBank />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* =====================================================
+            TEACHER EXAMS
+        ====================================================== */}
+
+        <Route
+          path="/teacher/exams/create"
+          element={
+            <ProtectedRoute>
+              <CreateDailyTest />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/teacher/exams"
+          element={
+            <ProtectedRoute>
+              <DailyTestsManager />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/teacher/exam-management"
+          element={
+            <ProtectedRoute>
+              <ExamManagement />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* =====================================================
+            STUDENT MANAGEMENT
+        ====================================================== */}
+
+        <Route
+          path="/teacher/students"
+          element={
+            <ProtectedRoute>
+              <StudentManagement />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* =====================================================
+            RESULTS MANAGEMENT
+        ====================================================== */}
+
+        <Route
+          path="/teacher/results"
+          element={
+            <ProtectedRoute>
+              <ResultsManagement />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* =====================================================
+            TEACHER COMPLAINTS
+        ====================================================== */}
+
+        <Route
+          path="/teacher/complaints"
+          element={
+            <ProtectedRoute>
+              <TeacherComplaints />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* =====================================================
+            HEAD ROUTES
+        ====================================================== */}
+
+        <Route
+          path="/head/dashboard"
+          element={
+            <ProtectedRoute>
+              <HeadDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* =====================================================
+            CREATE EXAM
+        ====================================================== */}
+
+        <Route
+          path="/create-exam"
+          element={
+            <ProtectedRoute>
+              <CreateDailyTest />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* =====================================================
+            404
+        ====================================================== */}
+
+        <Route
+          path="*"
+          element={<NotFound />}
+        />
+
       </Routes>
     </BrowserRouter>
   );
