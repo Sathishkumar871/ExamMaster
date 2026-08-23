@@ -310,7 +310,7 @@ Student ID:
 
 <div className="progress-pill">
 
-<Sparkles size={14}/>
+
 
 {completedFields}/7 Completed
 

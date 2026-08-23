@@ -1,0 +1,1365 @@
+/* ============================================================
+   EXAMMASTER — ACADEMIC SUPPORT
+   PREMIUM WHITE • BROWN • GOLD
+   FINAL LIGHT THEME
+   ============================================================ */
+
+:root {
+  --academic-bg: #ffffff;
+  --academic-bg-soft: #faf8f4;
+
+  --academic-card: #ffffff;
+  --academic-card-border: #eadfce;
+
+  --academic-text: #21170f;
+  --academic-muted: #7b6b5b;
+
+  --gold: #b88935;
+  --gold-light: #d6a84f;
+  --gold-soft: #9b6f25;
+
+  --brown: #6f4a27;
+  --brown-light: #8b6135;
+  --brown-dark: #2d1b0f;
+
+  --white: #ffffff;
+
+  --academic-shadow:
+    0 20px 60px rgba(73, 48, 25, 0.10);
+}
+
+
+/* ============================================================
+   PAGE — PURE WHITE BACKGROUND
+   ============================================================ */
+
+.academic-page {
+  min-height: 100vh;
+
+  background:
+    radial-gradient(
+      circle at 10% 0%,
+      rgba(214, 168, 79, 0.08),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 90% 15%,
+      rgba(111, 74, 39, 0.055),
+      transparent 30%
+    ),
+    #ffffff;
+
+  color: var(--academic-text);
+  overflow-x: hidden;
+}
+
+
+/* ============================================================
+   HERO
+   ============================================================ */
+
+.academic-hero {
+  position: relative;
+
+  min-height: 610px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 95px 24px 115px;
+
+  overflow: hidden;
+
+  background:
+    linear-gradient(
+      180deg,
+      #ffffff 0%,
+      #fffdf9 65%,
+      #faf7f1 100%
+    );
+
+  border-bottom:
+    1px solid #eee4d6;
+}
+
+
+/* ============================================================
+   PREMIUM GRID
+   ============================================================ */
+
+.academic-hero::before {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  background-image:
+    linear-gradient(
+      rgba(111, 74, 39, 0.035) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(111, 74, 39, 0.035) 1px,
+      transparent 1px
+    );
+
+  background-size: 55px 55px;
+
+  mask-image:
+    linear-gradient(
+      to bottom,
+      black,
+      transparent 90%
+    );
+
+  pointer-events: none;
+}
+
+
+/* ============================================================
+   GLOW
+   ============================================================ */
+
+.academic-glow {
+  position: absolute;
+
+  width: 440px;
+  height: 440px;
+
+  border-radius: 50%;
+
+  filter: blur(110px);
+
+  opacity: 0.10;
+
+  pointer-events: none;
+}
+
+.glow-one {
+  top: -210px;
+  left: -120px;
+
+  background: #d6a84f;
+}
+
+.glow-two {
+  right: -150px;
+  bottom: -190px;
+
+  background: #8b6135;
+}
+
+
+/* ============================================================
+   HERO CONTENT
+   ============================================================ */
+
+.academic-hero-content {
+  position: relative;
+  z-index: 2;
+
+  width: min(100%, 960px);
+
+  text-align: center;
+}
+
+
+/* ============================================================
+   BADGE
+   ============================================================ */
+
+.academic-badge {
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  padding: 9px 16px;
+
+  border:
+    1px solid rgba(184, 137, 53, 0.28);
+
+  border-radius: 999px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(214, 168, 79, 0.10),
+      rgba(111, 74, 39, 0.04)
+    );
+
+  color: #8b642d;
+
+  font-size: 11px;
+  font-weight: 900;
+
+  letter-spacing: 1.6px;
+
+  box-shadow:
+    0 8px 25px rgba(111, 74, 39, 0.06);
+}
+
+
+/* ============================================================
+   HERO TITLE
+   ============================================================ */
+
+.academic-hero h1 {
+  margin: 27px auto 17px;
+
+  font-size: clamp(43px, 6vw, 78px);
+
+  line-height: 0.98;
+
+  letter-spacing: -3px;
+
+  font-weight: 900;
+
+  color: #21170f;
+}
+
+.academic-hero h1 span {
+  display: inline-block;
+
+  background:
+    linear-gradient(
+      90deg,
+      #7a4c20,
+      #b88935,
+      #d6a84f,
+      #9b6f25
+    );
+
+  -webkit-background-clip: text;
+  background-clip: text;
+
+  color: transparent;
+}
+
+
+/* ============================================================
+   HERO DESCRIPTION
+   ============================================================ */
+
+.academic-hero-content > p {
+  width: min(100%, 680px);
+
+  margin: 0 auto 40px;
+
+  color: #766858;
+
+  font-size: 16px;
+
+  line-height: 1.85;
+}
+
+
+/* ============================================================
+   AI BOX — WHITE
+   ============================================================ */
+
+.academic-ai-box {
+  width: min(100%, 800px);
+
+  margin: 0 auto;
+
+  padding: 19px;
+
+  border-radius: 25px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffffff,
+      #fffdf9
+    );
+
+  border:
+    1px solid #e6d8c4;
+
+  box-shadow:
+    0 25px 70px rgba(72, 46, 22, 0.12),
+    inset 0 1px 0 #ffffff;
+
+  backdrop-filter: blur(20px);
+
+  text-align: left;
+}
+
+
+/* ============================================================
+   AI LABEL
+   ============================================================ */
+
+.academic-ai-label {
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  margin: 2px 5px 13px;
+
+  color: #8b642d;
+
+  font-size: 11px;
+
+  font-weight: 900;
+
+  letter-spacing: 1.7px;
+}
+
+.academic-ai-label svg {
+  color: #b88935;
+}
+
+
+/* ============================================================
+   AI INPUT
+   ============================================================ */
+
+.academic-ai-input {
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+  min-height: 64px;
+
+  padding: 8px 8px 8px 18px;
+
+  border-radius: 17px;
+
+  background: #fffaf3;
+
+  border:
+    1px solid #e6d8c4;
+
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.academic-ai-input:focus-within {
+  border-color: #c79a50;
+
+  box-shadow:
+    0 0 0 4px rgba(184, 137, 53, 0.08),
+    0 12px 30px rgba(111, 74, 39, 0.06);
+}
+
+.academic-ai-input > svg {
+  flex-shrink: 0;
+
+  color: #b88935;
+}
+
+
+/* ============================================================
+   INPUT
+   ============================================================ */
+
+.academic-ai-input input {
+  flex: 1;
+
+  min-width: 0;
+
+  border: 0;
+  outline: 0;
+
+  background: transparent;
+
+  color: #2d2116;
+
+  font-size: 15px;
+}
+
+.academic-ai-input input::placeholder {
+  color: #a49788;
+}
+
+
+/* ============================================================
+   SEND BUTTON
+   ============================================================ */
+
+.academic-ai-input button {
+  width: 48px;
+  height: 48px;
+
+  flex-shrink: 0;
+
+  display: grid;
+  place-items: center;
+
+  border: 0;
+
+  border-radius: 14px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #8b5d27,
+      #b88935,
+      #d6a84f
+    );
+
+  color: #ffffff;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 8px 22px rgba(111, 74, 39, 0.20);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.academic-ai-input button:hover:not(:disabled) {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 14px 30px rgba(111, 74, 39, 0.28);
+}
+
+.academic-ai-input button:disabled {
+  opacity: 0.35;
+
+  cursor: not-allowed;
+
+  box-shadow: none;
+}
+
+
+/* ============================================================
+   AI HINTS
+   ============================================================ */
+
+.academic-ai-hints {
+  display: flex;
+
+  align-items: center;
+
+  flex-wrap: wrap;
+
+  gap: 8px;
+
+  padding: 14px 4px 2px;
+}
+
+.academic-ai-hints > span {
+  color: #9b8b78;
+
+  font-size: 11px;
+
+  font-weight: 800;
+}
+
+.academic-ai-hints button {
+  border:
+    1px solid #e6d8c4;
+
+  border-radius: 999px;
+
+  padding: 7px 12px;
+
+  background: #fffaf3;
+
+  color: #806f5d;
+
+  font-size: 11px;
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
+}
+
+.academic-ai-hints button:hover {
+  color: #8b642d;
+
+  border-color: #cda963;
+
+  background: #fff5e3;
+
+  transform: translateY(-1px);
+}
+
+
+/* ============================================================
+   MAIN CONTENT
+   ============================================================ */
+
+.academic-content {
+  position: relative;
+
+  width: min(
+    1120px,
+    calc(100% - 40px)
+  );
+
+  margin: 0 auto;
+
+  padding: 80px 0 100px;
+}
+
+
+/* ============================================================
+   SECTION HEADING
+   ============================================================ */
+
+.academic-heading {
+  margin-bottom: 34px;
+}
+
+.academic-heading > div {
+  max-width: 720px;
+}
+
+.academic-heading span {
+  color: #a8782d;
+
+  font-size: 10px;
+
+  font-weight: 900;
+
+  letter-spacing: 1.9px;
+}
+
+.academic-heading h2 {
+  margin: 10px 0 11px;
+
+  font-size:
+    clamp(28px, 4vw, 43px);
+
+  line-height: 1.1;
+
+  letter-spacing: -1.3px;
+
+  font-weight: 900;
+
+  color: #24180f;
+}
+
+.academic-heading p {
+  margin: 0;
+
+  color: #806f5d;
+
+  font-size: 14px;
+
+  line-height: 1.75;
+}
+
+
+/* ============================================================
+   THREE CARD GRID
+   ============================================================ */
+
+.academic-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 22px;
+}
+
+
+/* ============================================================
+   PREMIUM WHITE CARD
+   ============================================================ */
+
+.academic-card {
+  position: relative;
+
+  min-height: 315px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  padding: 25px;
+
+  overflow: hidden;
+
+  border-radius: 24px;
+
+  text-decoration: none;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffffff 0%,
+      #fffdf9 100%
+    );
+
+  border:
+    1px solid #e6d8c4;
+
+  box-shadow:
+    0 16px 45px rgba(67, 43, 22, 0.08);
+
+  transition:
+    transform 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+
+/* Decorative glow */
+
+.academic-card::before {
+  content: "";
+
+  position: absolute;
+
+  top: -110px;
+  right: -110px;
+
+  width: 240px;
+  height: 240px;
+
+  border-radius: 50%;
+
+  background:
+    var(--card-glow);
+
+  opacity: 0.08;
+
+  filter: blur(48px);
+
+  transition:
+    transform 0.4s ease,
+    opacity 0.4s ease;
+}
+
+
+/* Bottom gold line */
+
+.academic-card::after {
+  content: "";
+
+  position: absolute;
+
+  left: 25px;
+  right: 25px;
+
+  bottom: 0;
+
+  height: 2px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--card-icon),
+      transparent
+    );
+
+  opacity: 0.25;
+}
+
+
+/* Hover */
+
+.academic-card:hover {
+  transform: translateY(-9px);
+
+  border-color:
+    var(--card-border);
+
+  box-shadow:
+    0 28px 65px rgba(67, 43, 22, 0.14);
+}
+
+.academic-card:hover::before {
+  transform: scale(1.45);
+
+  opacity: 0.14;
+}
+
+
+/* ============================================================
+   THREE CARD COLORS
+   ============================================================ */
+
+.ai-tool-card {
+  --card-glow: #d6a84f;
+
+  --card-border:
+    rgba(184, 137, 53, 0.55);
+
+  --card-icon:
+    #b88935;
+}
+
+.time-tool-card {
+  --card-glow: #8b6135;
+
+  --card-border:
+    rgba(111, 74, 39, 0.45);
+
+  --card-icon:
+    #8b6135;
+}
+
+.weak-area-tool-card {
+  --card-glow: #d6a84f;
+
+  --card-border:
+    rgba(199, 154, 80, 0.55);
+
+  --card-icon:
+    #9d702f;
+}
+
+
+/* ============================================================
+   CARD TOP
+   ============================================================ */
+
+.academic-card-top {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+}
+
+.academic-icon {
+  width: 54px;
+  height: 54px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 16px;
+
+  background:
+    color-mix(
+      in srgb,
+      var(--card-icon) 9%,
+      white
+    );
+
+  border:
+    1px solid
+    color-mix(
+      in srgb,
+      var(--card-icon) 24%,
+      white
+    );
+
+  color: var(--card-icon);
+
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.academic-card:hover .academic-icon {
+  transform:
+    scale(1.09)
+    rotate(-3deg);
+
+  box-shadow:
+    0 12px 28px
+    color-mix(
+      in srgb,
+      var(--card-icon) 18%,
+      transparent
+    );
+}
+
+.academic-card-top > span {
+  color: #c5b6a4;
+
+  font-size: 11px;
+
+  font-weight: 900;
+
+  letter-spacing: 1px;
+}
+
+
+/* ============================================================
+   CARD BODY
+   ============================================================ */
+
+.academic-card-body {
+  flex: 1;
+
+  padding-top: 31px;
+}
+
+.academic-card-body h3 {
+  margin: 0 0 11px;
+
+  color: #281b10;
+
+  font-size: 22px;
+
+  font-weight: 850;
+
+  letter-spacing: -0.5px;
+}
+
+.academic-card-body p {
+  margin: 0;
+
+  color: #796b5d;
+
+  font-size: 13px;
+
+  line-height: 1.8;
+}
+
+
+/* ============================================================
+   CARD BOTTOM
+   ============================================================ */
+
+.academic-card-bottom {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  margin-top: 26px;
+
+  padding-top: 18px;
+
+  border-top:
+    1px solid #eee5d9;
+}
+
+.academic-card-bottom > span {
+  color: var(--card-icon);
+
+  font-size: 11px;
+
+  font-weight: 900;
+
+  letter-spacing: 0.6px;
+
+  text-transform: uppercase;
+}
+
+.academic-arrow {
+  width: 36px;
+  height: 36px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 11px;
+
+  background:
+    #fff9ef;
+
+  border:
+    1px solid #eadbc5;
+
+  color: #8c7b68;
+
+  transition:
+    transform 0.25s ease,
+    background 0.25s ease,
+    color 0.25s ease;
+}
+
+.academic-card:hover .academic-arrow {
+  transform: translateX(5px);
+
+  background:
+    #f8ecd8;
+
+  color: var(--card-icon);
+}
+
+
+/* ============================================================
+   AI ANSWER — WHITE
+   ============================================================ */
+
+.academic-ai-answer {
+  margin-bottom: 75px;
+
+  overflow: hidden;
+
+  border-radius: 26px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffffff,
+      #fffdf9
+    );
+
+  border:
+    1px solid #e6d8c4;
+
+  box-shadow:
+    0 22px 60px rgba(67, 43, 22, 0.10);
+
+  animation:
+    answerEnter 0.4s ease;
+}
+
+
+/* Header */
+
+.ai-answer-header {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  padding: 21px 25px;
+
+  border-bottom:
+    1px solid #eee5d9;
+}
+
+.ai-answer-brand {
+  display: flex;
+
+  align-items: center;
+
+  gap: 13px;
+}
+
+.ai-answer-icon {
+  width: 45px;
+  height: 45px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 14px;
+
+  background:
+    #fff7e8;
+
+  border:
+    1px solid #ead7b6;
+
+  color: #b88935;
+}
+
+.ai-answer-brand span {
+  display: block;
+
+  color: #a8782d;
+
+  font-size: 10px;
+
+  font-weight: 900;
+
+  letter-spacing: 1.5px;
+}
+
+.ai-answer-brand h3 {
+  margin: 3px 0 0;
+
+  font-size: 16px;
+
+  color: #281b10;
+}
+
+.ai-status {
+  display: flex;
+
+  align-items: center;
+
+  gap: 7px;
+
+  color: #897968;
+
+  font-size: 11px;
+}
+
+.ai-status-dot {
+  width: 7px;
+  height: 7px;
+
+  border-radius: 50%;
+
+  background: #b88935;
+
+  box-shadow:
+    0 0 10px rgba(184, 137, 53, 0.45);
+}
+
+
+/* ============================================================
+   AI LOADING
+   ============================================================ */
+
+.ai-loading {
+  display: flex;
+
+  align-items: center;
+
+  gap: 16px;
+
+  padding: 32px 26px;
+}
+
+.ai-loading-icon {
+  width: 48px;
+  height: 48px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 15px;
+
+  background: #fff7e8;
+
+  color: #b88935;
+}
+
+.ai-loading strong {
+  display: block;
+
+  margin-bottom: 4px;
+
+  color: #281b10;
+}
+
+.ai-loading p {
+  margin: 0;
+
+  color: #8a7967;
+
+  font-size: 13px;
+}
+
+
+/* ============================================================
+   AI ANSWER CONTENT
+   ============================================================ */
+
+.ai-answer-content {
+  padding: 26px;
+}
+
+.ai-question-block,
+.ai-response-block {
+  padding: 21px;
+
+  border-radius: 17px;
+
+  background: #fffdf9;
+
+  border:
+    1px solid #eee3d5;
+}
+
+.ai-response-block {
+  margin-top: 14px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #fffaf0,
+      #fffdf9
+    );
+
+  border-color:
+    #ead9bd;
+}
+
+.ai-block-label {
+  display: flex;
+
+  align-items: center;
+
+  gap: 7px;
+
+  margin-bottom: 10px;
+
+  color: #9a8874;
+
+  font-size: 10px;
+
+  font-weight: 900;
+
+  letter-spacing: 1.4px;
+}
+
+.ai-question-block p {
+  margin: 0;
+
+  color: #39291b;
+
+  line-height: 1.7;
+}
+
+.ai-response-text {
+  color: #594938;
+
+  font-size: 15px;
+
+  line-height: 1.9;
+
+  white-space: pre-wrap;
+}
+
+
+/* ============================================================
+   BOTTOM INFO
+   ============================================================ */
+
+.academic-info {
+  position: relative;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 20px;
+
+  margin-top: 58px;
+
+  padding: 26px;
+
+  border-radius: 22px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #fffaf0,
+      #ffffff
+    );
+
+  border:
+    1px solid #eadcc8;
+
+  box-shadow:
+    0 12px 35px rgba(67, 43, 22, 0.06);
+}
+
+.academic-info-icon {
+  width: 52px;
+  height: 52px;
+
+  flex-shrink: 0;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 15px;
+
+  background: #fff5df;
+
+  border:
+    1px solid #ead7b4;
+
+  color: #b88935;
+}
+
+.academic-info span {
+  color: #a8782d;
+
+  font-size: 10px;
+
+  font-weight: 900;
+
+  letter-spacing: 1.5px;
+}
+
+.academic-info h3 {
+  margin: 5px 0 5px;
+
+  font-size: 18px;
+
+  color: #281b10;
+}
+
+.academic-info p {
+  margin: 0;
+
+  color: #806f5d;
+
+  font-size: 13px;
+
+  line-height: 1.65;
+}
+
+
+/* ============================================================
+   TABLET
+   ============================================================ */
+
+@media (max-width: 950px) {
+
+  .academic-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .academic-card {
+    min-height: 275px;
+  }
+}
+
+
+/* ============================================================
+   MOBILE
+   ============================================================ */
+
+@media (max-width: 600px) {
+
+  .academic-hero {
+    min-height: auto;
+
+    padding:
+      70px 16px 78px;
+  }
+
+  .academic-hero h1 {
+    font-size: 42px;
+
+    letter-spacing: -2px;
+  }
+
+  .academic-hero-content > p {
+    font-size: 14px;
+
+    line-height: 1.75;
+  }
+
+  .academic-ai-box {
+    padding: 14px;
+
+    border-radius: 21px;
+  }
+
+  .academic-ai-input {
+    min-height: 57px;
+
+    padding-left: 13px;
+  }
+
+  .academic-ai-input input {
+    font-size: 14px;
+  }
+
+  .academic-ai-input button {
+    width: 43px;
+    height: 43px;
+  }
+
+  .academic-ai-hints {
+    gap: 6px;
+  }
+
+  .academic-ai-hints button {
+    font-size: 10px;
+
+    padding:
+      6px 9px;
+  }
+
+  .academic-content {
+    width:
+      calc(100% - 28px);
+
+    padding:
+      56px 0 70px;
+  }
+
+  .academic-heading h2 {
+    font-size: 30px;
+  }
+
+  .academic-heading p {
+    font-size: 13px;
+  }
+
+  .academic-card {
+    min-height: 285px;
+
+    padding: 21px;
+  }
+
+  .academic-card-body {
+    padding-top: 26px;
+  }
+
+  .academic-card-body h3 {
+    font-size: 20px;
+  }
+
+  .academic-info {
+    align-items: flex-start;
+
+    flex-direction: column;
+  }
+
+  .ai-answer-header {
+    padding: 17px;
+  }
+
+  .ai-status {
+    display: none;
+  }
+
+  .ai-answer-content {
+    padding: 17px;
+  }
+}
+
+
+/* ============================================================
+   SMALL MOBILE
+   ============================================================ */
+
+@media (max-width: 380px) {
+
+  .academic-hero h1 {
+    font-size: 36px;
+  }
+
+  .academic-ai-input {
+    gap: 7px;
+  }
+
+  .academic-ai-input > svg {
+    display: none;
+  }
+
+  .academic-card-body h3 {
+    font-size: 19px;
+  }
+}
+
+
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .academic-card,
+  .academic-icon,
+  .academic-arrow,
+  .academic-ai-input button,
+  .academic-ai-hints button {
+    transition: none;
+  }
+
+  .academic-ai-answer {
+    animation: none;
+  }
+}

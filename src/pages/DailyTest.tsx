@@ -1,86 +1,155 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Clock, ShieldAlert, Bookmark, ArrowRight, ArrowLeft, LogOut, Lock } from "lucide-react";
-import "./JeeMains.css";
+import {
+  Lock,
+  ShieldCheck,
+  ArrowLeft,
+  RefreshCw,
+} from "lucide-react";
+import "./DailyTest.css";
+import TestInterface from "../components/TestInterface";
 
-// ఆటోమేటిక్ డిటెక్షన్ (Local & Render)
-const API_BASE_URL = 
-  window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+// ======================================================
+// API BASE URL
+// ======================================================
+
+const API_BASE_URL =
+  window.location.hostname === "localhost" ||
+  window.location.hostname === "127.0.0.1"
     ? "http://localhost:5000"
     : "https://exammaster-backend-up1y.onrender.com";
 
+// ======================================================
+// QUESTION TYPE
+// ======================================================
+
 interface Question {
   _id: string;
+
   questionText?: string;
   question?: string;
+
   options: string[];
+
   correctAnswer: string;
+
   isPublished?: boolean;
   status?: string;
+
   examType?: string;
   testCategory?: string;
+
   className?: string;
   class?: string;
+
   subject?: string;
+  chapter?: string;
 }
+
+// ======================================================
+// PAGE STATES
+// ======================================================
+
+type PageStep =
+  | "dashboard"
+  | "loading"
+  | "exam";
+
+// ======================================================
+// COMPONENT
+// ======================================================
 
 export default function DailyTests() {
   const navigate = useNavigate();
 
-  // ఫేస్ వెరిఫికేషన్ తీసేసాం కాబట్టి డైరెక్ట్ "dashboard" నుండి స్టార్ట్ అవుతుంది
-  const [step, setStep] = useState<string>("dashboard");
-  
-  const [questions, setQuestions] = useState<Question[]>(() => {
-    const saved = localStorage.getItem("dailytest_questions");
-    return saved ? JSON.parse(saved) : [];
-  });
+  // ====================================================
+  // STATE
+  // ====================================================
+
+  const [step, setStep] = useState<PageStep>("dashboard");
+
+  const [questions, setQuestions] = useState<Question[]>([]);
 
   const [loading, setLoading] = useState(false);
+
   const [error, setError] = useState("");
 
-  const [studentName, setStudentName] = useState("Student");
-  const [studentId, setStudentId] = useState("");
-  const [className, setClassName] = useState<string>("2nd PUC");
-  
-  const [violationCount] = useState<number>(0);
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  
-  const [answers, setAnswers] = useState<Record<string, string>>(() => {
-    const saved = localStorage.getItem("dailytest_answers");
-    return saved ? JSON.parse(saved) : {};
-  });
+  // ====================================================
+  // STUDENT DETAILS
+  // ====================================================
 
-  const [markedForReview, setMarkedForReview] = useState<Record<string, boolean>>(() => {
-    const saved = localStorage.getItem("dailytest_marked");
-    return saved ? JSON.parse(saved) : {};
-  });
+  const [studentName, setStudentName] =
+    useState("Student");
 
-  const [timeLeft, setTimeLeft] = useState<number>(180 * 60);
+  const [studentId, setStudentId] =
+    useState("");
+
+  const [className, setClassName] =
+    useState("2nd PUC");
+
+  // ====================================================
+  // INITIAL ANSWERS
+  // ====================================================
+
+  const [answers, setAnswers] =
+    useState<Record<string, string>>({});
+
+  // ====================================================
+  // LOAD STUDENT DETAILS
+  // ====================================================
 
   useEffect(() => {
-    const getStoredName = () => localStorage.getItem("studentName") || localStorage.getItem("name") || "Student";
-    const getStoredId = () => localStorage.getItem("studentId") || localStorage.getItem("id") || "SEC-2026-X";
-    const getStoredClass = () => localStorage.getItem("className") || localStorage.getItem("class") || "2nd PUC";
+    const storedName =
+      localStorage.getItem("studentName") ||
+      localStorage.getItem("name") ||
+      "Student";
 
-    setStudentName(getStoredName());
-    setStudentId(getStoredId());
-    setClassName(getStoredClass());
+    const storedId =
+      localStorage.getItem("studentId") ||
+      localStorage.getItem("id") ||
+      "SEC-2026-X";
+
+    const storedClass =
+      localStorage.getItem("className") ||
+      localStorage.getItem("class") ||
+      "2nd PUC";
+
+    setStudentName(storedName);
+    setStudentId(storedId);
+    setClassName(storedClass);
   }, []);
 
-  // బ్యాకెండ్ నుండి ప్రశ్నలను ఫెచ్ చేయడం (Dynamic API_BASE_URL వాడి)
-  const fetchDailyTestQuestions = async (selectedClass: string) => {
+  // ====================================================
+  // FETCH DAILY TEST QUESTIONS
+  // ====================================================
+
+  const fetchDailyTestQuestions = async (
+    selectedClass: string
+  ): Promise<Question[]> => {
     setLoading(true);
     setError("");
 
+    const token =
+      localStorage.getItem("studentToken") ||
+      localStorage.getItem("token");
+
     try {
       const queryParams = new URLSearchParams({
-        className: selectedClass || "2nd PUC"
+        className: selectedClass || "2nd PUC",
       });
 
       const response = await fetch(
         `${API_BASE_URL}/api/questions/daily-tests?${queryParams.toString()}`,
         {
+          method: "GET",
+
           headers: {
+            ...(token
+              ? {
+                  Authorization: `Bearer ${token}`,
+                }
+              : {}),
+
             "Content-Type": "application/json",
           },
         }
@@ -89,297 +158,456 @@ export default function DailyTests() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Failed to load Daily Test questions");
+        throw new Error(
+          data?.message ||
+            "Failed to load Daily Test questions."
+        );
       }
 
-      const loadedQuestions = data.questions || [];
-      
-      setQuestions(loadedQuestions);
-      localStorage.setItem("dailytest_questions", JSON.stringify(loadedQuestions));
+      const loadedQuestions: Question[] =
+        data?.questions ??
+        data?.data ??
+        (Array.isArray(data) ? data : []);
 
-      const calculatedTime = loadedQuestions.length > 0 ? loadedQuestions.length * 60 : 180 * 60;
-      setTimeLeft(calculatedTime);
-    } catch (err) {
-      console.error(err);
-      setError("Unable to load Daily Test questions from server.");
+      if (!Array.isArray(loadedQuestions)) {
+        throw new Error(
+          "Invalid question data received from server."
+        );
+      }
+
+      // ----------------------------------------------
+      // SAVE QUESTIONS
+      // ----------------------------------------------
+
+      setQuestions(loadedQuestions);
+
+      localStorage.setItem(
+        "dailytest_questions",
+        JSON.stringify(loadedQuestions)
+      );
+
+      // ----------------------------------------------
+      // RESET PREVIOUS ANSWERS
+      // ----------------------------------------------
+
+      setAnswers({});
+
+      localStorage.removeItem(
+        "dailytest_answers"
+      );
+
+      localStorage.removeItem(
+        "dailytest_marked"
+      );
+
+      // ----------------------------------------------
+      // RETURN QUESTIONS
+      // ----------------------------------------------
+
+      return loadedQuestions;
+    } catch (err: unknown) {
+      console.error(
+        "Daily Test loading error:",
+        err
+      );
+
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Unable to load Daily Test questions.";
+
+      setError(message);
+
+      return [];
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (step === "exam") {
-      localStorage.setItem("dailytest_answers", JSON.stringify(answers));
-      localStorage.setItem("dailytest_marked", JSON.stringify(markedForReview));
-    }
-  }, [answers, markedForReview, step]);
+  // ====================================================
+  // START DAILY TEST
+  // ====================================================
 
-  useEffect(() => {
-    if (step !== "exam") return;
+  const handleStartExam = async () => {
+    if (loading) return;
 
-    if (timeLeft <= 0) {
-      submitExam();
+    setError("");
+
+    setStep("loading");
+
+    const loadedQuestions =
+      await fetchDailyTestQuestions(className);
+
+    if (loadedQuestions.length === 0) {
+      setStep("dashboard");
       return;
     }
 
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => prev - 1);
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [step, timeLeft]);
-
-  const handleStartExam = async () => {
-    setStep("greeting");
-    await fetchDailyTestQuestions(className);
-
+    // Small transition after successful loading
     setTimeout(() => {
       setStep("exam");
-      setCurrentQuestion(0);
-    }, 3000);
+    }, 250);
   };
 
-  const selectAnswer = (answer: string) => {
-    const question = questions[currentQuestion];
-    if (!question) return;
+  // ====================================================
+  // BACK FROM TEST INTERFACE
+  // ====================================================
 
-    setAnswers((prev) => ({
-      ...prev,
-      [question._id]: answer,
-    }));
+  const handleBack = () => {
+    setStep("dashboard");
+
+    setQuestions([]);
+
+    setAnswers({});
+
+    setError("");
+
+    localStorage.removeItem(
+      "dailytest_questions"
+    );
+
+    localStorage.removeItem(
+      "dailytest_answers"
+    );
+
+    localStorage.removeItem(
+      "dailytest_marked"
+    );
   };
 
-  const handleClearResponse = () => {
-    const question = questions[currentQuestion];
-    if (!question) return;
-    const updated = { ...answers };
-    delete updated[question._id];
-    setAnswers(updated);
+  // ====================================================
+  // RETRY
+  // ====================================================
+
+  const handleRetry = () => {
+    setError("");
+
+    handleStartExam();
   };
 
-  const handleMarkReview = () => {
-    const question = questions[currentQuestion];
-    if (!question) return;
-    setMarkedForReview({
-      ...markedForReview,
-      [question._id]: !markedForReview[question._id]
-    });
-  };
-
-  const nextQuestion = () => {
-    if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion((prev) => prev + 1);
-    }
-  };
-
-  const previousQuestion = () => {
-    if (currentQuestion > 0) {
-      setCurrentQuestion((prev) => prev - 1);
-    }
-  };
-
-  const submitExam = () => {
-    localStorage.removeItem("dailytest_answers");
-    localStorage.removeItem("dailytest_marked");
-    localStorage.removeItem("dailytest_questions");
-    navigate("/");
-  };
-
-  const formatTime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-
-    if (hours > 0) {
-      return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
-    }
-    return `${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
-  };
-
-  const current = questions[currentQuestion];
+  // ====================================================
+  // DASHBOARD
+  // ====================================================
 
   if (step === "dashboard") {
     return (
-      <div className="exam-page">
+      <div className="exam-page daily-test-page">
+
         <div className="start-wrapper">
-          <div className="start-card" style={{ textAlign: "center", padding: "40px", maxWidth: "500px", margin: "auto", background: "#fff", borderRadius: "12px", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
-            <div className="test-badge" style={{ marginBottom: "12px", display: "inline-block", background: "#fef08a", color: "#854d0e", padding: "4px 12px", borderRadius: "20px", fontSize: "12px", fontWeight: "bold" }}>
-              <Lock size={12} style={{ display: "inline", marginRight: "4px" }} /> DAILY PRACTICE TEST PORTAL
-            </div>
-            
-            <h1 style={{ marginBottom: "10px", color: "#1e293b" }}>Welcome, {studentName}!</h1>
-            
-            <div style={{ background: "#f8fafc", padding: "16px", borderRadius: "8px", margin: "20px 0", border: "1px solid #e2e8f0", textAlign: "left" }}>
-              <p style={{ margin: "6px 0", color: "#475569", fontSize: "14px" }}>
-                🆔 <strong>Student ID:</strong> <span style={{ color: "#0f172a" }}>{studentId}</span>
-              </p>
-              <p style={{ margin: "6px 0", color: "#475569", fontSize: "14px" }}>
-                📚 <strong>Class Name:</strong> <span style={{ color: "#ca8a04", fontWeight: "bold" }}>{className || "Not Specified"}</span>
-              </p>
+
+          <div className="start-card">
+
+            {/* ==========================================
+                BADGE
+            ========================================== */}
+
+            <div className="test-badge">
+
+              <Lock size={14} />
+
+              <span>
+                DAILY PRACTICE TEST
+              </span>
+
             </div>
 
-            <button 
-              className="start-button" 
+            {/* ==========================================
+                TITLE
+            ========================================== */}
+
+            <h1>
+              Welcome, {studentName}!
+            </h1>
+
+            <p className="daily-description">
+              Strengthen your preparation with
+              today's curated practice assessment.
+            </p>
+
+            {/* ==========================================
+                STUDENT INFORMATION
+            ========================================== */}
+
+            <div className="student-info-card">
+
+              <div className="student-info-row">
+
+                <span>
+                  Student ID
+                </span>
+
+                <strong>
+                  {studentId}
+                </strong>
+
+              </div>
+
+              <div className="student-info-row">
+
+                <span>
+                  Class
+                </span>
+
+                <strong className="class-value">
+                  {className || "Not Specified"}
+                </strong>
+
+              </div>
+
+              <div className="student-info-row">
+
+                <span>
+                  Assessment
+                </span>
+
+                <strong>
+                  Daily Mixed Question Pool
+                </strong>
+
+              </div>
+
+            </div>
+
+            {/* ==========================================
+                SECURITY INFORMATION
+            ========================================== */}
+
+            <div className="security-info">
+
+              <div className="security-icon">
+
+                <ShieldCheck size={18} />
+
+              </div>
+
+              <div>
+
+                <strong>
+                  Secure Academic Assessment
+                </strong>
+
+                <span>
+                  Your assessment is conducted using
+                  STG College academic examination records.
+                </span>
+
+              </div>
+
+            </div>
+
+            {/* ==========================================
+                ERROR
+            ========================================== */}
+
+            {error && (
+              <div className="daily-error">
+
+                <strong>
+                  Unable to prepare assessment
+                </strong>
+
+                <span>
+                  {error}
+                </span>
+
+                <button
+                  type="button"
+                  onClick={handleRetry}
+                >
+                  Try Again
+                </button>
+
+              </div>
+            )}
+
+            {/* ==========================================
+                START BUTTON
+            ========================================== */}
+
+            <button
+              type="button"
+              className="start-button"
               onClick={handleStartExam}
-              style={{ background: "#ca8a04", color: "#fff", padding: "14px 28px", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: "bold", width: "100%", fontSize: "16px" }}
+              disabled={loading}
             >
-              Start Daily Test Session Now →
+
+              {loading ? (
+                <>
+                  <span className="button-loader" />
+
+                  Preparing Test...
+                </>
+              ) : (
+                <>
+                  Start Daily Test
+
+                  <span className="button-arrow">
+                    →
+                  </span>
+                </>
+              )}
+
             </button>
+
+            {/* ==========================================
+                BACK
+            ========================================== */}
+
+            <button
+              type="button"
+              className="dashboard-back-btn"
+              onClick={() => navigate("/")}
+            >
+              <ArrowLeft size={15} />
+
+              Back to Dashboard
+            </button>
+
           </div>
+
         </div>
+
       </div>
     );
   }
 
-  if (step === "greeting") {
+  // ====================================================
+  // LOADING SCREEN
+  // ====================================================
+
+  if (step === "loading") {
     return (
-      <div className="exam-page" style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", background: "linear-gradient(135deg, #3f3f46, #18181b)" }}>
-        <div style={{ textAlign: "center", color: "#fff" }}>
-          <div style={{ fontSize: "65px", marginBottom: "15px" }}>📚⚡🎯</div>
-          <h1 style={{ fontSize: "38px", marginBottom: "10px", fontWeight: "bold" }}>
-            Let's Crack Today, <span style={{ color: "#facc15" }}>{studentName}</span>!
-          </h1>
-          <p style={{ fontSize: "18px", opacity: "0.9" }}>
-            Loading your daily merged pool of assessment items...
+      <div className="exam-loading daily-loading">
+
+        <div className="loading-content">
+
+          <div className="premium-loader">
+
+            <div className="loader-ring" />
+
+            <ShieldCheck size={25} />
+
+          </div>
+
+          <h2>
+            Preparing Your Assessment
+          </h2>
+
+          <p>
+            Fetching today's curated question set...
           </p>
-          <div className="loading-spinner" style={{ margin: "30px auto", borderColor: "#fff", borderTopColor: "transparent" }} />
+
+          <div className="loading-status">
+
+            <span className="status-dot" />
+
+            Securely loading STG College
+            academic assessment
+
+          </div>
+
+          {error && (
+            <div className="loading-error">
+
+              <strong>
+                Unable to prepare assessment
+              </strong>
+
+              <span>
+                {error}
+              </span>
+
+              <button
+                type="button"
+                onClick={() => setStep("dashboard")}
+              >
+                <ArrowLeft size={14} />
+
+                Go Back
+              </button>
+
+            </div>
+          )}
+
         </div>
+
       </div>
     );
   }
 
-  if (loading) {
+  // ====================================================
+  // SAFETY CHECK
+  // ====================================================
+
+  if (
+    step === "exam" &&
+    questions.length === 0
+  ) {
     return (
-      <div className="exam-loading">
-        <div className="loading-spinner" />
-        <h2>Preparing Daily Assessment</h2>
-        <p>Fetching today's curated question set...</p>
+      <div className="exam-page">
+
+        <div className="empty-question-wrapper">
+
+          <div className="empty-question-card">
+
+            <div className="empty-icon">
+
+              <RefreshCw size={28} />
+
+            </div>
+
+            <h2>
+              No Questions Available
+            </h2>
+
+            <p>
+              There are currently no Daily Practice
+              questions available for{" "}
+              <strong>{className}</strong>.
+            </p>
+
+            <button
+              type="button"
+              onClick={() => setStep("dashboard")}
+            >
+              Back to Daily Test
+            </button>
+
+          </div>
+
+        </div>
+
       </div>
     );
   }
 
-  if (error) {
-    return (
-      <div className="exam-error-page">
-        <div className="error-card">
-          <div className="error-icon">!</div>
-          <h2>Connection Error</h2>
-          <p>{error}</p>
-          <button onClick={() => window.location.reload()}>Try Again</button>
-        </div>
-      </div>
-    );
-  }
+  // ====================================================
+  // MAIN TEST INTERFACE
+  // ====================================================
 
   return (
-    <div className="jee-cbt-root">
-      <header className="jee-header">
-        <div className="jee-brand">
-          <span className="jee-badge-yr" style={{ background: "#fef08a", color: "#854d0e" }}>Daily Practice Test ({className})</span>
-          <h1>CBT Assessment Terminal</h1>
-        </div>
-        <div className="jee-header-right">
-          <div className="jee-timer-box">
-            <Clock size={15} />
-            <span>TIME: <strong className="mono">{formatTime(timeLeft)}</strong></span>
-          </div>
-          <div className="jee-security-indicator">
-            <ShieldAlert size={14} className={violationCount > 0 ? "text-red" : "text-green"} />
-            <span>VIOLATIONS: {violationCount}</span>
-          </div>
-        </div>
-      </header>
+    <TestInterface
 
-      <div className="jee-workspace">
-        <div className="jee-question-section">
-          <div className="jee-question-card">
-            <div className="q-meta-info">
-              <span>Question {currentQuestion + 1} of {questions.length}</span>
-              <span className="marks-badge" style={{ background: "#fef9c3", color: "#a16207" }}>Daily Mixed Pool</span>
-            </div>
-            
-            <h1 className="q-text">{current?.questionText || current?.question}</h1>
+      subject="Daily Assessment"
 
-            <div className="options">
-              {current?.options?.map((option, index) => {
-                const selected = answers[current._id] === option;
-                return (
-                  <button
-                    key={index}
-                    className={`option ${selected ? "selected" : ""}`}
-                    onClick={() => selectAnswer(option)}
-                  >
-                    <span className="option-letter">{String.fromCharCode(65 + index)}</span>
-                    <span className="option-text">{option}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+      className={className}
 
-          <div className="jee-action-footer">
-            <button className="jee-btn-secondary" onClick={handleClearResponse}>Clear Response</button>
-            <button className="jee-btn-warning" onClick={handleMarkReview}>
-              <Bookmark size={14} /> {markedForReview[current?._id] ? "Unmark Review" : "Mark for Review"}
-            </button>
-            <div style={{ display: "flex", gap: "10px" }}>
-              <button className="jee-btn-secondary" onClick={previousQuestion} disabled={currentQuestion === 0}>
-                <ArrowLeft size={14} /> Prev
-              </button>
-              {currentQuestion === questions.length - 1 ? (
-                <button className="jee-btn-primary" onClick={submitExam} style={{ background: "#ca8a04" }}>Submit Test ✓</button>
-              ) : (
-                <button className="jee-btn-primary" onClick={nextQuestion} style={{ background: "#ca8a04" }}>
-                  Save & Next <ArrowRight size={14} />
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
+      chapterName="Daily Practice Test"
 
-        <div className="jee-sidebar">
-          <div className="candidate-info-box">
-            <div className="cand-avatar">👤</div>
-            <div className="cand-details">
-              <h4>{studentName}</h4>
-              <span className="mono">ID: {studentId}</span>
-            </div>
-          </div>
+      questions={questions}
 
-          <div className="palette-section">
-            <h3>Question Palette</h3>
-            <div className="palette-grid">
-              {questions.map((q, idx) => {
-                const isAnswered = answers[q._id] !== undefined;
-                const isMarked = markedForReview[q._id];
-                let statusClass = "not-visited";
-                if (isAnswered) statusClass = "answered";
-                if (isMarked) statusClass = "marked";
+      studentId={studentId}
 
-                return (
-                  <button
-                    key={q._id || idx}
-                    className={`palette-item ${statusClass} ${currentQuestion === idx ? "current" : ""}`}
-                    onClick={() => setCurrentQuestion(idx)}
-                  >
-                    {idx + 1}
-                  </button>
-                );
-              })}
-            </div>
+      studentName={studentName}
 
-            <div className="palette-legend">
-              <div className="legend-item"><span className="dot answered"></span> Answered</div>
-              <div className="legend-item"><span className="dot not-answered"></span> Not Answered</div>
-              <div className="legend-item"><span className="dot marked"></span> Marked for Review</div>
-            </div>
-          </div>
+      themeColor="#db962e"
 
-          <button className="jee-submit-final-btn" onClick={submitExam} style={{ background: "#ca8a04" }}>
-            <LogOut size={15} /> Finish & Submit Exam
-          </button>
-        </div>
-      </div>
-    </div>
+      onBack={handleBack}
+
+      isAlreadySubmitted={false}
+
+      initialAnswers={answers}
+
+    />
   );
 }

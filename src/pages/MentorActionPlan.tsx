@@ -28,12 +28,12 @@ export default function MentorActionPlan() {
 
   // Action plan & behavioral evaluation state
   const [planData, setPlanData] = useState({
-    behaviour: "",            // Excellent, Good, Average, Poor
-    facultyInteraction: "",   // Active, Moderate, Hesitant, Poor
-    peerRelationship: "",     // Friendly, Good, Average, Isolated
-    disciplinaryIssues: "",   // Yes / No
-    disciplinaryDetails: "",  // Details if Yes
-    notes: ""                 // Mentor Personal Feedback / Action Plan
+    behaviour: "",            
+    facultyInteraction: "",   
+    peerRelationship: "",    
+    disciplinaryIssues: "",  
+    disciplinaryDetails: "", 
+    notes: ""                
   });
 
   const completedFields = [

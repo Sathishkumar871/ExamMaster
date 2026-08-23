@@ -21,44 +21,48 @@ import {
   RotateCcw,
   Send,
   ShieldCheck,
-  Trophy,
+  
   X,
-  XCircle,
+  Zap,
 } from "lucide-react";
 
-import "./TestInterface.css";
+import "./MockTestInterface.css";
 
 // ======================================================
 // TYPES
 // ======================================================
 
 interface Question {
-  _id: string;
+  _id?: string;
+  id?: string;
 
-  question?: string;
   questionText?: string;
+  question?: string;
 
   options: string[] | any[];
 
+  /*
+   * Backend may return:
+   * A / B / C / D
+   * OR
+   * actual option text
+   * OR
+   * 1 / 2 / 3 / 4
+   */
   correctAnswer: string;
 
   subject?: string;
   chapter?: string;
   chapterName?: string;
 
-  // Original PDF/backend question number
+  /*
+   * IMPORTANT:
+   * Original PDF question number.
+   */
   questionNumber?: number;
-
-  // Optional images
-  questionImage?: string;
-  imageUrl?: string;
-
-  // Optional table data
-  tableHeaders?: string[];
-  tableRows?: any[][];
 }
 
-interface TestInterfaceProps {
+interface MockTestInterfaceProps {
   subject: string;
   className: string;
   chapterName: string;
@@ -72,15 +76,7 @@ interface TestInterfaceProps {
 
   onBack: () => void;
 
-  isAlreadySubmitted: boolean;
-
-  initialAnswers?: Record<string, string>;
-
-  // Optional backend URL
-  apiBaseUrl?: string;
-
-  // Optional duration from parent/backend
-  durationMinutes?: number;
+  apiBaseUrl: string;
 }
 
 type AnswerMap = Record<string, string>;
@@ -98,52 +94,40 @@ interface ReviewItem {
 // COMPONENT
 // ======================================================
 
-export default function TestInterface({
+export default function MockTestInterface({
   subject,
   className,
   chapterName,
   questions,
   studentId,
   studentName,
-  themeColor = "#2563eb",
+  themeColor = "#d97706",
   onBack,
-  isAlreadySubmitted: initialSubmitted,
-  initialAnswers = {},
-  apiBaseUrl = "http://localhost:5000",
-  durationMinutes,
-}: TestInterfaceProps) {
+  apiBaseUrl,
+}: MockTestInterfaceProps) {
   // ====================================================
   // STATE
   // ====================================================
 
-  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [currentQuestion, setCurrentQuestion] =
+    useState(0);
 
   const [answers, setAnswers] =
-    useState<AnswerMap>(initialAnswers);
+    useState<AnswerMap>({});
 
   const [markedForReview, setMarkedForReview] =
     useState<ReviewMap>({});
 
-  const fallbackDuration =
+  const [timeLeft, setTimeLeft] = useState<number>(
     questions.length > 0
       ? questions.length * 60
-      : 45 * 60;
-
-  const initialDuration =
-    durationMinutes && durationMinutes > 0
-      ? durationMinutes * 60
-      : fallbackDuration;
-
-  const [timeLeft, setTimeLeft] =
-    useState<number>(initialDuration);
+      : 45 * 60
+  );
 
   const [isSubmitting, setIsSubmitting] =
     useState(false);
 
   const [submitted, setSubmitted] =
-    useState<boolean>(initialSubmitted);
-
-  const [isEditing, setIsEditing] =
     useState(false);
 
   const [showSubmitModal, setShowSubmitModal] =
@@ -161,28 +145,23 @@ export default function TestInterface({
   const [resultSummary, setResultSummary] =
     useState<any>(null);
 
-  const [score, setScore] = useState(0);
-  const [correctCount, setCorrectCount] = useState(0);
-  const [wrongCount, setWrongCount] = useState(0);
-  const [unattemptedCount, setUnattemptedCount] =
-    useState(0);
-  const [attemptedCount, setAttemptedCount] =
-    useState(0);
+  const hasSubmittedRef =
+    useRef(false);
 
-  const hasSubmittedRef = useRef(false);
-  const timerInitializedRef = useRef(false);
+  const timerInitializedRef =
+    useRef(false);
 
   // ====================================================
-  // DAILY TEST KEY
+  // UNIQUE TEST KEY
   // ====================================================
 
   const testKey = useMemo(() => {
     return [
       "exam-master",
-      "daily",
+      "mock",
       subject,
       className,
-      chapterName || "daily-test",
+      chapterName || "full-assessment",
       studentId,
     ]
       .join("_")
@@ -215,7 +194,8 @@ export default function TestInterface({
     ) => {
       return (
         question._id ||
-        `daily-question-${index}`
+        question.id ||
+        `question-${index}`
       );
     },
     []
@@ -272,7 +252,7 @@ export default function TestInterface({
   );
 
   // ====================================================
-  // ANSWER CHECK
+  // CHECK CORRECT ANSWER
   // ====================================================
 
   const isAnswerCorrect = useCallback(
@@ -296,10 +276,17 @@ export default function TestInterface({
         return false;
       }
 
-      // Direct text match
+      // -----------------------------------------------
+      // DIRECT TEXT MATCH
+      // -----------------------------------------------
+
       if (selected === correct) {
         return true;
       }
+
+      // -----------------------------------------------
+      // A / B / C / D
+      // -----------------------------------------------
 
       const letters = [
         "a",
@@ -308,28 +295,35 @@ export default function TestInterface({
         "d",
       ];
 
-      // A/B/C/D
       const correctLetterIndex =
         letters.indexOf(correct);
 
       if (correctLetterIndex >= 0) {
-        const correctOption =
+        const selectedOption =
           question.options?.[
             correctLetterIndex
           ];
 
         if (
-          correctOption !== undefined &&
-          selected ===
-            normalizeAnswer(
-              getOptionText(correctOption)
-            )
+          selectedOption !== undefined
         ) {
-          return true;
+          const correctText =
+            normalizeAnswer(
+              getOptionText(
+                selectedOption
+              )
+            );
+
+          if (selected === correctText) {
+            return true;
+          }
         }
       }
 
-      // 1/2/3/4
+      // -----------------------------------------------
+      // 1 / 2 / 3 / 4
+      // -----------------------------------------------
+
       const numericIndex =
         ["1", "2", "3", "4"].indexOf(
           correct
@@ -342,17 +336,25 @@ export default function TestInterface({
           ];
 
         if (
-          correctOption !== undefined &&
-          selected ===
-            normalizeAnswer(
-              getOptionText(correctOption)
-            )
+          correctOption !== undefined
         ) {
-          return true;
+          const correctText =
+            normalizeAnswer(
+              getOptionText(
+                correctOption
+              )
+            );
+
+          if (selected === correctText) {
+            return true;
+          }
         }
       }
 
-      // OPTION A / OPTION B / etc.
+      // -----------------------------------------------
+      // "OPTION A", "OPTION B" etc.
+      // -----------------------------------------------
+
       const optionMatch =
         correct.match(
           /(?:option\s*)?([abcd])/
@@ -368,14 +370,13 @@ export default function TestInterface({
           const option =
             question.options?.[index];
 
-          if (
-            option !== undefined &&
-            selected ===
+          if (option !== undefined) {
+            return (
+              selected ===
               normalizeAnswer(
                 getOptionText(option)
               )
-          ) {
-            return true;
+            );
           }
         }
       }
@@ -402,6 +403,10 @@ export default function TestInterface({
           currentQuestion
         )
       : "";
+
+  // ====================================================
+  // DISPLAY QUESTION NUMBER
+  // ====================================================
 
   const currentDisplayQuestionNumber =
     currentQ?.questionNumber ??
@@ -458,7 +463,7 @@ export default function TestInterface({
     answeredCount;
 
   // ====================================================
-  // RESTORE SESSION
+  // RESTORE ANSWERS / REVIEW / TIMER
   // ====================================================
 
   useEffect(() => {
@@ -491,7 +496,7 @@ export default function TestInterface({
           }
         } catch {
           console.warn(
-            "Invalid saved answers"
+            "Invalid saved answers."
           );
         }
       }
@@ -511,7 +516,7 @@ export default function TestInterface({
           }
         } catch {
           console.warn(
-            "Invalid review data"
+            "Invalid saved review state."
           );
         }
       }
@@ -533,7 +538,7 @@ export default function TestInterface({
       }
     } catch (error) {
       console.warn(
-        "Unable to restore daily test:",
+        "Unable to restore exam state:",
         error
       );
     } finally {
@@ -581,7 +586,7 @@ export default function TestInterface({
       );
     } catch (error) {
       console.warn(
-        "Unable to save review:",
+        "Unable to save review state:",
         error
       );
     }
@@ -639,7 +644,7 @@ export default function TestInterface({
     const timer =
       window.setInterval(() => {
         setTimeLeft(
-          previous =>
+          (previous) =>
             previous > 0
               ? previous - 1
               : 0
@@ -655,17 +660,19 @@ export default function TestInterface({
     submitted,
     isSubmitting,
     questions.length,
-    timeLeft,
   ]);
 
   // ====================================================
-  // TIMER FORMAT
+  // FORMAT TIMER
   // ====================================================
 
   const formatTime = useCallback(
     (seconds: number) => {
       const safeSeconds =
-        Math.max(0, seconds);
+        Math.max(
+          0,
+          seconds
+        );
 
       const hours =
         Math.floor(
@@ -674,7 +681,8 @@ export default function TestInterface({
 
       const minutes =
         Math.floor(
-          (safeSeconds % 3600) / 60
+          (safeSeconds % 3600) /
+            60
         );
 
       const secs =
@@ -714,6 +722,10 @@ export default function TestInterface({
     []
   );
 
+  // ====================================================
+  // TIMER STATUS
+  // ====================================================
+
   const timerDanger =
     timeLeft <= 60;
 
@@ -722,79 +734,70 @@ export default function TestInterface({
     timeLeft > 60;
 
   // ====================================================
-  // SELECT ANSWER
+  // SELECT OPTION
   // ====================================================
 
   const handleSelectOption =
     useCallback(
       (option: string) => {
         if (
-          !currentQuestionId ||
-          (submitted && !isEditing)
+          !currentQuestionId
         ) {
           return;
         }
 
         setAnswers(
-          previous => ({
+          (previous) => ({
             ...previous,
             [currentQuestionId]:
               option,
           })
         );
       },
-      [
-        currentQuestionId,
-        submitted,
-        isEditing,
-      ]
+      [currentQuestionId]
     );
 
   // ====================================================
-  // CLEAR
+  // CLEAR ANSWER
   // ====================================================
 
   const handleClearAnswer =
     useCallback(() => {
       if (
-        !currentQuestionId ||
-        (submitted && !isEditing)
+        !currentQuestionId
       ) {
         return;
       }
 
-      setAnswers(previous => {
-        const next = {
-          ...previous,
-        };
+      setAnswers(
+        (previous) => {
+          const next = {
+            ...previous,
+          };
 
-        delete next[
-          currentQuestionId
-        ];
+          delete next[
+            currentQuestionId
+          ];
 
-        return next;
-      });
-    }, [
-      currentQuestionId,
-      submitted,
-      isEditing,
-    ]);
+          return next;
+        }
+      );
+    }, [currentQuestionId]);
 
   // ====================================================
-  // REVIEW
+  // TOGGLE REVIEW
   // ====================================================
 
   const handleToggleReview =
     useCallback(() => {
       if (
-        !currentQuestionId ||
-        (submitted && !isEditing)
+        !currentQuestionId
       ) {
         return;
       }
 
       setMarkedForReview(
-        previous => ({
+        (previous) => ({
           ...previous,
           [currentQuestionId]:
             !previous[
@@ -802,11 +805,7 @@ export default function TestInterface({
             ],
         })
       );
-    }, [
-      currentQuestionId,
-      submitted,
-      isEditing,
-    ]);
+    }, [currentQuestionId]);
 
   // ====================================================
   // NEXT
@@ -814,15 +813,13 @@ export default function TestInterface({
 
   const goNext = useCallback(() => {
     setCurrentQuestion(
-      previous =>
+      (previous) =>
         Math.min(
           questions.length - 1,
           previous + 1
         )
     );
-  }, [
-    questions.length,
-  ]);
+  }, [questions.length]);
 
   // ====================================================
   // PREVIOUS
@@ -831,7 +828,7 @@ export default function TestInterface({
   const goPrevious =
     useCallback(() => {
       setCurrentQuestion(
-        previous =>
+        (previous) =>
           Math.max(
             0,
             previous - 1
@@ -845,12 +842,14 @@ export default function TestInterface({
 
   const handleReviewAndNext =
     useCallback(() => {
-      if (!currentQuestionId) {
+      if (
+        !currentQuestionId
+      ) {
         return;
       }
 
       setMarkedForReview(
-        previous => ({
+        (previous) => ({
           ...previous,
           [currentQuestionId]:
             true,
@@ -862,7 +861,7 @@ export default function TestInterface({
         questions.length - 1
       ) {
         setCurrentQuestion(
-          previous =>
+          (previous) =>
             previous + 1
         );
       }
@@ -873,7 +872,7 @@ export default function TestInterface({
     ]);
 
   // ====================================================
-  // RESULT CALCULATION
+  // CALCULATE RESULT
   // ====================================================
 
   const calculateResult =
@@ -897,7 +896,9 @@ export default function TestInterface({
             answers[id] || "";
 
           const isCorrect =
-            Boolean(userAnswer) &&
+            Boolean(
+              userAnswer
+            ) &&
             isAnswerCorrect(
               question,
               userAnswer
@@ -915,15 +916,19 @@ export default function TestInterface({
 
           reviewList.push({
             questionId: id,
+
             question:
               getQuestionText(
                 question
               ),
+
             selectedAnswer:
               userAnswer ||
               "Not Attempted",
+
             correctAnswer:
               question.correctAnswer,
+
             isCorrect,
           });
         }
@@ -936,23 +941,12 @@ export default function TestInterface({
         totalQuestions -
         unattempted;
 
-      // +4 / -1 / 0
-      const marks =
-        correct * 4 -
-        wrong * 1;
-
-      const totalPossibleMarks =
-        totalQuestions * 4;
-
       const percentage =
-        totalPossibleMarks > 0
-          ? Math.max(
-              0,
-              Math.round(
-                (marks /
-                  totalPossibleMarks) *
-                  100
-              )
+        totalQuestions > 0
+          ? Math.round(
+              (correct /
+                totalQuestions) *
+                100
             )
           : 0;
 
@@ -976,7 +970,6 @@ export default function TestInterface({
         unattempted,
         attempted,
         totalQuestions,
-        marks,
         percentage,
         status,
         grade,
@@ -991,19 +984,20 @@ export default function TestInterface({
     ]);
 
   // ====================================================
-  // DAILY EXAM ID
+  // UNIQUE EXAM ID
   // ====================================================
 
   const examId = useMemo(() => {
-    return [
-      "daily",
+    const base = [
       subject,
       className,
       chapterName ||
-        "daily-test",
+        "full-assessment",
     ]
       .filter(Boolean)
-      .join("-")
+      .join("-");
+
+    return `mock-${base}-${studentId}`
       .replace(
         /[^a-zA-Z0-9_-]/g,
         "-"
@@ -1017,13 +1011,14 @@ export default function TestInterface({
     subject,
     className,
     chapterName,
+    studentId,
   ]);
 
   // ====================================================
-  // SUBMIT
+  // SUBMIT EXAM
   // ====================================================
 
-  const submitTest = useCallback(
+  const submitExamData = useCallback(
     async (
       isAutoSubmit = false
     ) => {
@@ -1048,20 +1043,30 @@ export default function TestInterface({
       const result =
         calculateResult();
 
-      const payload = {
+      const testType =
+        subject
+          ?.toUpperCase() ===
+        "NEET"
+          ? "NEET"
+          : subject
+              ?.toUpperCase() ===
+            "JEE"
+          ? "JEE"
+          : "MOCK";
+
+      const resultPayload = {
         studentId,
         studentName,
 
         examId,
 
         examName:
-          `${className} ${subject} Daily Test` +
+          `${subject} Mock Test` +
           (chapterName
             ? ` - ${chapterName}`
-            : ""),
+            : " - Full Assessment"),
 
-        // IMPORTANT
-        testCategory: "daily",
+        testCategory: "mock",
 
         subject,
 
@@ -1071,14 +1076,7 @@ export default function TestInterface({
         className:
           className || "",
 
-        examType:
-          subject?.toUpperCase() ===
-          "NEET"
-            ? "NEET"
-            : subject?.toUpperCase() ===
-              "JEE"
-            ? "JEE"
-            : "DAILY",
+        examType: testType,
 
         totalQuestions:
           result.totalQuestions,
@@ -1096,7 +1094,7 @@ export default function TestInterface({
           result.wrong,
 
         marks:
-          result.marks,
+          result.correct,
 
         percentage:
           result.percentage,
@@ -1110,7 +1108,8 @@ export default function TestInterface({
         timeTaken: Math.max(
           0,
           Math.round(
-            (initialDuration -
+            (questions.length *
+              60 -
               timeLeft) /
               60
           )
@@ -1118,8 +1117,6 @@ export default function TestInterface({
 
         autoSubmitted:
           isAutoSubmit,
-
-        warnings: 0,
 
         review:
           result.reviewList,
@@ -1161,16 +1158,15 @@ export default function TestInterface({
                   : {}),
               },
 
-              body:
-                JSON.stringify(
-                  payload
-                ),
+              body: JSON.stringify(
+                resultPayload
+              ),
             }
           );
 
         if (!response.ok) {
           let errorMessage =
-            "Unable to submit daily test.";
+            "Unable to submit exam.";
 
           try {
             const errorData =
@@ -1181,7 +1177,7 @@ export default function TestInterface({
               errorData?.error ||
               errorMessage;
           } catch {
-            // Ignore
+            // Ignore invalid JSON
           }
 
           throw new Error(
@@ -1189,41 +1185,23 @@ export default function TestInterface({
           );
         }
 
-        let serverResult = null;
+        let serverResult =
+          null;
 
         try {
           serverResult =
             await response.json();
         } catch {
-          // Empty response allowed
+          // Empty response is allowed
         }
 
-        setScore(
-          result.marks
-        );
-
-        setCorrectCount(
-          result.correct
-        );
-
-        setWrongCount(
-          result.wrong
-        );
-
-        setUnattemptedCount(
-          result.unattempted
-        );
-
-        setAttemptedCount(
-          result.attempted
-        );
-
         setResultSummary({
+          ...resultPayload,
           ...result,
-          ...payload,
           serverResult,
         });
 
+        // Clear saved exam state
         sessionStorage.removeItem(
           answerStorageKey
         );
@@ -1237,11 +1215,10 @@ export default function TestInterface({
         );
 
         setSubmitted(true);
-        setIsEditing(false);
         setAutoSubmitted(false);
       } catch (error: any) {
         console.error(
-          "Daily test submission error:",
+          "Exam submission error:",
           error
         );
 
@@ -1252,7 +1229,7 @@ export default function TestInterface({
 
         setSubmitError(
           error?.message ||
-            "Daily test submission failed."
+            "Exam submission failed. Please try again."
         );
       } finally {
         setIsSubmitting(false);
@@ -1262,15 +1239,15 @@ export default function TestInterface({
     [
       isSubmitting,
       calculateResult,
+      subject,
+      chapterName,
+      className,
       studentId,
       studentName,
       examId,
-      className,
-      subject,
-      chapterName,
-      apiBaseUrl,
-      initialDuration,
+      questions.length,
       timeLeft,
+      apiBaseUrl,
       answerStorageKey,
       reviewStorageKey,
       timerStorageKey,
@@ -1289,18 +1266,18 @@ export default function TestInterface({
       !hasSubmittedRef.current &&
       questions.length > 0
     ) {
-      submitTest(true);
+      submitExamData(true);
     }
   }, [
     timeLeft,
     submitted,
     isSubmitting,
     questions.length,
-    submitTest,
+    submitExamData,
   ]);
 
   // ====================================================
-  // KEYBOARD
+  // KEYBOARD SHORTCUTS
   // ====================================================
 
   useEffect(() => {
@@ -1341,6 +1318,15 @@ export default function TestInterface({
       ) {
         event.preventDefault();
         goPrevious();
+      }
+
+      if (
+        event.key ===
+        "Escape"
+      ) {
+        setShowSubmitModal(
+          false
+        );
       }
 
       const number =
@@ -1397,7 +1383,7 @@ export default function TestInterface({
       if (hasProgress) {
         const confirmed =
           window.confirm(
-            "You have unsaved daily test progress. Are you sure you want to exit?"
+            "You have unsaved exam progress. Are you sure you want to exit?"
           );
 
         if (!confirmed) {
@@ -1413,48 +1399,7 @@ export default function TestInterface({
     ]);
 
   // ====================================================
-  // PERFORMANCE
-  // ====================================================
-
-  const getPerformanceDetails =
-    (pct: number) => {
-      if (pct >= 85) {
-        return {
-          title:
-            `Outstanding Performance, ${studentName}! 🚀`,
-          subtitle:
-            "Exceptional performance. Keep maintaining this level!",
-        };
-      }
-
-      if (pct >= 60) {
-        return {
-          title:
-            `Great Job, ${studentName}! 🌟`,
-          subtitle:
-            "Strong performance. Keep improving consistently!",
-        };
-      }
-
-      if (pct >= 35) {
-        return {
-          title:
-            `Good Effort, ${studentName}! 👍`,
-          subtitle:
-            "You passed. Review the incorrect answers and improve further.",
-        };
-      }
-
-      return {
-        title:
-          `Keep Practicing, ${studentName}! 💪`,
-        subtitle:
-          "Review your mistakes and try again with better preparation.",
-      };
-    };
-
-  // ====================================================
-  // EMPTY
+  // EMPTY QUESTIONS
   // ====================================================
 
   if (!questions.length) {
@@ -1466,12 +1411,12 @@ export default function TestInterface({
           </div>
 
           <h2>
-            No Daily Questions Available
+            No Questions Available
           </h2>
 
           <p>
             Questions are not available
-            for this daily test yet.
+            for this test yet.
           </p>
 
           <button
@@ -1479,7 +1424,7 @@ export default function TestInterface({
             className="premium-btn primary"
           >
             <ArrowLeft size={18} />
-            Back
+            Back to Dashboard
           </button>
         </div>
       </div>
@@ -1487,174 +1432,98 @@ export default function TestInterface({
   }
 
   // ====================================================
-  // RESULT SCREEN
+  // SUBMITTED SCREEN
   // ====================================================
 
-  if (
-    submitted &&
-    !isEditing
-  ) {
-    const totalPossible =
-      questions.length * 4;
-
-    const percentage =
-      totalPossible > 0
-        ? Math.max(
-            0,
-            Math.round(
-              (score /
-                totalPossible) *
-                100
-            )
-          )
-        : 0;
-
-    const performance =
-      getPerformanceDetails(
-        percentage
-      );
-
+  if (submitted) {
     return (
-      <div
-        className="test-result-wrapper"
-        style={
-          {
-            "--exam-primary":
-              themeColor,
-          } as React.CSSProperties
-        }
-      >
-        <div className="test-result-card">
-          <div
-            className="test-trophy-icon"
-            style={{
-              background:
-                `${themeColor}15`,
-              color:
-                themeColor,
-            }}
-          >
-            <Trophy size={40} />
+      <div className="exam-page result-page">
+        <div className="result-card">
+          <div className="result-success-icon">
+            <CheckCircle2 size={38} />
           </div>
 
-          <div className="daily-result-badge">
-            DAILY TEST •{" "}
-            {subject.toUpperCase()} •{" "}
-            {percentage}%
+          <div className="result-badge">
+           
+            TEST SUBMITTED
           </div>
 
-          <h1 className="test-title">
-            {performance.title}
+          <h1>
+            Test Submitted Successfully
           </h1>
 
-          <p className="test-subtitle">
-            {performance.subtitle}
+          <p>
+            Your {subject} mock test has
+            been submitted successfully.
           </p>
 
-          <div
-            className="test-score-circle"
-            style={{
-              border:
-                `6px solid ${themeColor}`,
-            }}
-          >
-            <strong>
-              {score}
-            </strong>
+          {resultSummary && (
+            <div className="result-mini-grid">
+              <div>
+                <span>
+                  Score
+                </span>
+
+                <strong>
+                  {
+                    resultSummary.correct
+                  }
+                  /
+                  {
+                    resultSummary.totalQuestions
+                  }
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  Percentage
+                </span>
+
+                <strong>
+                  {
+                    resultSummary.percentage
+                  }%
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  Grade
+                </span>
+
+                <strong>
+                  {
+                    resultSummary.grade
+                  }
+                </strong>
+              </div>
+            </div>
+          )}
+
+          <div className="result-info">
+            <ShieldCheck size={18} />
 
             <span>
-              TOTAL MARKS
+              Your result has been securely
+              recorded.
             </span>
           </div>
 
-          <div className="daily-result-grid">
-            <div>
-              <span>Total</span>
-              <strong>
-                {questions.length}
-              </strong>
-            </div>
-
-            <div>
-              <span>Attempted</span>
-              <strong>
-                {attemptedCount}
-              </strong>
-            </div>
-
-            <div className="correct-box">
-              <span>
-                Correct (+4)
-              </span>
-              <strong>
-                {correctCount}
-              </strong>
-            </div>
-
-            <div className="wrong-box">
-              <span>
-                Wrong (-1)
-              </span>
-              <strong>
-                {wrongCount}
-              </strong>
-            </div>
-
-            <div className="skip-box">
-              <span>
-                Unattempted
-              </span>
-              <strong>
-                {unattemptedCount}
-              </strong>
-            </div>
-
-            <div>
-              <span>Grade</span>
-              <strong>
-                {resultSummary?.grade ||
-                  (percentage >= 85
-                    ? "A"
-                    : percentage >= 60
-                    ? "B"
-                    : percentage >= 35
-                    ? "C"
-                    : "F")}
-              </strong>
-            </div>
-          </div>
-
-          <div className="daily-result-actions">
-            <button
-              onClick={() => {
-                setIsEditing(true);
-                setSubmitted(false);
-              }}
-              className="daily-review-btn"
-            >
-              <RotateCcw size={17} />
-              Review Full Solutions
-            </button>
-
-            <button
-              onClick={onBack}
-              className="daily-back-btn"
-              style={{
-                background:
-                  themeColor,
-              }}
-            >
-              Back to Dashboard
-              <ArrowRight size={17} />
-            </button>
-          </div>
+          <button
+            onClick={onBack}
+            className="premium-btn primary result-back-btn"
+          >
+            Return to Dashboard
+            <ArrowRight size={18} />
+          </button>
         </div>
       </div>
     );
   }
 
   // ====================================================
-  // MAIN UI
+  // MAIN EXAM UI
   // ====================================================
 
   return (
@@ -1678,41 +1547,37 @@ export default function TestInterface({
           <button
             className="header-back-btn"
             onClick={handleExit}
-            title="Exit daily test"
+            title="Exit exam"
           >
             <ChevronLeft size={20} />
           </button>
 
-          <div
-            className="exam-brand-mark daily-brand"
-            style={{
-              background:
-                themeColor,
-            }}
-          >
-            <Trophy size={18} />
+          <div className="exam-brand-mark">
+            <Zap size={18} />
           </div>
 
           <div className="exam-heading">
             <div className="exam-title-row">
               <h3>
-                {subject} Daily Test
+                {subject} Mock Test
               </h3>
 
-              <span
-                className="exam-type-badge"
-                style={{
-                  color:
-                    themeColor,
-                }}
-              >
-                DAILY
+              <span className="exam-type-badge">
+                {subject
+                  ?.toUpperCase() ===
+                "NEET"
+                  ? "NEET"
+                  : subject
+                      ?.toUpperCase() ===
+                    "JEE"
+                  ? "JEE"
+                  : "MOCK"}
               </span>
             </div>
 
             <span>
               {chapterName ||
-                "Daily Practice"}{" "}
+                "Full Assessment"}{" "}
               • {className}
             </span>
           </div>
@@ -1758,7 +1623,7 @@ export default function TestInterface({
       </header>
 
       {/* ==================================================
-          BODY
+          EXAM BODY
       ================================================== */}
 
       <div className="exam-body">
@@ -1767,13 +1632,13 @@ export default function TestInterface({
         ================================================== */}
 
         <main className="question-panel">
+          {/* TOP META */}
+
           <div className="question-topbar">
             <div>
               <div className="question-progress-label">
                 QUESTION{" "}
-                {
-                  currentDisplayQuestionNumber
-                }{" "}
+                {currentDisplayQuestionNumber}{" "}
                 OF{" "}
                 {questions.length}
               </div>
@@ -1781,13 +1646,12 @@ export default function TestInterface({
               <div className="question-progress">
                 <div
                   style={{
-                    width:
-                      `${
-                        ((currentQuestion +
-                          1) /
-                          questions.length) *
-                        100
-                      }%`,
+                    width: `${
+                      ((currentQuestion +
+                        1) /
+                        questions.length) *
+                      100
+                    }%`,
                   }}
                 />
               </div>
@@ -1820,15 +1684,7 @@ export default function TestInterface({
           {/* QUESTION */}
 
           <section className="question-content">
-            <div
-              className="question-number"
-              style={{
-                background:
-                  `${themeColor}12`,
-                color:
-                  themeColor,
-              }}
-            >
+            <div className="question-number">
               Q
               {
                 currentDisplayQuestionNumber
@@ -1843,95 +1699,12 @@ export default function TestInterface({
               </h1>
 
               <div className="question-hint">
-                Select your answer
+                
+
+                Select your option
               </div>
             </div>
           </section>
-
-          {/* IMAGE */}
-
-          {(currentQ?.questionImage ||
-            currentQ?.imageUrl) && (
-            <div className="question-image-container">
-              <img
-                src={
-                  currentQ.questionImage ||
-                  currentQ.imageUrl
-                }
-                alt={`Question ${currentDisplayQuestionNumber}`}
-                className="question-image"
-              />
-            </div>
-          )}
-
-          {/* TABLE */}
-
-          {currentQ?.tableHeaders &&
-            currentQ.tableHeaders
-              .length > 0 && (
-              <div className="question-table-wrapper">
-                <table className="question-table">
-                  <thead>
-                    <tr>
-                      {currentQ.tableHeaders.map(
-                        (
-                          header,
-                          index
-                        ) => (
-                          <th key={index}>
-                            {header}
-                          </th>
-                        )
-                      )}
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    {(
-                      currentQ.tableRows ||
-                      []
-                    ).map(
-                      (
-                        row,
-                        rowIndex
-                      ) => (
-                        <tr
-                          key={
-                            rowIndex
-                          }
-                        >
-                          {(
-                            Array.isArray(
-                              row
-                            )
-                              ? row
-                              : Object.values(
-                                  row || {}
-                                )
-                          ).map(
-                            (
-                              cell,
-                              cellIndex
-                            ) => (
-                              <td
-                                key={
-                                  cellIndex
-                                }
-                              >
-                                {String(
-                                  cell ??
-                                    ""
-                                )}
-                              </td>
-                            )
-                          )}
-                        </tr>
-                      )
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            )}
 
           {/* OPTIONS */}
 
@@ -1957,44 +1730,15 @@ export default function TestInterface({
                     65 + index
                   );
 
-                const correctOption =
-                  isAnswerCorrect(
-                    currentQ,
-                    optionText
-                  );
-
-                const showResult =
-                  submitted &&
-                  !isEditing;
-
-                let stateClass =
-                  "";
-
-                if (
-                  showResult &&
-                  correctOption
-                ) {
-                  stateClass =
-                    "correct-option";
-                } else if (
-                  showResult &&
-                  isSelected &&
-                  !correctOption
-                ) {
-                  stateClass =
-                    "wrong-option";
-                } else if (
-                  isSelected
-                ) {
-                  stateClass =
-                    "selected";
-                }
-
                 return (
                   <button
                     key={`${currentQuestionId}-${index}`}
                     type="button"
-                    className={`answer-option ${stateClass}`}
+                    className={`answer-option ${
+                      isSelected
+                        ? "selected"
+                        : ""
+                    }`}
                     onClick={() =>
                       handleSelectOption(
                         optionText
@@ -2002,14 +1746,7 @@ export default function TestInterface({
                     }
                   >
                     <span className="option-letter">
-                      {showResult &&
-                      correctOption ? (
-                        <Check size={16} />
-                      ) : showResult &&
-                        isSelected &&
-                        !correctOption ? (
-                        <X size={16} />
-                      ) : isSelected ? (
+                      {isSelected ? (
                         <Check size={16} />
                       ) : (
                         optionLetter
@@ -2020,56 +1757,45 @@ export default function TestInterface({
                       {optionText}
                     </span>
 
-                    {showResult &&
-                      correctOption && (
-                        <span className="option-result correct">
-                          Correct Choice
-                        </span>
-                      )}
-
-                    {showResult &&
-                      isSelected &&
-                      !correctOption && (
-                        <span className="option-result wrong">
-                          Your Choice
-                        </span>
-                      )}
+                    {isSelected && (
+                      <span className="selected-check">
+                        <Check size={15} />
+                      </span>
+                    )}
                   </button>
                 );
               }
             )}
           </div>
 
-          {/* ACTIONS */}
+          {/* ACTION BAR */}
 
-          {!submitted && (
-            <div className="question-actions">
-              <button
-                className="text-action danger-text"
-                onClick={
-                  handleClearAnswer
-                }
-              >
-                <RotateCcw size={15} />
-                Clear Response
-              </button>
+          <div className="question-actions">
+            <button
+              className="text-action danger-text"
+              onClick={
+                handleClearAnswer
+              }
+            >
+              <RotateCcw size={15} />
+              Clear Response
+            </button>
 
-              <button
-                className="text-action review-action"
-                onClick={
-                  handleReviewAndNext
-                }
-              >
-                <Flag size={15} />
+            <button
+              className="text-action review-action"
+              onClick={
+                handleReviewAndNext
+              }
+            >
+              <Flag size={15} />
 
-                {markedForReview[
-                  currentQuestionId
-                ]
-                  ? "Marked • Next"
-                  : "Mark & Next"}
-              </button>
-            </div>
-          )}
+              {markedForReview[
+                currentQuestionId
+              ]
+                ? "Marked • Next"
+                : "Mark & Next"}
+            </button>
+          </div>
 
           {/* NAVIGATION */}
 
@@ -2133,14 +1859,10 @@ export default function TestInterface({
 
         {showPalette && (
           <aside className="exam-sidebar">
+            {/* STUDENT */}
+
             <div className="student-card">
-              <div
-                className="student-avatar"
-                style={{
-                  background:
-                    themeColor,
-                }}
-              >
+              <div className="student-avatar">
                 {studentName
                   ?.charAt(0)
                   ?.toUpperCase() ||
@@ -2170,6 +1892,7 @@ export default function TestInterface({
                 <strong>
                   {answeredCount}
                 </strong>
+
                 <span>
                   Answered
                 </span>
@@ -2179,6 +1902,7 @@ export default function TestInterface({
                 <strong>
                   {reviewCount}
                 </strong>
+
                 <span>
                   Review
                 </span>
@@ -2188,6 +1912,7 @@ export default function TestInterface({
                 <strong>
                   {unansweredCount}
                 </strong>
+
                 <span>
                   Remaining
                 </span>
@@ -2285,8 +2010,10 @@ export default function TestInterface({
                         index + 1
                       }`}
                     >
-                      {question.questionNumber ??
-                        index + 1}
+                      {
+                        question.questionNumber ??
+                        index + 1
+                      }
                     </button>
                   );
                 }
@@ -2328,7 +2055,7 @@ export default function TestInterface({
 
               <span>
                 <strong>
-                  Submit Daily Test
+                  Submit Exam
                 </strong>
 
                 <small>
@@ -2336,23 +2063,21 @@ export default function TestInterface({
                 </small>
               </span>
 
-              <ArrowRight
-                size={17}
-              />
+              <ArrowRight size={17} />
             </button>
           </aside>
         )}
       </div>
 
       {/* ==================================================
-          MOBILE PALETTE
+          MOBILE PALETTE BUTTON
       ================================================== */}
 
       <button
         className="mobile-palette-toggle"
         onClick={() =>
           setShowPalette(
-            previous =>
+            (previous) =>
               !previous
           )
         }
@@ -2381,7 +2106,7 @@ export default function TestInterface({
         >
           <div
             className="submit-modal"
-            onClick={event =>
+            onClick={(event) =>
               event.stopPropagation()
             }
           >
@@ -2399,20 +2124,12 @@ export default function TestInterface({
               <X size={18} />
             </button>
 
-            <div
-              className="modal-icon"
-              style={{
-                background:
-                  `${themeColor}15`,
-                color:
-                  themeColor,
-              }}
-            >
+            <div className="modal-icon">
               <Send size={25} />
             </div>
 
             <div className="modal-badge">
-              DAILY TEST SUBMISSION
+              FINAL SUBMISSION
             </div>
 
             <h2>
@@ -2421,15 +2138,18 @@ export default function TestInterface({
 
             <p>
               Once submitted, your
-              responses will be
-              recorded and evaluated.
+              responses will be recorded
+              and evaluated.
             </p>
+
+            {/* SUMMARY */}
 
             <div className="submit-summary">
               <div>
                 <span>
                   Total
                 </span>
+
                 <strong>
                   {questions.length}
                 </strong>
@@ -2439,6 +2159,7 @@ export default function TestInterface({
                 <span>
                   Answered
                 </span>
+
                 <strong>
                   {answeredCount}
                 </strong>
@@ -2448,6 +2169,7 @@ export default function TestInterface({
                 <span>
                   Review
                 </span>
+
                 <strong>
                   {reviewCount}
                 </strong>
@@ -2457,6 +2179,7 @@ export default function TestInterface({
                 <span>
                   Unanswered
                 </span>
+
                 <strong>
                   {unansweredCount}
                 </strong>
@@ -2477,8 +2200,7 @@ export default function TestInterface({
                       unansweredCount
                     }
                   </strong>{" "}
-                  unanswered
-                  question
+                  unanswered question
                   {unansweredCount >
                   1
                     ? "s"
@@ -2493,6 +2215,7 @@ export default function TestInterface({
                 <AlertTriangle
                   size={17}
                 />
+
                 {submitError}
               </div>
             )}
@@ -2518,12 +2241,10 @@ export default function TestInterface({
                   isSubmitting
                 }
                 onClick={() =>
-                  submitTest(false)
+                  submitExamData(
+                    false
+                  )
                 }
-                style={{
-                  background:
-                    themeColor,
-                }}
               >
                 {isSubmitting ? (
                   <>
@@ -2531,6 +2252,7 @@ export default function TestInterface({
                       size={18}
                       className="spin"
                     />
+
                     Submitting...
                   </>
                 ) : (
@@ -2538,6 +2260,7 @@ export default function TestInterface({
                     <CheckCircle2
                       size={18}
                     />
+
                     Confirm Submit
                   </>
                 )}
@@ -2548,7 +2271,7 @@ export default function TestInterface({
       )}
 
       {/* ==================================================
-          AUTO SUBMIT
+          AUTO SUBMIT OVERLAY
       ================================================== */}
 
       {autoSubmitted &&
@@ -2567,9 +2290,8 @@ export default function TestInterface({
               </h2>
 
               <p>
-                Your daily test is
-                being submitted
-                automatically.
+                Your test is being
+                submitted automatically.
               </p>
 
               <Loader2

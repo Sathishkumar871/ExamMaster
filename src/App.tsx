@@ -13,10 +13,12 @@ import StudentRegister from "./pages/StudentRegister";
 import Exam from "./pages/Exam";
 import SubjectsExam from "./pages/SubjectsExam";
 import Result from "./pages/Result";
+import ExamHistory from "./pages/ExamHistory";
+import Leaderboard from "./pages/Leaderboard";
 import AnswerReview from "./pages/AnswerReview";
-import Subjects from "./pages/Subjects";
+import AcademicHelp from "./pages/student/AcademicHelp";
 import MockTests from "./pages/MockTests";
-import JEEMockTest from "./pages/JEEMockTest";
+import JEEMockTest from "./pages/JEEMOCKTEST";
 import DailyTest from "./pages/DailyTest";
 import StudentComplaints from "./pages/StudentComplaints";
 
@@ -215,7 +217,16 @@ function App() {
             </ProtectedRoute>
           }
         />
-
+           
+           <Route
+  path="/leaderboard"
+  element={
+    <ProtectedRoute>
+      <Leaderboard />
+    </ProtectedRoute>
+  }
+/>
+          
         <Route
           path="/profile"
           element={
@@ -226,14 +237,13 @@ function App() {
         />
 
         <Route
-          path="/subjects"
-          element={
-            <ProtectedRoute>
-              <Subjects />
-            </ProtectedRoute>
-          }
-        />
-
+     path="/study-materials"
+     element={
+    <ProtectedRoute>
+      <AcademicHelp />
+    </ProtectedRoute>
+    }
+    />
 
         {/* =====================================================
             DAILY TEST
@@ -414,7 +424,7 @@ function App() {
           }
         />
 
-
+         <Route path="/results" element={<ExamHistory />} />
         {/* =====================================================
             ANSWER REVIEW
         ====================================================== */}

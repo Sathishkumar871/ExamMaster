@@ -1,483 +1,1757 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import FaceVerification from "./../components/FaceVerification";
-import { Clock, ShieldAlert, Bookmark, ArrowRight, ArrowLeft, LogOut, Lock } from "lucide-react";
-import "./JeeMains.css";
 
-// ఆటోమేటిక్ డిటెక్షన్ (Local & Render)
-const API_BASE_URL = 
-  window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+import {
+  ArrowLeft,
+  ArrowRight,
+  Award,
+  BookOpen,
+  CheckCircle2,
+  Clock3,
+  FileQuestion,
+  GraduationCap,
+  Info,
+  LockKeyhole,
+  RefreshCw,
+  ShieldCheck,
+  Target,
+  Trophy,
+  Wifi,
+  WifiOff,
+  X,
+  Zap,
+} from "lucide-react";
+
+import MockTestInterface from "../components/MockTestInterface";
+import "./JEEMockTest.css";
+
+/* =========================================================
+   API
+========================================================= */
+
+const API_BASE_URL =
+  window.location.hostname === "localhost" ||
+  window.location.hostname === "127.0.0.1"
     ? "http://localhost:5000"
     : "https://exammaster-backend-up1y.onrender.com";
 
+/* =========================================================
+   JEE MAIN CONFIG
+========================================================= */
+
+const JEE_CONFIG = {
+  examName: "JEE Main",
+  fullExamName: "JEE Main Full Mock Test",
+  questions: 75,
+  duration: "3 Hours",
+  maxMarks: 300,
+  subjects: "Physics • Chemistry • Mathematics",
+  pattern: "JEE Main",
+};
+
+/* =========================================================
+   TYPES
+========================================================= */
+
 interface Question {
   _id: string;
+
   questionText?: string;
   question?: string;
+
   options: string[];
+
   correctAnswer: string;
+
   isPublished?: boolean;
   status?: string;
+
   examType?: string;
+  exam?: string;
+
   testCategory?: string;
+  category?: string;
+
   className?: string;
   class?: string;
+
+  subject?: string;
+
+  chapter?: string;
+  chapterName?: string;
+
+  questionNumber?: number;
+
+  [key: string]: any;
 }
 
-export default function JeeMains() {
+interface ExamResult {
+  _id?: string;
+
+  score?: number;
+  marks?: number;
+
+  totalQuestions?: number;
+  attemptedQuestions?: number;
+
+  correctAnswers?: number;
+  wrongAnswers?: number;
+  unansweredQuestions?: number;
+
+  percentage?: number;
+
+  grade?: string;
+  status?: string;
+
+  examName?: string;
+  subject?: string;
+  chapter?: string;
+  className?: string;
+  examType?: string;
+
+  createdAt?: string;
+  submittedAt?: string;
+
+  timeTaken?: number;
+
+  [key: string]: any;
+}
+
+type Step =
+  | "dashboard"
+  | "instructions"
+  | "greeting"
+  | "exam";
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+const safeParse = <T,>(
+  value: string | null
+): T | null => {
+  if (!value) return null;
+
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return null;
+  }
+};
+
+const normalize = (value?: string) =>
+  String(value || "")
+    .trim()
+    .toLowerCase();
+
+const clampPercentage = (value: number) =>
+  Math.max(
+    0,
+    Math.min(
+      100,
+      Number.isFinite(value) ? value : 0
+    )
+  );
+
+/* =========================================================
+   COMPONENT
+========================================================= */
+
+export default function MockTests() {
   const navigate = useNavigate();
 
-  const [step, setStep] = useState<string>("verify");
-  
-  const [questions, setQuestions] = useState<Question[]>(() => {
-    const saved = localStorage.getItem("jeemains_questions");
-    return saved ? JSON.parse(saved) : [];
-  });
+  /* =======================================================
+     FLOW
+  ======================================================= */
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [step, setStep] =
+    useState<Step>("dashboard");
 
-  const [studentName, setStudentName] = useState("Student");
-  const [studentId, setStudentId] = useState("");
-  const [className, setClassName] = useState<string>("");
-  const [academicYear, setAcademicYear] = useState<string>("2026-2027");
-  
-  const [violationCount, setViolationCount] = useState<number>(0);
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  
-  const [answers, setAnswers] = useState<Record<string, string>>(() => {
-    const saved = localStorage.getItem("jeemains_answers");
-    return saved ? JSON.parse(saved) : {};
-  });
+  /* =======================================================
+     PREVIOUS RESULT
+  ======================================================= */
 
-  const [markedForReview, setMarkedForReview] = useState<Record<string, boolean>>(() => {
-    const saved = localStorage.getItem("jeemains_marked");
-    return saved ? JSON.parse(saved) : {};
-  });
+  const [alreadySubmitted, setAlreadySubmitted] =
+    useState(false);
 
-  const [timeLeft, setTimeLeft] = useState<number>(30 * 60);
+  const [examResult, setExamResult] =
+    useState<ExamResult | null>(null);
+
+  /* =======================================================
+     QUESTIONS
+  ======================================================= */
+
+  const [questions, setQuestions] =
+    useState<Question[]>([]);
+
+  /* =======================================================
+     STATES
+  ======================================================= */
+
+  const [loading, setLoading] =
+    useState(false);
+
+  const [checkingSubmission, setCheckingSubmission] =
+    useState(true);
+
+  const [error, setError] =
+    useState("");
+
+  const [studentName, setStudentName] =
+    useState("Student");
+
+  const [studentId, setStudentId] =
+    useState("");
+
+  const [className, setClassName] =
+    useState("");
+
+  const [examType, setExamType] =
+    useState("JEE");
+
+  const [showInstructions, setShowInstructions] =
+    useState(false);
+
+  const [isReady, setIsReady] =
+    useState(false);
+
+  const [isOnline, setIsOnline] =
+    useState(navigator.onLine);
+
+  /* =========================================================
+     NETWORK STATUS
+  ========================================================= */
 
   useEffect(() => {
-    const token = localStorage.getItem("studentToken") || localStorage.getItem("token");
+    const handleOnline = () => {
+      setIsOnline(true);
+    };
+
+    const handleOffline = () => {
+      setIsOnline(false);
+    };
+
+    window.addEventListener(
+      "online",
+      handleOnline
+    );
+
+    window.addEventListener(
+      "offline",
+      handleOffline
+    );
+
+    return () => {
+      window.removeEventListener(
+        "online",
+        handleOnline
+      );
+
+      window.removeEventListener(
+        "offline",
+        handleOffline
+      );
+    };
+  }, []);
+
+  /* =========================================================
+     LOAD STUDENT
+  ========================================================= */
+
+  useEffect(() => {
+    const token =
+      localStorage.getItem("studentToken") ||
+      localStorage.getItem("token");
 
     if (!token) {
       navigate("/login");
       return;
     }
 
-    const getStoredName = () => {
-      const direct = localStorage.getItem("studentName") || localStorage.getItem("name");
-      if (direct) return direct;
-      
-      const userStr = localStorage.getItem("user") || localStorage.getItem("student");
-      if (userStr) {
-        try {
-          const obj = JSON.parse(userStr);
-          if (obj?.name) return obj.name;
-        } catch (e) {}
-      }
-      return "Student";
-    };
+    const user =
+      safeParse<any>(
+        localStorage.getItem("user")
+      ) ||
+      safeParse<any>(
+        localStorage.getItem("student")
+      ) ||
+      {};
 
-    const getStoredId = () => {
-      const direct = localStorage.getItem("studentId") || localStorage.getItem("id");
-      if (direct) return direct;
+    const storedName =
+      localStorage.getItem("studentName") ||
+      localStorage.getItem("name") ||
+      user?.name ||
+      "Student";
 
-      const userStr = localStorage.getItem("user") || localStorage.getItem("student");
-      if (userStr) {
-        try {
-          const obj = JSON.parse(userStr);
-          if (obj?.studentId || obj?.id) return obj.studentId || obj.id;
-        } catch (e) {}
-      }
-      return "SEC-2026-X";
-    };
+    const storedId =
+      localStorage.getItem("studentId") ||
+      localStorage.getItem("id") ||
+      user?.studentId ||
+      user?.id ||
+      user?._id ||
+      "";
 
-    const getStoredClass = () => {
-      const direct = localStorage.getItem("className") || localStorage.getItem("class") || localStorage.getItem("puc");
-      if (direct) return direct;
+    const storedClass =
+      localStorage.getItem("className") ||
+      localStorage.getItem("class") ||
+      localStorage.getItem("puc") ||
+      user?.className ||
+      user?.class ||
+      user?.puc ||
+      "";
 
-      const userStr = localStorage.getItem("user") || localStorage.getItem("student");
-      if (userStr) {
-        try {
-          const obj = JSON.parse(userStr);
-          if (obj?.className) return obj.className;
-          if (obj?.class) return obj.class;
-          if (obj?.puc) return obj.puc;
-        } catch (e) {}
-      }
-      return "";
-    };
+    /*
+     * JEE FIXED
+     *
+     * If you want to make it dynamic later,
+     * remove "JEE" and read it from localStorage.
+     */
 
-    setStudentName(getStoredName());
-    setStudentId(getStoredId());
-    setClassName(getStoredClass());
-  }, [navigate]);
+    const storedExam = "JEE";
 
-  // Dedicated Backend API Call for JEE Mock Questions (using API_BASE_URL)
-  const fetchJeeQuestions = async (selectedClass: string) => {
-    setLoading(true);
-    setError("");
-    const token = localStorage.getItem("studentToken") || localStorage.getItem("token");
+    setStudentName(storedName);
+    setStudentId(storedId);
+    setClassName(storedClass);
+    setExamType(storedExam);
 
-    try {
-      const queryParams = new URLSearchParams({
-        examType: "JEE",
-        className: selectedClass || ""
-      });
+    if (!storedId) {
+      setCheckingSubmission(false);
 
-      const response = await fetch(
-        `${API_BASE_URL}/api/questions/mock-tests?${queryParams.toString()}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
+      setError(
+        "Student identification could not be found. Please log in again."
       );
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to load JEE questions");
-      }
-
-      const loadedQuestions = data.questions || [];
-      
-      setQuestions(loadedQuestions);
-      localStorage.setItem("jeemains_questions", JSON.stringify(loadedQuestions));
-
-      const calculatedTime = loadedQuestions.length > 0 ? loadedQuestions.length * 60 : 30 * 60;
-      setTimeLeft(calculatedTime);
-    } catch (err) {
-      console.error(err);
-      setError("Unable to load JEE Mains Mock Test questions from server.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (step === "exam") {
-      localStorage.setItem("jeemains_answers", JSON.stringify(answers));
-      localStorage.setItem("jeemains_marked", JSON.stringify(markedForReview));
-    }
-  }, [answers, markedForReview, step]);
-
-  useEffect(() => {
-    if (step !== "exam") return;
-
-    if (timeLeft <= 0) {
-      submitExam();
       return;
     }
 
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => prev - 1);
-    }, 1000);
+    /* =====================================================
+       CACHE PREVIOUS RESULT
+    ===================================================== */
 
-    return () => clearInterval(timer);
-  }, [step, timeLeft]);
+    const cachedResult =
+      localStorage.getItem(
+        `exam_result_${storedId}_${storedExam}`
+      );
 
-  const handleFaceVerified = () => {
-    setStep("dashboard");
-  };
+    const cachedSubmitted =
+      localStorage.getItem(
+        `exam_submitted_${storedId}_${storedExam}`
+      );
 
-  const handleViolation = (count: number) => {
-    setViolationCount((prev) => prev + count);
-  };
+    if (
+      cachedSubmitted === "true" &&
+      cachedResult
+    ) {
+      const parsedResult =
+        safeParse<ExamResult>(
+          cachedResult
+        );
 
-  const handleStartExam = async () => {
-    setStep("greeting");
-    await fetchJeeQuestions(className);
-
-    setTimeout(() => {
-      setStep("exam");
-      setCurrentQuestion(0);
-    }, 3000);
-  };
-
-  const selectAnswer = (answer: string) => {
-    const question = questions[currentQuestion];
-    if (!question) return;
-
-    setAnswers((prev) => ({
-      ...prev,
-      [question._id]: answer,
-    }));
-  };
-
-  const handleClearResponse = () => {
-    const question = questions[currentQuestion];
-    if (!question) return;
-    const updated = { ...answers };
-    delete updated[question._id];
-    setAnswers(updated);
-  };
-
-  const handleMarkReview = () => {
-    const question = questions[currentQuestion];
-    if (!question) return;
-    setMarkedForReview({
-      ...markedForReview,
-      [question._id]: !markedForReview[question._id]
-    });
-  };
-
-  const nextQuestion = () => {
-    if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion((prev) => prev + 1);
-    }
-  };
-
-  const previousQuestion = () => {
-    if (currentQuestion > 0) {
-      setCurrentQuestion((prev) => prev - 1);
-    }
-  };
-
-  const submitExam = async () => {
-    let calculatedScore = 0;
-
-    questions.forEach((question) => {
-      if (answers[question._id] === question.correctAnswer) {
-        calculatedScore++;
+      if (parsedResult) {
+        setExamResult(parsedResult);
+        setAlreadySubmitted(true);
       }
-    });
+    }
+
+    checkBackendSubmission(
+      storedId,
+      token,
+      storedExam
+    );
+  }, [navigate]);
+
+  /* =========================================================
+     BACKEND PREVIOUS RESULT CHECK
+  ========================================================= */
+
+  const checkBackendSubmission = async (
+    id: string,
+    token: string,
+    currentExamType: string
+  ) => {
+    setCheckingSubmission(true);
 
     try {
-      const token = localStorage.getItem("studentToken") || localStorage.getItem("token");
-      await fetch(`${API_BASE_URL}/api/exams/submit`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          examType: "JEE",
-          testCategory: "Mock Test",
-          className,
-          answers,
-          score: calculatedScore,
-        }),
-      });
-    } catch (e) {
-      console.log("Backend submission error", e);
-    }
+      const response =
+        await fetch(
+          `${API_BASE_URL}/api/results/student/${encodeURIComponent(
+            id
+          )}`,
+          {
+            method: "GET",
 
-    localStorage.removeItem("jeemains_answers");
-    localStorage.removeItem("jeemains_marked");
-    localStorage.removeItem("jeemains_questions");
-    navigate("/");
+            headers: {
+              Authorization:
+                `Bearer ${token}`,
+
+              "Content-Type":
+                "application/json",
+            },
+          }
+        );
+
+      /*
+       * Previous result API failure
+       * must NOT block new exam.
+       */
+
+      if (!response.ok) {
+        console.warn(
+          "Previous result check failed."
+        );
+
+        return;
+      }
+
+      const data =
+        await response.json();
+
+      const resultsList: ExamResult[] =
+        Array.isArray(data)
+          ? data
+          : Array.isArray(data?.results)
+          ? data.results
+          : Array.isArray(data?.data)
+          ? data.data
+          : [];
+
+      const target =
+        normalize(currentExamType);
+
+      const matchingResults =
+        resultsList.filter(
+          (result) => {
+            const subject =
+              normalize(
+                result.subject
+              );
+
+            const examName =
+              normalize(
+                result.examName
+              );
+
+            const resultExamType =
+              normalize(
+                result.examType
+              );
+
+            return (
+              subject === target ||
+              resultExamType === target ||
+              examName.includes(target)
+            );
+          }
+        );
+
+      if (
+        matchingResults.length > 0
+      ) {
+        const sortedResults =
+          [...matchingResults].sort(
+            (a, b) => {
+              const first =
+                new Date(
+                  a.submittedAt ||
+                    a.createdAt ||
+                    0
+                ).getTime();
+
+              const second =
+                new Date(
+                  b.submittedAt ||
+                    b.createdAt ||
+                    0
+                ).getTime();
+
+              return second - first;
+            }
+          );
+
+        const latestResult =
+          sortedResults[0];
+
+        setExamResult(
+          latestResult
+        );
+
+        setAlreadySubmitted(
+          true
+        );
+
+        localStorage.setItem(
+          `exam_submitted_${id}_${currentExamType}`,
+          "true"
+        );
+
+        localStorage.setItem(
+          `exam_result_${id}_${currentExamType}`,
+          JSON.stringify(
+            latestResult
+          )
+        );
+      }
+    } catch (err) {
+      console.error(
+        "Backend submission verification failed:",
+        err
+      );
+    } finally {
+      setCheckingSubmission(false);
+    }
   };
 
-  const formatTime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
+  /* =========================================================
+     FETCH JEE MOCK QUESTIONS
+  ========================================================= */
 
-    if (hours > 0) {
-      return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+  const fetchQuestionsForClass =
+    async (
+      selectedClass: string,
+      selectedExamType: string
+    ) => {
+      setLoading(true);
+      setError("");
+
+      const token =
+        localStorage.getItem(
+          "studentToken"
+        ) ||
+        localStorage.getItem(
+          "token"
+        );
+
+      if (!token) {
+        navigate("/login");
+        setLoading(false);
+        return false;
+      }
+
+      try {
+        const queryParams =
+          new URLSearchParams();
+
+        if (selectedClass) {
+          queryParams.append(
+            "className",
+            selectedClass
+          );
+        }
+
+        /*
+         * JEE
+         */
+
+        queryParams.append(
+          "examType",
+          selectedExamType || "JEE"
+        );
+
+        const response =
+          await fetch(
+            `${API_BASE_URL}/api/questions/mock-tests?${queryParams.toString()}`,
+            {
+              method: "GET",
+
+              headers: {
+                Authorization:
+                  `Bearer ${token}`,
+
+                "Content-Type":
+                  "application/json",
+              },
+            }
+          );
+
+        const data =
+          await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data?.message ||
+              data?.error ||
+              "Unable to load JEE mock test questions."
+          );
+        }
+
+        const loadedQuestions =
+          data?.questions ||
+          data?.data ||
+          data;
+
+        if (
+          !Array.isArray(
+            loadedQuestions
+          )
+        ) {
+          throw new Error(
+            "The server returned an invalid question format."
+          );
+        }
+
+        if (
+          loadedQuestions.length === 0
+        ) {
+          throw new Error(
+            "No JEE questions are currently available for this mock test."
+          );
+        }
+
+        /* =================================================
+           NORMALIZE QUESTIONS
+        ================================================= */
+
+        const normalizedQuestions =
+          loadedQuestions.map(
+            (
+              question: any,
+              index: number
+            ) => ({
+              ...question,
+
+              _id:
+                question?._id ||
+                question?.id ||
+                `jee-question-${index}`,
+
+              questionText:
+                question?.questionText ||
+                question?.question ||
+                "",
+
+              question:
+                question?.question ||
+                question?.questionText ||
+                "",
+
+              options:
+                Array.isArray(
+                  question?.options
+                )
+                  ? question.options
+                  : [],
+
+              correctAnswer:
+                question?.correctAnswer ||
+                "",
+            })
+          );
+
+        /* =================================================
+           REMOVE INVALID QUESTIONS
+        ================================================= */
+
+        const validQuestions =
+          normalizedQuestions.filter(
+            (question: any) =>
+              question.question &&
+              Array.isArray(
+                question.options
+              ) &&
+              question.options.length >= 2
+          );
+
+        if (
+          validQuestions.length === 0
+        ) {
+          throw new Error(
+            "No valid JEE questions were found for this mock test."
+          );
+        }
+
+        /* =================================================
+           QUESTION NUMBER
+        ================================================= */
+
+        const finalQuestions =
+          validQuestions.map(
+            (
+              question: any,
+              index: number
+            ) => ({
+              ...question,
+
+              questionNumber:
+                question.questionNumber ||
+                index + 1,
+            })
+          );
+
+        /* =================================================
+           SAVE
+        ================================================= */
+
+        setQuestions(
+          finalQuestions
+        );
+
+        return true;
+      } catch (err: any) {
+        console.error(
+          "JEE mock test question loading error:",
+          err
+        );
+
+        setError(
+          err?.message ||
+            "Unable to load the JEE mock test."
+        );
+
+        return false;
+      } finally {
+        setLoading(false);
+      }
+    };
+
+  /* =========================================================
+     START BUTTON
+  ========================================================= */
+
+  const handleStartExam = () => {
+    if (checkingSubmission) {
+      return;
     }
-    return `${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+
+    if (!isOnline) {
+      setError(
+        "You are currently offline. Please reconnect to the internet before starting the JEE mock test."
+      );
+
+      return;
+    }
+
+    setError("");
+    setShowInstructions(true);
   };
 
-  const current = questions[currentQuestion];
+  /* =========================================================
+     MODAL → READY SCREEN
+  ========================================================= */
 
-  if (step === "verify") {
-    return (
-      <FaceVerification
-        onVerified={handleFaceVerified}
-        onViolation={handleViolation}
-      />
-    );
-  }
+  const handleContinueToInstructions =
+    () => {
+      setShowInstructions(false);
+      setStep("instructions");
+      setError("");
+    };
+
+  /* =========================================================
+     READY → LOAD QUESTIONS
+     → GREETING
+     → EXAM
+  ========================================================= */
+
+  const handleReady = async () => {
+    if (!isOnline) {
+      setError(
+        "A stable internet connection is required to start the JEE mock test."
+      );
+
+      return;
+    }
+
+    if (loading) {
+      return;
+    }
+
+    setError("");
+
+    const success =
+      await fetchQuestionsForClass(
+        className,
+        "JEE"
+      );
+
+    if (!success) {
+      setIsReady(false);
+      return;
+    }
+
+    /*
+     * Questions successfully loaded.
+     */
+
+    setStep("greeting");
+
+    /*
+     * All The Best screen.
+     */
+
+    window.setTimeout(() => {
+      setStep("exam");
+    }, 2200);
+  };
+
+  /* =========================================================
+     RESULT PERCENTAGE
+  ========================================================= */
+
+  const percentage =
+    useMemo(() => {
+      return clampPercentage(
+        Number(
+          examResult?.percentage || 0
+        )
+      );
+    }, [examResult]);
+
+  /* =========================================================
+     PERFORMANCE
+  ========================================================= */
+
+  const performance =
+    useMemo(() => {
+      if (percentage >= 85) {
+        return {
+          title:
+            "Excellent Performance",
+
+          description:
+            "Outstanding work. Your preparation is producing strong results.",
+
+          icon: (
+            <Trophy size={28} />
+          ),
+
+          className:
+            "excellent",
+        };
+      }
+
+      if (percentage >= 70) {
+        return {
+          title:
+            "Strong Performance",
+
+          description:
+            "Good work. A little more refinement can push your score even higher.",
+
+          icon: (
+            <Award size={28} />
+          ),
+
+          className:
+            "strong",
+        };
+      }
+
+      if (percentage >= 50) {
+        return {
+          title:
+            "Good Progress",
+
+          description:
+            "You are on the right track. Focus on your weaker areas for improvement.",
+
+          icon: (
+            <Target size={28} />
+          ),
+
+          className:
+            "progress",
+        };
+      }
+
+      return {
+        title:
+          "Needs More Practice",
+
+        description:
+          "Use this result as a guide and strengthen your fundamentals before the next attempt.",
+
+        icon: (
+          <BookOpen size={28} />
+        ),
+
+        className:
+          "focus",
+      };
+    }, [percentage]);
+
+  /* =========================================================
+     DASHBOARD
+  ========================================================= */
 
   if (step === "dashboard") {
     return (
-      <div className="exam-page">
-        <div className="start-wrapper">
-          <div className="start-card" style={{ textAlign: "center", padding: "40px", maxWidth: "500px", margin: "auto", background: "#fff", borderRadius: "12px", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
-            <div className="test-badge" style={{ marginBottom: "12px", display: "inline-block", background: "#e0f2fe", color: "#0284c7", padding: "4px 12px", borderRadius: "20px", fontSize: "12px", fontWeight: "bold" }}>
-              <Lock size={12} style={{ display: "inline", marginRight: "4px" }} /> JEE MAINS MOCK TEST PORTAL
-            </div>
-            
-            <h1 style={{ marginBottom: "10px", color: "#1e293b" }}>Welcome, {studentName}!</h1>
-            
-            <div style={{ background: "#f8fafc", padding: "16px", borderRadius: "8px", margin: "20px 0", border: "1px solid #e2e8f0", textAlign: "left" }}>
-              <p style={{ margin: "6px 0", color: "#475569", fontSize: "14px" }}>
-                🆔 <strong>Student ID:</strong> <span style={{ color: "#0f172a" }}>{studentId}</span>
-              </p>
-              <p style={{ margin: "6px 0", color: "#475569", fontSize: "14px" }}>
-                📚 <strong>Class Name:</strong> <span style={{ color: "#2563eb", fontWeight: "bold" }}>{className || "Not Specified"}</span>
-              </p>
-              <p style={{ margin: "6px 0", color: "#16a34a", fontSize: "14px" }}>
-                ✅ <strong>Face Verification:</strong> <span style={{ fontWeight: "bold" }}>Authenticated Successfully</span>
-              </p>
-            </div>
+      <>
+        <div className="mock-page">
+          <div className="mock-container">
 
-            <button 
-              className="start-button" 
-              onClick={handleStartExam}
-              style={{ background: "#3b82f6", color: "#fff", padding: "14px 28px", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: "bold", width: "100%", fontSize: "16px" }}
-            >
-              Start JEE Mock Test Now →
-            </button>
+            {/* =================================================
+                HEADER
+            ================================================= */}
+
+            <header className="mock-header">
+
+              <button
+                className="mock-back-btn"
+                onClick={() =>
+                  navigate(
+                    "/dashboard"
+                  )
+                }
+              >
+                <ArrowLeft size={17} />
+
+                Dashboard
+              </button>
+
+              <div className="mock-online-status">
+
+                {isOnline ? (
+                  <>
+                    <Wifi size={14} />
+
+                    Online
+                  </>
+                ) : (
+                  <>
+                    <WifiOff
+                      size={14}
+                    />
+
+                    Offline
+                  </>
+                )}
+
+              </div>
+
+            </header>
+
+            {/* =================================================
+                JEE HERO
+            ================================================= */}
+
+            <section className="mock-hero">
+
+              <div className="mock-hero-content">
+
+                <div className="mock-eyebrow">
+                  JEE MAIN • EXAM SIMULATION
+                </div>
+
+                <h1>
+                  Ready for your
+                  next
+                  <span>
+                    {" "}
+                    JEE challenge?
+                  </span>
+                </h1>
+
+                <p>
+                  Test your Physics,
+                  Chemistry, and
+                  Mathematics preparation
+                  with a complete JEE Main
+                  mock assessment.
+                </p>
+
+                <div className="mock-hero-tags">
+
+                  <span>
+                    <ShieldCheck
+                      size={14}
+                    />
+
+                    Secure Assessment
+                  </span>
+
+                  <span>
+                    <Target
+                      size={14}
+                    />
+
+                    JEE Pattern
+                  </span>
+
+                  <span>
+                    <Zap size={14} />
+
+                    Instant Evaluation
+                  </span>
+
+                </div>
+
+              </div>
+
+              <div className="mock-hero-visual">
+
+                <div className="mock-orbit mock-orbit-one" />
+
+                <div className="mock-orbit mock-orbit-two" />
+
+                <div className="mock-hero-icon">
+
+                  <GraduationCap
+                    size={48}
+                  />
+
+                </div>
+
+              </div>
+
+            </section>
+
+            {/* =================================================
+                START GRID
+            ================================================= */}
+
+            <section className="mock-start-grid">
+
+              {/* =================================================
+                  MAIN JEE CARD
+              ================================================= */}
+
+              <div className="mock-start-card">
+
+                <div className="mock-card-top">
+
+                  <div className="mock-test-icon">
+
+                    <BookOpen
+                      size={23}
+                    />
+
+                  </div>
+
+                  <div className="mock-test-status">
+
+                    {checkingSubmission ? (
+                      <>
+                        <RefreshCw
+                          size={13}
+                          className="mock-spin"
+                        />
+
+                        Checking
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2
+                          size={13}
+                        />
+
+                        Available
+                      </>
+                    )}
+
+                  </div>
+
+                </div>
+
+                <div className="mock-test-category">
+                  {JEE_CONFIG.examName.toUpperCase()}
+                </div>
+
+                <h2>
+                  {JEE_CONFIG.fullExamName}
+                </h2>
+
+                <p>
+                  A complete JEE Main
+                  examination simulation
+                  covering Physics,
+                  Chemistry, and
+                  Mathematics.
+                </p>
+
+                {/* =================================================
+                    JEE INFORMATION
+                ================================================= */}
+
+                <div className="mock-info-grid">
+
+                  <div>
+
+                    <FileQuestion
+                      size={17}
+                    />
+
+                    <span>
+                      Questions
+
+                      <strong>
+                        {JEE_CONFIG.questions}
+                      </strong>
+                    </span>
+
+                  </div>
+
+                  <div>
+
+                    <Clock3
+                      size={17}
+                    />
+
+                    <span>
+                      Exam Duration
+
+                      <strong>
+                        {JEE_CONFIG.duration}
+                      </strong>
+                    </span>
+
+                  </div>
+
+                  <div>
+
+                    <GraduationCap
+                      size={17}
+                    />
+
+                    <span>
+                      Pattern
+
+                      <strong>
+                        {JEE_CONFIG.pattern}
+                      </strong>
+                    </span>
+
+                  </div>
+
+                  <div>
+
+                    <ShieldCheck
+                      size={17}
+                    />
+
+                    <span>
+                      Maximum Marks
+
+                      <strong>
+                        {JEE_CONFIG.maxMarks}
+                      </strong>
+                    </span>
+
+                  </div>
+
+                </div>
+
+                {/* =================================================
+                    SUBJECTS
+                ================================================= */}
+
+                <div className="mock-subject-info">
+
+                  <span>
+                    <BookOpen
+                      size={15}
+                    />
+
+                    Subjects
+                  </span>
+
+                  <strong>
+                    {JEE_CONFIG.subjects}
+                  </strong>
+
+                </div>
+
+                {/* =================================================
+                    OFFLINE WARNING
+                ================================================= */}
+
+                {!isOnline && (
+                  <div className="mock-warning">
+
+                    <WifiOff size={15} />
+
+                    Internet connection
+                    required before
+                    starting.
+                  </div>
+                )}
+
+                {/* =================================================
+                    ERROR
+                ================================================= */}
+
+                {error && (
+                  <div className="mock-inline-error">
+
+                    <Info size={15} />
+
+                    {error}
+
+                  </div>
+                )}
+
+                {/* =================================================
+                    START BUTTON
+                ================================================= */}
+
+                <button
+                  className="mock-start-btn"
+                  onClick={
+                    handleStartExam
+                  }
+                  disabled={
+                    checkingSubmission ||
+                    loading ||
+                    !isOnline
+                  }
+                >
+
+                  {checkingSubmission ? (
+                    <>
+                      <RefreshCw
+                        size={17}
+                        className="mock-spin"
+                      />
+
+                      Checking...
+                    </>
+                  ) : (
+                    <>
+                      {alreadySubmitted
+                        ? "Start New JEE Mock Test"
+                        : "Start JEE Mock Test"}
+
+                      <ArrowRight
+                        size={18}
+                      />
+                    </>
+                  )}
+
+                </button>
+
+              </div>
+
+              {/* =================================================
+                  SIDE CARD
+              ================================================= */}
+
+              <aside className="mock-side-card">
+
+                <div className="mock-side-icon">
+
+                  <LockKeyhole
+                    size={21}
+                  />
+
+                </div>
+
+                <h3>
+                  Before You Begin
+                </h3>
+
+                <ul>
+
+                  <li>
+                    <CheckCircle2
+                      size={15}
+                    />
+
+                    Ensure a stable
+                    internet connection.
+                  </li>
+
+                  <li>
+                    <CheckCircle2
+                      size={15}
+                    />
+
+                    Keep your device
+                    charged.
+                  </li>
+
+                  <li>
+                    <CheckCircle2
+                      size={15}
+                    />
+
+                    Choose a quiet
+                    environment.
+                  </li>
+
+                  <li>
+                    <CheckCircle2
+                      size={15}
+                    />
+
+                    Do not refresh during
+                    the assessment.
+                  </li>
+
+                  <li>
+                    <CheckCircle2
+                      size={15}
+                    />
+
+                    Manage your time
+                    across all three
+                    subjects.
+                  </li>
+
+                  <li>
+                    <CheckCircle2
+                      size={15}
+                    />
+
+                    Review your answers
+                    before submitting.
+                  </li>
+
+                </ul>
+
+              </aside>
+
+            </section>
+
+            {/* =================================================
+                SECURITY STRIP
+            ================================================= */}
+
+            <section className="mock-security-strip">
+
+              <ShieldCheck size={19} />
+
+              <div>
+
+                <strong>
+                  Secure JEE Examination
+                  Environment
+                </strong>
+
+                <span>
+                  Your attempt is
+                  verified with the
+                  server before the
+                  assessment begins.
+                </span>
+
+              </div>
+
+            </section>
+
           </div>
         </div>
+
+        {/* =====================================================
+            INSTRUCTIONS MODAL
+        ===================================================== */}
+
+        {showInstructions && (
+          <div className="mock-modal-overlay">
+
+            <div className="mock-instructions-modal">
+
+              <button
+                className="mock-modal-close"
+                onClick={() =>
+                  setShowInstructions(
+                    false
+                  )
+                }
+                aria-label="Close instructions"
+              >
+                <X size={19} />
+              </button>
+
+              <div className="mock-modal-icon">
+
+                <ShieldCheck
+                  size={25}
+                />
+
+              </div>
+
+              <span className="mock-modal-label">
+                JEE MAIN • EXAM INSTRUCTIONS
+              </span>
+
+              <h2>
+                Please review before
+                starting
+              </h2>
+
+              <p className="mock-modal-description">
+                Once the JEE Main mock
+                assessment begins, your
+                attempt will be treated
+                as an active examination
+                session.
+              </p>
+
+              <div className="mock-instruction-list">
+
+                <div>
+                  <span>01</span>
+
+                  <p>
+                    Read every question
+                    carefully before
+                    selecting an answer.
+                  </p>
+                </div>
+
+                <div>
+                  <span>02</span>
+
+                  <p>
+                    Manage your time
+                    carefully across
+                    Physics, Chemistry,
+                    and Mathematics.
+                  </p>
+                </div>
+
+                <div>
+                  <span>03</span>
+
+                  <p>
+                    Avoid refreshing or
+                    closing the browser
+                    during the test.
+                  </p>
+                </div>
+
+                <div>
+                  <span>04</span>
+
+                  <p>
+                    Your answers will be
+                    evaluated after
+                    submission.
+                  </p>
+                </div>
+
+              </div>
+
+              <button
+                className="mock-modal-primary"
+                onClick={
+                  handleContinueToInstructions
+                }
+              >
+                Continue
+
+                <ArrowRight
+                  size={17}
+                />
+              </button>
+
+            </div>
+
+          </div>
+        )}
+
+      </>
+    );
+  }
+
+  /* =========================================================
+     FINAL READINESS SCREEN
+  ========================================================= */
+
+  if (step === "instructions") {
+    return (
+      <div className="mock-page">
+
+        <div className="mock-ready-container">
+
+          <button
+            className="mock-back-btn"
+            onClick={() =>
+              setStep("dashboard")
+            }
+          >
+            <ArrowLeft size={17} />
+
+            Back
+          </button>
+
+          <div className="mock-ready-card">
+
+            <div className="mock-ready-header">
+
+              <div className="mock-ready-icon">
+
+                <LockKeyhole
+                  size={28}
+                />
+
+              </div>
+
+              <div>
+
+                <span>
+                  JEE MAIN • SECURE ASSESSMENT
+                </span>
+
+                <h1>
+                  Final readiness
+                  check
+                </h1>
+
+              </div>
+
+            </div>
+
+            <div className="mock-ready-exam">
+
+              <div>
+                <span>
+                  Exam
+                </span>
+
+                <strong>
+                  {JEE_CONFIG.fullExamName}
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  Candidate
+                </span>
+
+                <strong>
+                  {studentName}
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  Class
+                </span>
+
+                <strong>
+                  {className ||
+                    "General"}
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  Pattern
+                </span>
+
+                <strong>
+                  JEE Main
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  Questions
+                </span>
+
+                <strong>
+                  {JEE_CONFIG.questions}
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  Duration
+                </span>
+
+                <strong>
+                  {JEE_CONFIG.duration}
+                </strong>
+              </div>
+
+            </div>
+
+            <div className="mock-checklist">
+
+              <label>
+
+                <input
+                  type="checkbox"
+                  checked={isReady}
+                  onChange={(event) =>
+                    setIsReady(
+                      event.target
+                        .checked
+                    )
+                  }
+                />
+
+                <span className="mock-checkbox">
+
+                  {isReady && (
+                    <CheckCircle2
+                      size={17}
+                    />
+                  )}
+
+                </span>
+
+                <span>
+                  I am ready to begin
+                  the JEE Main mock
+                  assessment and
+                  understand the
+                  examination
+                  instructions.
+                </span>
+
+              </label>
+
+            </div>
+
+            {error && (
+              <div className="mock-inline-error">
+
+                <Info size={15} />
+
+                {error}
+
+              </div>
+            )}
+
+            <button
+              className="mock-begin-btn"
+              disabled={
+                !isReady ||
+                loading
+              }
+              onClick={
+                handleReady
+              }
+            >
+
+              {loading ? (
+                <>
+                  <RefreshCw
+                    size={17}
+                    className="mock-spin"
+                  />
+
+                  Preparing JEE Exam...
+                </>
+              ) : (
+                <>
+                  Enter JEE Examination
+
+                  <ArrowRight
+                    size={18}
+                  />
+                </>
+              )}
+
+            </button>
+
+            <p className="mock-secure-note">
+
+              <ShieldCheck
+                size={14}
+              />
+
+              Your attempt will be
+              securely processed by
+              the examination system.
+
+            </p>
+
+          </div>
+
+        </div>
+
       </div>
     );
   }
+
+  /* =========================================================
+     ALL THE BEST
+  ========================================================= */
 
   if (step === "greeting") {
     return (
-      <div className="exam-page" style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", background: "linear-gradient(135deg, #0f172a, #1e3a8a)" }}>
-        <div style={{ textAlign: "center", color: "#fff" }}>
-          <div style={{ fontSize: "65px", marginBottom: "15px" }}>🚀⚡🎯</div>
-          <h1 style={{ fontSize: "38px", marginBottom: "10px", fontWeight: "bold" }}>
-            All The Best, <span style={{ color: "#38bdf8" }}>{studentName}</span>!
+      <div className="mock-greeting">
+
+        <div className="mock-greeting-glow" />
+
+        <div className="mock-greeting-content">
+
+          <div className="mock-greeting-icon">
+
+            <Trophy size={42} />
+
+          </div>
+
+          <div className="mock-greeting-label">
+            JEE MAIN • EXAM READY
+          </div>
+
+          <h1>
+            All the best,
+
+            <span>
+              {studentName}
+            </span>
           </h1>
-          <p style={{ fontSize: "18px", opacity: "0.9" }}>
-            Preparing your <span style={{ fontWeight: "bold", textDecoration: "underline" }}>JEE ({className || "Mock"})</span> test matrix...
+
+          <p>
+            Stay calm, stay focused,
+            and give your best in
+            Physics, Chemistry, and
+            Mathematics.
           </p>
-          <div className="loading-spinner" style={{ margin: "30px auto", borderColor: "#fff", borderTopColor: "transparent" }} />
+
+          <div className="mock-greeting-loader">
+            <span />
+          </div>
+
+          <small>
+            Starting your JEE
+            examination...
+          </small>
+
         </div>
+
       </div>
     );
   }
 
-  if (loading) {
+  /* =========================================================
+     EXAM / QUESTIONS INTERFACE
+  ========================================================= */
+
+  if (step === "exam") {
     return (
-      <div className="exam-loading">
-        <div className="loading-spinner" />
-        <h2>Initializing JEE Mock Test</h2>
-        <p>Please wait while we prepare your test items...</p>
+      <div className="mock-exam-page">
+
+        <MockTestInterface
+          subject="JEE"
+
+          className={
+            className || "General"
+          }
+
+          chapterName={
+            "JEE Main Full Mock Assessment"
+          }
+
+          questions={
+            questions
+          }
+
+          studentId={
+            studentId
+          }
+
+          studentName={
+            studentName
+          }
+
+          themeColor="#4F46E5"
+
+          onBack={() =>
+            setStep("dashboard")
+          }
+
+          apiBaseUrl={
+            API_BASE_URL
+          }
+        />
+
       </div>
     );
   }
 
-  if (error) {
-    return (
-      <div className="exam-error-page">
-        <div className="error-card">
-          <div className="error-icon">!</div>
-          <h2>Connection Error</h2>
-          <p>{error}</p>
-          <button onClick={() => window.location.reload()}>Try Again</button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="jee-cbt-root">
-      <header className="jee-header">
-        <div className="jee-brand">
-          <span className="jee-badge-yr">JEE Mock Test ({className})</span>
-          <h1>CBT Assessment Terminal</h1>
-        </div>
-        <div className="jee-header-right">
-          <div className="jee-timer-box">
-            <Clock size={15} />
-            <span>TIME: <strong className="mono">{formatTime(timeLeft)}</strong></span>
-          </div>
-          <div className="jee-security-indicator">
-            <ShieldAlert size={14} className={violationCount > 0 ? "text-red" : "text-green"} />
-            <span>VIOLATIONS: {violationCount}</span>
-          </div>
-        </div>
-      </header>
-
-      <div className="jee-workspace">
-        <div className="jee-question-section">
-          <div className="jee-question-card">
-            <div className="q-meta-info">
-              <span>Question {currentQuestion + 1} of {questions.length}</span>
-              <span className="marks-badge">JEE Pattern (+4 / -1)</span>
-            </div>
-            
-            <h1 className="q-text">{current?.questionText || current?.question}</h1>
-
-            <div className="options">
-              {current?.options?.map((option, index) => {
-                const selected = answers[current._id] === option;
-                return (
-                  <button
-                    key={index}
-                    className={`option ${selected ? "selected" : ""}`}
-                    onClick={() => selectAnswer(option)}
-                  >
-                    <span className="option-letter">{String.fromCharCode(65 + index)}</span>
-                    <span className="option-text">{option}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="jee-action-footer">
-            <button className="jee-btn-secondary" onClick={handleClearResponse}>Clear Response</button>
-            <button className="jee-btn-warning" onClick={handleMarkReview}>
-              <Bookmark size={14} /> {markedForReview[current?._id] ? "Unmark Review" : "Mark for Review"}
-            </button>
-            <div style={{ display: "flex", gap: "10px" }}>
-              <button className="jee-btn-secondary" onClick={previousQuestion} disabled={currentQuestion === 0}>
-                <ArrowLeft size={14} /> Prev
-              </button>
-              {currentQuestion === questions.length - 1 ? (
-                <button className="jee-btn-primary" onClick={submitExam}>Submit Test ✓</button>
-              ) : (
-                <button className="jee-btn-primary" onClick={nextQuestion}>
-                  Save & Next <ArrowRight size={14} />
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className="jee-sidebar">
-          <div className="candidate-info-box">
-            <div className="cand-avatar">👤</div>
-            <div className="cand-details">
-              <h4>{studentName}</h4>
-              <span className="mono">ID: {studentId}</span>
-            </div>
-          </div>
-
-          <div className="palette-section">
-            <h3>Question Palette</h3>
-            <div className="palette-grid">
-              {questions.map((q, idx) => {
-                const isAnswered = answers[q._id] !== undefined;
-                const isMarked = markedForReview[q._id];
-                let statusClass = "not-visited";
-                if (isAnswered) statusClass = "answered";
-                if (isMarked) statusClass = "marked";
-
-                return (
-                  <button
-                    key={q._id}
-                    className={`palette-item ${statusClass} ${currentQuestion === idx ? "current" : ""}`}
-                    onClick={() => setCurrentQuestion(idx)}
-                  >
-                    {idx + 1}
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="palette-legend">
-              <div className="legend-item"><span className="dot answered"></span> Answered</div>
-              <div className="legend-item"><span className="dot not-answered"></span> Not Answered</div>
-              <div className="legend-item"><span className="dot marked"></span> Marked for Review</div>
-            </div>
-          </div>
-
-          <button className="jee-submit-final-btn" onClick={submitExam}>
-            <LogOut size={15} /> Finish & Submit Exam
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+  return null;
 }

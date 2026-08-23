@@ -1,4 +1,37 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import {
+  Plus,
+  Trash2,
+  Edit3,
+  Save,
+  X,
+  Image as ImageIcon,
+  Table2,
+  Columns3,
+  Rows3,
+  Search,
+  Upload,
+  CheckCircle2,
+  FileText,
+  RefreshCw,
+  ChevronDown,
+  ChevronUp,
+  GripVertical,
+  Palette,
+  Copy,
+} from "lucide-react";
+import "./QuestionBank.css";
+
+// ============================================================
+// TYPES
+// ============================================================
+
+interface TableData {
+  headers: string[];
+  rows: string[][];
+  rowColors?: string[];
+  columnColors?: string[];
+}
 
 interface Question {
   _id?: string;
@@ -7,96 +40,277 @@ interface Question {
   questionImage?: string;
   options: string[];
   correctAnswer: string;
+
   subject: string;
   chapter: string;
   examType: string;
   testCategory: string;
   className: string;
+
   testTitle: string;
   testId: string;
+
   marksPerQuestion: number;
   negativeMarks: number;
   durationMinutes: number;
+
   isPublished: boolean;
+
+  tableData?: TableData | null;
 }
 
-const API_BASE_URL = "http://localhost:5000/api";
+// ============================================================
+// API
+// ============================================================
+
+const API_BASE_URL =
+  window.location.hostname === "localhost" ||
+  window.location.hostname === "127.0.0.1"
+    ? "http://localhost:5000"
+    : "https://exammaster-backend-up1y.onrender.com";
+
+// ============================================================
+// DEFAULT COLORS
+// ============================================================
+
+const TABLE_COLORS = [
+  "",
+  "#eef2ff",
+  "#ecfeff",
+  "#f0fdf4",
+  "#fefce8",
+  "#fff7ed",
+  "#fdf2f8",
+  "#f5f3ff",
+  "#f1f5f9",
+];
+
+const OPTION_COLORS = [
+  "",
+  "#eff6ff",
+  "#ecfdf5",
+  "#fff7ed",
+  "#fdf2f8",
+  "#f5f3ff",
+];
+
+// ============================================================
+// DEFAULT QUESTION
+// ============================================================
+const createEmptyQuestion = (
+  lastQuestion: Question | null = null, 
+  nextNumber: number = 1, 
+  targetSubject: string = "Physics"
+): Question => ({
+  questionNumber: nextNumber,
+  question: "",
+  questionImage: "",
+  options: ["", "", "", ""],
+  correctAnswer: "",
+
+  // Subject & Metadata carry over from previous question automatically
+  subject: targetSubject,
+  chapter: lastQuestion ? lastQuestion.chapter : "",
+  examType: lastQuestion ? lastQuestion.examType : "JEE",
+  testCategory: lastQuestion ? lastQuestion.testCategory : "mock",
+  className: lastQuestion ? lastQuestion.className : "2nd PUC",
+
+  testTitle: lastQuestion ? lastQuestion.testTitle : "JEE Mains Full Mock Test 1",
+  testId: lastQuestion ? lastQuestion.testId : "JEE-MOCK-01",
+
+  marksPerQuestion: lastQuestion ? lastQuestion.marksPerQuestion : 4,
+  negativeMarks: lastQuestion ? lastQuestion.negativeMarks : 1,
+  durationMinutes: lastQuestion ? lastQuestion.durationMinutes : 180,
+
+  isPublished: false,
+
+  tableData: null,
+});
+
+// ============================================================
+// MAIN
+// ============================================================
 
 export default function QuestionBank() {
   const [questions, setQuestions] = useState<Question[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState(false);
 
-  const [showAddForm, setShowAddForm] =
-    useState<boolean>(false);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [showPdfModal, setShowPdfModal] = useState(false);
 
-  const [showPdfModal, setShowPdfModal] =
-    useState<boolean>(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
-  const [editingId, setEditingId] =
+  const [inlineEditingId, setInlineEditingId] =
     useState<string | null>(null);
 
-  // ============================================================
-  // FILTERS
-  // ============================================================
+  const [inlineQuestion, setInlineQuestion] =
+    useState<Question | null>(null);
 
-  const [activeTab, setActiveTab] =
-    useState<string>("ALL");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const [selectedExam, setSelectedExam] =
-    useState<string>("ALL");
+  const [activeTab, setActiveTab] = useState("ALL");
+  const [selectedExam, setSelectedExam] = useState("ALL");
+  const [selectedSubject, setSelectedSubject] = useState("ALL");
+  const [selectedClassName, setSelectedClassName] = useState("ALL");
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const [selectedSubject, setSelectedSubject] =
-    useState<string>("ALL");
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [pdfClassName, setPdfClassName] = useState("2nd PUC");
+  const [pdfExamType, setPdfExamType] = useState("JEE");
+  const [pdfTestCategory, setPdfTestCategory] = useState("mock");
+  const [parsing, setParsing] = useState(false);
 
-  const [selectedClassName, setSelectedClassName] =
-    useState<string>("ALL");
+  const [formData, setFormData] = useState<Question>(
+    createEmptyQuestion()
+  );
+  const [selectedImageFile, setSelectedImageFile] =
+  useState<File | null>(null);
 
-  const [searchTerm, setSearchTerm] =
-    useState<string>("");
-
-  // ============================================================
-  // PDF STATE
-  // ============================================================
-
-  const [pdfFile, setPdfFile] =
-    useState<File | null>(null);
-
-  const [pdfClassName, setPdfClassName] =
-    useState<string>("2nd PUC");
-
-  const [pdfExamType, setPdfExamType] =
-    useState<string>("JEE");
-
-  const [pdfTestCategory, setPdfTestCategory] =
-    useState<string>("mock");
-
-  const [parsing, setParsing] =
-    useState<boolean>(false);
+const [imagePreviewUrl, setImagePreviewUrl] =
+  useState("");
 
   // ============================================================
-  // FORM DATA
+  // DRAG STATE
   // ============================================================
 
-  const [formData, setFormData] =
-    useState<Question>({
-      questionNumber: 1,
-      question: "",
-      questionImage: "",
-      options: ["", "", "", ""],
-      correctAnswer: "",
-      subject: "Physics",
-      chapter: "",
-      examType: "JEE",
-      testCategory: "mock",
-      className: "2nd PUC",
-      testTitle: "JEE Mains Full Mock Test 1",
-      testId: "JEE-MOCK-01",
-      marksPerQuestion: 4,
-      negativeMarks: 1,
-      durationMinutes: 180,
-      isPublished: false,
+
+const [dragRowIndex, setDragRowIndex] = useState<number | null>(null);
+
+const [dragColumnIndex, setDragColumnIndex] =
+  useState<number | null>(null);
+
+// ============================================================
+// TABLE RESIZE STATE
+// ============================================================
+
+const [columnWidths, setColumnWidths] =
+  useState<number[]>([]);
+
+const [rowHeights, setRowHeights] =
+  useState<number[]>([]);
+
+const [resizingColumn, setResizingColumn] =
+  useState<number | null>(null);
+
+const [resizingRow, setResizingRow] =
+  useState<number | null>(null);
+  // ============================================================
+// TABLE RESIZE LOGIC
+// ============================================================
+
+const startColumnResize = (
+  e: React.MouseEvent,
+  colIndex: number
+) => {
+  e.preventDefault();
+
+  setResizingColumn(colIndex);
+
+  const startX = e.clientX;
+  const startWidth =
+    columnWidths[colIndex] || 150;
+
+  const handleMouseMove = (
+    moveEvent: MouseEvent
+  ) => {
+    const deltaX =
+      moveEvent.clientX - startX;
+
+    const newWidth = Math.max(
+      80,
+      startWidth + deltaX
+    );
+
+    setColumnWidths((prev) => {
+      const widths = [...prev];
+
+      widths[colIndex] = newWidth;
+
+      return widths;
     });
+  };
 
+  const handleMouseUp = () => {
+    setResizingColumn(null);
+
+    document.removeEventListener(
+      "mousemove",
+      handleMouseMove
+    );
+
+    document.removeEventListener(
+      "mouseup",
+      handleMouseUp
+    );
+  };
+
+  document.addEventListener(
+    "mousemove",
+    handleMouseMove
+  );
+
+  document.addEventListener(
+    "mouseup",
+    handleMouseUp
+  );
+};
+
+const startRowResize = (
+  e: React.MouseEvent,
+  rowIndex: number
+) => {
+  e.preventDefault();
+
+  setResizingRow(rowIndex);
+
+  const startY = e.clientY;
+  const startHeight =
+    rowHeights[rowIndex] || 55;
+
+  const handleMouseMove = (
+    moveEvent: MouseEvent
+  ) => {
+    const deltaY =
+      moveEvent.clientY - startY;
+
+    const newHeight = Math.max(
+      35,
+      startHeight + deltaY
+    );
+
+    setRowHeights((prev) => {
+      const heights = [...prev];
+
+      heights[rowIndex] = newHeight;
+
+      return heights;
+    });
+  };
+
+  const handleMouseUp = () => {
+    setResizingRow(null);
+
+    document.removeEventListener(
+      "mousemove",
+      handleMouseMove
+    );
+
+    document.removeEventListener(
+      "mouseup",
+      handleMouseUp
+    );
+  };
+
+  document.addEventListener(
+    "mousemove",
+    handleMouseMove
+  );
+
+  document.addEventListener(
+    "mouseup",
+    handleMouseUp
+  );
+};
   // ============================================================
   // TOKEN
   // ============================================================
@@ -105,47 +319,34 @@ export default function QuestionBank() {
     return (
       localStorage.getItem("studentToken") ||
       localStorage.getItem("token") ||
+      localStorage.getItem("teacherToken") ||
       ""
     );
   };
 
   // ============================================================
-  // FETCH QUESTIONS
+  // FETCH
   // ============================================================
 
   const fetchQuestions = async () => {
     setLoading(true);
 
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/questions`
-      );
+      const response = await fetch(`${API_BASE_URL}/questions`);
 
       if (!response.ok) {
-        throw new Error(
-          `HTTP Error: ${response.status}`
-        );
+        throw new Error(`HTTP Error: ${response.status}`);
       }
 
       const data = await response.json();
 
-      console.log(
-        "QUESTIONS RESPONSE:",
-        data
-      );
-
       if (data.success) {
-        setQuestions(
-          data.questions || []
-        );
+        setQuestions(data.questions || []);
       } else {
         setQuestions([]);
       }
     } catch (error) {
-      console.error(
-        "QUESTION FETCH ERROR:",
-        error
-      );
+      console.error("QUESTION FETCH ERROR:", error);
     } finally {
       setLoading(false);
     }
@@ -156,170 +357,979 @@ export default function QuestionBank() {
   }, []);
 
   // ============================================================
-  // OPTION CHANGE
+  // TABLE HELPERS
+  // ============================================================
+
+  const createTable = (): TableData => ({
+    headers: ["Column 1", "Column 2"],
+    rows: [
+      ["", ""],
+      ["", ""],
+    ],
+    rowColors: ["", ""],
+    columnColors: ["", ""],
+  });
+
+  const normalizeTable = (
+    table?: TableData | null
+  ): TableData | null => {
+    if (!table) return null;
+
+    const headers = Array.isArray(table.headers)
+      ? [...table.headers]
+      : [];
+
+    const rows = Array.isArray(table.rows)
+      ? table.rows.map((row) => {
+          const copy = [...row];
+
+          while (copy.length < headers.length) {
+            copy.push("");
+          }
+
+          return copy.slice(0, headers.length);
+        })
+      : [];
+
+    const rowColors = Array.isArray(table.rowColors)
+      ? [...table.rowColors]
+      : rows.map(() => "");
+
+    const columnColors = Array.isArray(table.columnColors)
+      ? [...table.columnColors]
+      : headers.map(() => "");
+
+    while (rowColors.length < rows.length) {
+      rowColors.push("");
+    }
+
+    while (columnColors.length < headers.length) {
+      columnColors.push("");
+    }
+
+    return {
+      headers,
+      rows,
+      rowColors: rowColors.slice(0, rows.length),
+      columnColors: columnColors.slice(0, headers.length),
+    };
+  };
+
+  // ============================================================
+  // FORM TABLE
+  // ============================================================
+
+  const addFormTable = () => {
+    setFormData((prev) => ({
+      ...prev,
+      tableData: createTable(),
+    }));
+  };
+
+  const removeFormTable = () => {
+    setFormData((prev) => ({
+      ...prev,
+      tableData: null,
+    }));
+  };
+
+  const updateFormHeader = (
+    index: number,
+    value: string
+  ) => {
+    setFormData((prev) => {
+      if (!prev.tableData) return prev;
+
+      const headers = [...prev.tableData.headers];
+      headers[index] = value;
+
+      return {
+        ...prev,
+        tableData: {
+          ...prev.tableData,
+          headers,
+        },
+      };
+    });
+  };
+
+  const updateFormCell = (
+    rowIndex: number,
+    colIndex: number,
+    value: string
+  ) => {
+    setFormData((prev) => {
+      if (!prev.tableData) return prev;
+
+      const rows = prev.tableData.rows.map((row) => [...row]);
+
+      if (!rows[rowIndex]) return prev;
+
+      rows[rowIndex][colIndex] = value;
+
+      return {
+        ...prev,
+        tableData: {
+          ...prev.tableData,
+          rows,
+        },
+      };
+    });
+  };
+
+  const addFormRow = () => {
+    setFormData((prev) => {
+      if (!prev.tableData) return prev;
+
+      const headers = prev.tableData.headers;
+
+      return {
+        ...prev,
+        tableData: {
+          ...prev.tableData,
+          rows: [
+            ...prev.tableData.rows,
+            headers.map(() => ""),
+          ],
+          rowColors: [
+            ...(prev.tableData.rowColors || []),
+            "",
+          ],
+        },
+      };
+    });
+  };
+
+  const deleteFormRow = (rowIndex: number) => {
+    setFormData((prev) => {
+      if (!prev.tableData) return prev;
+
+      if (prev.tableData.rows.length <= 1) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        tableData: {
+          ...prev.tableData,
+          rows: prev.tableData.rows.filter(
+            (_, index) => index !== rowIndex
+          ),
+          rowColors:
+            prev.tableData.rowColors?.filter(
+              (_, index) => index !== rowIndex
+            ),
+        },
+      };
+    });
+  };
+
+  const addFormColumn = () => {
+    setFormData((prev) => {
+      if (!prev.tableData) return prev;
+
+      return {
+        ...prev,
+        tableData: {
+          ...prev.tableData,
+          headers: [
+            ...prev.tableData.headers,
+            `Column ${prev.tableData.headers.length + 1}`,
+          ],
+          rows: prev.tableData.rows.map((row) => [
+            ...row,
+            "",
+          ]),
+          columnColors: [
+            ...(prev.tableData.columnColors || []),
+            "",
+          ],
+        },
+      };
+    });
+  };
+
+  const deleteFormColumn = (colIndex: number) => {
+    setFormData((prev) => {
+      if (!prev.tableData) return prev;
+
+      if (prev.tableData.headers.length <= 1) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        tableData: {
+          ...prev.tableData,
+
+          headers:
+            prev.tableData.headers.filter(
+              (_, index) => index !== colIndex
+            ),
+
+          rows: prev.tableData.rows.map((row) =>
+            row.filter(
+              (_, index) => index !== colIndex
+            )
+          ),
+
+          columnColors:
+            prev.tableData.columnColors?.filter(
+              (_, index) => index !== colIndex
+            ),
+        },
+      };
+    });
+  };
+
+  // ============================================================
+  // FORM ROW COLOR
+  // ============================================================
+
+  const updateFormRowColor = (
+    rowIndex: number,
+    color: string
+  ) => {
+    setFormData((prev) => {
+      if (!prev.tableData) return prev;
+
+      const rowColors = [
+        ...(prev.tableData.rowColors || []),
+      ];
+
+      rowColors[rowIndex] = color;
+
+      return {
+        ...prev,
+        tableData: {
+          ...prev.tableData,
+          rowColors,
+        },
+      };
+    });
+  };
+
+  // ============================================================
+  // FORM COLUMN COLOR
+  // ============================================================
+
+  const updateFormColumnColor = (
+    colIndex: number,
+    color: string
+  ) => {
+    setFormData((prev) => {
+      if (!prev.tableData) return prev;
+
+      const columnColors = [
+        ...(prev.tableData.columnColors || []),
+      ];
+
+      columnColors[colIndex] = color;
+
+      return {
+        ...prev,
+        tableData: {
+          ...prev.tableData,
+          columnColors,
+        },
+      };
+    });
+  };
+
+  // ============================================================
+  // FORM DRAG ROW
+  // ============================================================
+
+  const moveFormRow = (
+    from: number,
+    to: number
+  ) => {
+    setFormData((prev) => {
+      if (!prev.tableData) return prev;
+
+      if (from === to) return prev;
+
+      const rows = prev.tableData.rows.map((r) => [...r]);
+
+      const [movedRow] = rows.splice(from, 1);
+
+      rows.splice(to, 0, movedRow);
+
+      const rowColors = [
+        ...(prev.tableData.rowColors || []),
+      ];
+
+      const [movedColor] = rowColors.splice(from, 1);
+
+      rowColors.splice(to, 0, movedColor || "");
+
+      return {
+        ...prev,
+        tableData: {
+          ...prev.tableData,
+          rows,
+          rowColors,
+        },
+      };
+    });
+  };
+
+  // ============================================================
+  // FORM DRAG COLUMN
+  // ============================================================
+
+  const moveFormColumn = (
+    from: number,
+    to: number
+  ) => {
+    setFormData((prev) => {
+      if (!prev.tableData) return prev;
+
+      if (from === to) return prev;
+
+      const headers = [...prev.tableData.headers];
+
+      const [movedHeader] = headers.splice(from, 1);
+
+      headers.splice(to, 0, movedHeader);
+
+      const rows = prev.tableData.rows.map((row) => {
+        const copy = [...row];
+
+        const [movedCell] = copy.splice(from, 1);
+
+        copy.splice(to, 0, movedCell);
+
+        return copy;
+      });
+
+      const columnColors = [
+        ...(prev.tableData.columnColors || []),
+      ];
+
+      const [movedColor] =
+        columnColors.splice(from, 1);
+
+      columnColors.splice(to, 0, movedColor || "");
+
+      return {
+        ...prev,
+        tableData: {
+          ...prev.tableData,
+          headers,
+          rows,
+          columnColors,
+        },
+      };
+    });
+  };
+
+  // ============================================================
+  // INLINE TABLE
+  // ============================================================
+
+  const addInlineTable = () => {
+    setInlineQuestion((prev) => {
+      if (!prev) return prev;
+
+      return {
+        ...prev,
+        tableData: createTable(),
+      };
+    });
+  };
+
+  const removeInlineTable = () => {
+    setInlineQuestion((prev) => {
+      if (!prev) return prev;
+
+      return {
+        ...prev,
+        tableData: null,
+      };
+    });
+  };
+
+  const updateInlineHeader = (
+    colIndex: number,
+    value: string
+  ) => {
+    setInlineQuestion((prev) => {
+      if (!prev?.tableData) return prev;
+
+      const headers = [...prev.tableData.headers];
+
+      headers[colIndex] = value;
+
+      return {
+        ...prev,
+        tableData: {
+          ...prev.tableData,
+          headers,
+        },
+      };
+    });
+  };
+
+  const updateInlineCell = (
+    rowIndex: number,
+    colIndex: number,
+    value: string
+  ) => {
+    setInlineQuestion((prev) => {
+      if (!prev?.tableData) return prev;
+
+      const rows = prev.tableData.rows.map((row) => [
+        ...row,
+      ]);
+
+      if (!rows[rowIndex]) return prev;
+
+      rows[rowIndex][colIndex] = value;
+
+      return {
+        ...prev,
+        tableData: {
+          ...prev.tableData,
+          rows,
+        },
+      };
+    });
+  };
+
+  const addInlineRow = () => {
+    setInlineQuestion((prev) => {
+      if (!prev?.tableData) return prev;
+
+      return {
+        ...prev,
+        tableData: {
+          ...prev.tableData,
+          rows: [
+            ...prev.tableData.rows,
+            prev.tableData.headers.map(() => ""),
+          ],
+          rowColors: [
+            ...(prev.tableData.rowColors || []),
+            "",
+          ],
+        },
+      };
+    });
+  };
+
+  const deleteInlineRow = (
+    rowIndex: number
+  ) => {
+    setInlineQuestion((prev) => {
+      if (!prev?.tableData) return prev;
+
+      if (prev.tableData.rows.length <= 1) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        tableData: {
+          ...prev.tableData,
+
+          rows: prev.tableData.rows.filter(
+            (_, index) => index !== rowIndex
+          ),
+
+          rowColors:
+            prev.tableData.rowColors?.filter(
+              (_, index) => index !== rowIndex
+            ),
+        },
+      };
+    });
+  };
+
+  const addInlineColumn = () => {
+    setInlineQuestion((prev) => {
+      if (!prev?.tableData) return prev;
+
+      return {
+        ...prev,
+
+        tableData: {
+          ...prev.tableData,
+
+          headers: [
+            ...prev.tableData.headers,
+            `Column ${prev.tableData.headers.length + 1}`,
+          ],
+
+          rows: prev.tableData.rows.map((row) => [
+            ...row,
+            "",
+          ]),
+
+          columnColors: [
+            ...(prev.tableData.columnColors || []),
+            "",
+          ],
+        },
+      };
+    });
+  };
+
+  const deleteInlineColumn = (
+    colIndex: number
+  ) => {
+    setInlineQuestion((prev) => {
+      if (!prev?.tableData) return prev;
+
+      if (prev.tableData.headers.length <= 1) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+
+        tableData: {
+          ...prev.tableData,
+
+          headers:
+            prev.tableData.headers.filter(
+              (_, index) => index !== colIndex
+            ),
+
+          rows: prev.tableData.rows.map((row) =>
+            row.filter(
+              (_, index) => index !== colIndex
+            )
+          ),
+
+          columnColors:
+            prev.tableData.columnColors?.filter(
+              (_, index) => index !== colIndex
+            ),
+        },
+      };
+    });
+  };
+
+  // ============================================================
+  // INLINE COLORS
+  // ============================================================
+
+  const updateInlineRowColor = (
+    rowIndex: number,
+    color: string
+  ) => {
+    setInlineQuestion((prev) => {
+      if (!prev?.tableData) return prev;
+
+      const rowColors = [
+        ...(prev.tableData.rowColors || []),
+      ];
+
+      rowColors[rowIndex] = color;
+
+      return {
+        ...prev,
+        tableData: {
+          ...prev.tableData,
+          rowColors,
+        },
+      };
+    });
+  };
+
+  const updateInlineColumnColor = (
+    colIndex: number,
+    color: string
+  ) => {
+    setInlineQuestion((prev) => {
+      if (!prev?.tableData) return prev;
+
+      const columnColors = [
+        ...(prev.tableData.columnColors || []),
+      ];
+
+      columnColors[colIndex] = color;
+
+      return {
+        ...prev,
+        tableData: {
+          ...prev.tableData,
+          columnColors,
+        },
+      };
+    });
+  };
+
+  // ============================================================
+  // INLINE MOVE ROW
+  // ============================================================
+
+  const moveInlineRow = (
+    from: number,
+    to: number
+  ) => {
+    setInlineQuestion((prev) => {
+      if (!prev?.tableData) return prev;
+
+      if (from === to) return prev;
+
+      const rows = prev.tableData.rows.map((r) => [
+        ...r,
+      ]);
+
+      const [movedRow] = rows.splice(from, 1);
+
+      rows.splice(to, 0, movedRow);
+
+      const rowColors = [
+        ...(prev.tableData.rowColors || []),
+      ];
+
+      const [movedColor] =
+        rowColors.splice(from, 1);
+
+      rowColors.splice(to, 0, movedColor || "");
+
+      return {
+        ...prev,
+        tableData: {
+          ...prev.tableData,
+          rows,
+          rowColors,
+        },
+      };
+    });
+  };
+
+  // ============================================================
+  // INLINE MOVE COLUMN
+  // ============================================================
+
+  const moveInlineColumn = (
+    from: number,
+    to: number
+  ) => {
+    setInlineQuestion((prev) => {
+      if (!prev?.tableData) return prev;
+
+      if (from === to) return prev;
+
+      const headers = [
+        ...prev.tableData.headers,
+      ];
+
+      const [movedHeader] =
+        headers.splice(from, 1);
+
+      headers.splice(to, 0, movedHeader);
+
+      const rows = prev.tableData.rows.map(
+        (row) => {
+          const copy = [...row];
+
+          const [movedCell] =
+            copy.splice(from, 1);
+
+          copy.splice(to, 0, movedCell);
+
+          return copy;
+        }
+      );
+
+      const columnColors = [
+        ...(prev.tableData.columnColors || []),
+      ];
+
+      const [movedColor] =
+        columnColors.splice(from, 1);
+
+      columnColors.splice(
+        to,
+        0,
+        movedColor || ""
+      );
+
+      return {
+        ...prev,
+        tableData: {
+          ...prev.tableData,
+          headers,
+          rows,
+          columnColors,
+        },
+      };
+    });
+  };
+
+  // ============================================================
+  // OPTION COLOR STATE
+  // ============================================================
+
+  const [formOptionColors, setFormOptionColors] =
+    useState<string[]>(["", "", "", ""]);
+
+  const [inlineOptionColors, setInlineOptionColors] =
+    useState<string[]>(["", "", "", ""]);
+
+  // ============================================================
+  // FORM OPTION
   // ============================================================
 
   const handleOptionChange = (
     index: number,
     value: string
   ) => {
-    const newOptions = [
-      ...formData.options,
-    ];
+    setFormData((prev) => {
+      const options = [...prev.options];
 
-    newOptions[index] = value;
+      options[index] = value;
 
-    setFormData({
-      ...formData,
-      options: newOptions,
+      return {
+        ...prev,
+        options,
+      };
     });
   };
 
   // ============================================================
-  // ADD / UPDATE QUESTION
+  // IMAGE
   // ============================================================
+const updateQuestionImage = (value: string) => {
+  setFormData((prev) => ({
+    ...prev,
+    questionImage: value,
+    imageUrl: value,
+  }));
+};
+  // ============================================================
+  // SUBMIT
+  // ============================================================
+      const handleSubmit = async (
+  e: React.FormEvent
+) => {
+  e.preventDefault();
 
-  const handleSubmit = async (
-    e: React.FormEvent
-  ) => {
-    e.preventDefault();
+  const token = getToken();
 
-    const token = getToken();
+  try {
+    let url = `${API_BASE_URL}/questions`;
+    let method = "POST";
 
-    try {
-      let url =
-        `${API_BASE_URL}/questions`;
+    if (editingId) {
+      url = `${API_BASE_URL}/questions/${editingId}`;
+      method = "PUT";
+    }
 
-      let method = "POST";
+    // ========================================================
+    // CREATE FORMDATA
+    // ========================================================
 
-      if (editingId) {
-        url =
-          `${API_BASE_URL}/questions/${editingId}`;
+    const data = new FormData();
 
-        method = "PUT";
-      }
+    // ========================================================
+    // NORMAL FORM FIELDS
+    // ========================================================
 
-      const response = await fetch(
-        url,
-        {
-          method,
-
-          headers: {
-            "Content-Type":
-              "application/json",
-
-            ...(token
-              ? {
-                  Authorization:
-                    `Bearer ${token}`,
-                }
-              : {}),
-          },
-
-          body:
-            JSON.stringify(formData),
+    Object.entries(formData).forEach(
+      ([key, value]) => {
+        // These fields are handled separately
+        if (
+          key === "questionImage" ||
+          key === "imageUrl" ||
+          key === "options" ||
+          key === "tableData" ||
+          key === "tableHeaders" ||
+          key === "tableRows"
+        ) {
+          return;
         }
-      );
 
-      const result =
-        await response.json();
-
-      console.log(
-        "QUESTION SAVE RESPONSE:",
-        result
-      );
-
-      if (response.ok) {
-        alert(
-          editingId
-            ? "Question updated successfully!"
-            : "Question added successfully as Draft!"
-        );
-
-        resetForm();
-
-        await fetchQuestions();
-      } else {
-        alert(
-          result.message ||
-            result.error ||
-            "Operation failed"
-        );
+        if (
+          value !== undefined &&
+          value !== null
+        ) {
+          data.append(
+            key,
+            String(value)
+          );
+        }
       }
-    } catch (error) {
-      console.error(
-        "QUESTION SAVE ERROR:",
-        error
-      );
+    );
 
-      alert(
-        "Network or server error occurred."
+    // ========================================================
+    // OPTIONS
+    // ========================================================
+
+    data.append(
+      "options",
+      JSON.stringify(
+        formData.options || []
+      )
+    );
+
+    // ========================================================
+    // TABLE HEADERS
+    // ========================================================
+
+    data.append(
+      "tableHeaders",
+      JSON.stringify(
+        formData.tableHeaders || []
+      )
+    );
+
+    // ========================================================
+    // TABLE ROWS
+    // ========================================================
+
+    data.append(
+      "tableRows",
+      JSON.stringify(
+        formData.tableRows || []
+      )
+    );
+
+    // ========================================================
+    // TABLE DATA
+    // ========================================================
+
+    data.append(
+      "tableData",
+      JSON.stringify(
+        normalizeTable(
+          formData.tableData
+        )
+      )
+    );
+
+    // ========================================================
+    // OPTION COLORS
+    // ========================================================
+
+    data.append(
+      "optionColors",
+      JSON.stringify(
+        formOptionColors
+      )
+    );
+
+    // ========================================================
+    // IMAGE FILE
+    // ========================================================
+
+    if (selectedImageFile) {
+      data.append(
+        "questionImage",
+        selectedImageFile
       );
     }
-  };
 
+    // ========================================================
+    // IMAGE URL
+    // ========================================================
+
+    // If user pasted an external URL instead of uploading
+    // a local image, send that URL.
+    if (
+      !selectedImageFile &&
+      formData.questionImage &&
+      !formData.questionImage.startsWith(
+        "blob:"
+      )
+    ) {
+      data.append(
+        "imageUrl",
+        formData.questionImage
+      );
+    }
+
+    // ========================================================
+    // API REQUEST
+    // ========================================================
+
+    const response = await fetch(url, {
+      method,
+
+      headers: {
+        ...(token
+          ? {
+              Authorization: `Bearer ${token}`,
+            }
+          : {}),
+      },
+
+      body: data,
+    });
+
+    const result =
+      await response.json();
+
+    // ========================================================
+    // SUCCESS
+    // ========================================================
+
+    if (response.ok) {
+      alert(
+        editingId
+          ? "Question updated successfully!"
+          : "Question added successfully as Draft!"
+      );
+
+      resetForm();
+
+      setSelectedImageFile(null);
+      setImagePreviewUrl("");
+
+      await fetchQuestions();
+    } else {
+      alert(
+        result.message ||
+          result.error ||
+          "Operation failed"
+      );
+    }
+  } catch (error) {
+    console.error(
+      "QUESTION SAVE ERROR:",
+      error
+    );
+
+    alert(
+      "Network or server error occurred."
+    );
+  }
+};
   // ============================================================
   // EDIT
   // ============================================================
 
-  const handleEdit = (
-    q: Question
-  ) => {
-    setEditingId(
-      q._id || null
-    );
+  const handleEdit = (q: Question) => {
+    setEditingId(q._id || null);
 
     setFormData({
-      questionNumber:
-        q.questionNumber || 1,
+      ...createEmptyQuestion(),
 
-      question:
-        q.question || "",
-
-      questionImage:
-        q.questionImage || "",
+      ...q,
 
       options:
         q.options?.length === 4
-          ? q.options
+          ? [...q.options]
           : ["", "", "", ""],
 
-      correctAnswer:
-        q.correctAnswer || "",
-
-      subject:
-        q.subject || "Physics",
-
-      chapter:
-        q.chapter || "",
-
-      examType:
-        q.examType || "JEE",
-
-      testCategory:
-        q.testCategory || "mock",
-
-      className:
-        q.className || "2nd PUC",
-
-      testTitle:
-        q.testTitle || "",
-
-      testId:
-        q.testId || "",
-
-      marksPerQuestion:
-        q.marksPerQuestion || 4,
-
-      negativeMarks:
-        q.negativeMarks || 1,
-
-      durationMinutes:
-        q.durationMinutes || 180,
-
-      isPublished:
-        q.isPublished ?? false,
+      tableData: normalizeTable(
+        q.tableData
+      ),
     });
+
+    setFormOptionColors(
+      (q as any).optionColors || [
+        "",
+        "",
+        "",
+        "",
+      ]
+    );
 
     setShowAddForm(true);
 
@@ -327,6 +1337,157 @@ export default function QuestionBank() {
       top: 0,
       behavior: "smooth",
     });
+  };
+
+  // ============================================================
+  // INLINE EDIT
+  // ============================================================
+
+  const startInlineEdit = (
+    q: Question
+  ) => {
+    setInlineEditingId(q._id || null);
+
+    setInlineQuestion({
+      ...q,
+
+      options:
+        q.options?.length === 4
+          ? [...q.options]
+          : ["", "", "", ""],
+
+      tableData: normalizeTable(
+        q.tableData
+      ),
+    });
+
+    setInlineOptionColors(
+      (q as any).optionColors || [
+        "",
+        "",
+        "",
+        "",
+      ]
+    );
+  };
+
+  const cancelInlineEdit = () => {
+    setInlineEditingId(null);
+    setInlineQuestion(null);
+  };
+
+  // ============================================================
+  // INLINE FIELD
+  // ============================================================
+
+  const updateInlineField = (
+    field: keyof Question,
+    value: any
+  ) => {
+    setInlineQuestion((prev) => {
+      if (!prev) return prev;
+
+      return {
+        ...prev,
+        [field]: value,
+      };
+    });
+  };
+
+  const updateInlineOption = (
+    index: number,
+    value: string
+  ) => {
+    setInlineQuestion((prev) => {
+      if (!prev) return prev;
+
+      const options = [...prev.options];
+
+      options[index] = value;
+
+      return {
+        ...prev,
+        options,
+      };
+    });
+  };
+
+  // ============================================================
+  // SAVE INLINE
+  // ============================================================
+
+  const saveInlineEdit = async () => {
+    if (!inlineEditingId || !inlineQuestion) {
+      return;
+    }
+
+    const token = getToken();
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/questions/${inlineEditingId}`,
+        {
+          method: "PUT",
+
+          headers: {
+            "Content-Type": "application/json",
+
+            ...(token
+              ? {
+                  Authorization: `Bearer ${token}`,
+                }
+              : {}),
+          },
+
+          body: JSON.stringify({
+            ...inlineQuestion,
+
+            tableData: normalizeTable(
+              inlineQuestion.tableData
+            ),
+
+            optionColors: inlineOptionColors,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        alert(
+          result.message ||
+            result.error ||
+            "Failed to update question"
+        );
+
+        return;
+      }
+
+      setQuestions((prev) =>
+        prev.map((q) =>
+          q._id === inlineEditingId
+            ? {
+                ...q,
+                ...inlineQuestion,
+                tableData: normalizeTable(
+                  inlineQuestion.tableData
+                ),
+              }
+            : q
+        )
+      );
+
+      alert("Question saved successfully!");
+
+      cancelInlineEdit();
+    } catch (error) {
+      console.error(
+        "INLINE UPDATE ERROR:",
+        error
+      );
+
+      alert("Unable to save question.");
+    }
   };
 
   // ============================================================
@@ -349,33 +1510,34 @@ export default function QuestionBank() {
     try {
       const token = getToken();
 
-      const response =
-        await fetch(
-          `${API_BASE_URL}/questions/${id}`,
-          {
-            method: "DELETE",
+      const response = await fetch(
+        `${API_BASE_URL}/questions/${id}`,
+        {
+          method: "DELETE",
 
-            headers: {
-              ...(token
-                ? {
-                    Authorization:
-                      `Bearer ${token}`,
-                  }
-                : {}),
-            },
-          }
-        );
+          headers: {
+            ...(token
+              ? {
+                  Authorization: `Bearer ${token}`,
+                }
+              : {}),
+          },
+        }
+      );
 
-      const result =
-        await response.json();
+      const result = await response.json();
 
       if (response.ok) {
+        setQuestions((prev) =>
+          prev.filter(
+            (q) => q._id !== id
+          )
+        );
+
         alert(
           result.message ||
             "Question deleted successfully!"
         );
-
-        await fetchQuestions();
       } else {
         alert(
           result.message ||
@@ -406,25 +1568,22 @@ export default function QuestionBank() {
     try {
       const token = getToken();
 
-      const response =
-        await fetch(
-          `${API_BASE_URL}/questions/publish-all`,
-          {
-            method: "PUT",
+      const response = await fetch(
+        `${API_BASE_URL}/questions/publish-all`,
+        {
+          method: "PUT",
 
-            headers: {
-              ...(token
-                ? {
-                    Authorization:
-                      `Bearer ${token}`,
-                  }
-                : {}),
-            },
-          }
-        );
+          headers: {
+            ...(token
+              ? {
+                  Authorization: `Bearer ${token}`,
+                }
+              : {}),
+          },
+        }
+      );
 
-      const result =
-        await response.json();
+      const result = await response.json();
 
       if (response.ok) {
         alert(
@@ -441,7 +1600,7 @@ export default function QuestionBank() {
       }
     } catch (error) {
       console.error(
-        "PUBLISH ALL ERROR:",
+        "PUBLISH ERROR:",
         error
       );
     }
@@ -454,7 +1613,7 @@ export default function QuestionBank() {
   const handleDeleteAll = async () => {
     if (
       !window.confirm(
-        "⚠️ WARNING: This will delete ALL questions permanently! Are you sure?"
+        "WARNING: This will delete ALL questions permanently!"
       )
     ) {
       return;
@@ -463,25 +1622,22 @@ export default function QuestionBank() {
     try {
       const token = getToken();
 
-      const response =
-        await fetch(
-          `${API_BASE_URL}/questions/delete-all`,
-          {
-            method: "DELETE",
+      const response = await fetch(
+        `${API_BASE_URL}/questions/delete-all`,
+        {
+          method: "DELETE",
 
-            headers: {
-              ...(token
-                ? {
-                    Authorization:
-                      `Bearer ${token}`,
-                  }
-                : {}),
-            },
-          }
-        );
+          headers: {
+            ...(token
+              ? {
+                  Authorization: `Bearer ${token}`,
+                }
+              : {}),
+          },
+        }
+      );
 
-      const result =
-        await response.json();
+      const result = await response.json();
 
       if (response.ok) {
         alert(
@@ -489,7 +1645,7 @@ export default function QuestionBank() {
             "All questions deleted successfully!"
         );
 
-        await fetchQuestions();
+        setQuestions([]);
       } else {
         alert(
           result.message ||
@@ -505,7 +1661,7 @@ export default function QuestionBank() {
   };
 
   // ============================================================
-  // PDF SUBMIT - FIXED
+  // PDF
   // ============================================================
 
   const handlePdfSubmit = async (
@@ -514,9 +1670,8 @@ export default function QuestionBank() {
     e.preventDefault();
 
     if (!pdfFile) {
-      alert(
-        "Please select a PDF file first!"
-      );
+      alert("Please select a PDF file first!");
+
       return;
     }
 
@@ -527,100 +1682,42 @@ export default function QuestionBank() {
 
       const data = new FormData();
 
-      // IMPORTANT:
-      // Backend:
-      // upload.single("pdfFile")
-      data.append(
-        "pdfFile",
-        pdfFile
-      );
-
+      data.append("pdfFile", pdfFile);
       data.append(
         "academicYear",
         pdfClassName
       );
-
       data.append(
         "className",
         pdfClassName
       );
-
       data.append(
         "examType",
         pdfExamType
       );
-
       data.append(
         "testCategory",
         pdfTestCategory
       );
 
-      console.log(
-        "================================"
+      const response = await fetch(
+        `${API_BASE_URL}/questions/parse-pdf`,
+        {
+          method: "POST",
+
+          headers: {
+            ...(token
+              ? {
+                  Authorization: `Bearer ${token}`,
+                }
+              : {}),
+          },
+
+          body: data,
+        }
       );
 
-      console.log(
-        "PDF UPLOAD STARTED"
-      );
-
-      console.log(
-        "File:",
-        pdfFile.name
-      );
-
-      console.log(
-        "Class:",
-        pdfClassName
-      );
-
-      console.log(
-        "Exam Type:",
-        pdfExamType
-      );
-
-      console.log(
-        "Test Category:",
-        pdfTestCategory
-      );
-
-      console.log(
-        "================================"
-      );
-
-      // IMPORTANT:
-      // Backend route:
-      // router.post(
-      //   "/parse-pdf",
-      //   upload.single("pdfFile"),
-      //   ...
-      // )
-
-      const response =
-        await fetch(
-          `${API_BASE_URL}/questions/parse-pdf`,
-          {
-            method: "POST",
-
-            headers: {
-              ...(token
-                ? {
-                    Authorization:
-                      `Bearer ${token}`,
-                  }
-                : {}),
-            },
-
-            body: data,
-          }
-        );
-
-      const result =
-        await response.json();
-
-      console.log(
-        "PDF PARSE RESPONSE:",
-        result
-      );
+      const result = await response.json();
 
       if (response.ok) {
         const count =
@@ -630,32 +1727,14 @@ export default function QuestionBank() {
           0;
 
         alert(
-          `PDF processed successfully!\n\n` +
-            `Questions Parsed: ${count}\n` +
-            `Exam Type: ${
-              result.examType ||
-              pdfExamType
-            }\n` +
-            `Class: ${
-              result.academicYear ||
-              pdfClassName
-            }\n` +
-            `Test Type: ${pdfTestCategory}`
+          `PDF processed successfully!\n\nQuestions Parsed: ${count}`
         );
 
-        setShowPdfModal(
-          false
-        );
-
+        setShowPdfModal(false);
         setPdfFile(null);
 
         await fetchQuestions();
       } else {
-        console.error(
-          "PDF PARSE ERROR:",
-          result
-        );
-
         alert(
           result.message ||
             result.error ||
@@ -663,13 +1742,10 @@ export default function QuestionBank() {
         );
       }
     } catch (error) {
-      console.error(
-        "PDF PARSE ERROR:",
-        error
-      );
+      console.error("PDF ERROR:", error);
 
       alert(
-        "PDF upload failed. Please check whether backend server is running."
+        "PDF upload failed. Check backend server."
       );
     } finally {
       setParsing(false);
@@ -677,66 +1753,53 @@ export default function QuestionBank() {
   };
 
   // ============================================================
-  // RESET FORM
+  // RESET
   // ============================================================
 
   const resetForm = () => {
     setEditingId(null);
-
     setShowAddForm(false);
 
-    setFormData({
-      questionNumber: 1,
-      question: "",
-      questionImage: "",
-      options: ["", "", "", ""],
-      correctAnswer: "",
-      subject: "Physics",
-      chapter: "",
-      examType: "JEE",
-      testCategory: "mock",
-      className: "2nd PUC",
-      testTitle:
-        "JEE Mains Full Mock Test 1",
-      testId: "JEE-MOCK-01",
-      marksPerQuestion: 4,
-      negativeMarks: 1,
-      durationMinutes: 180,
-      isPublished: false,
-    });
+    setFormData(
+      createEmptyQuestion()
+    );
+
+    setFormOptionColors([
+      "",
+      "",
+      "",
+      "",
+    ]);
   };
 
   // ============================================================
   // FILTER
   // ============================================================
 
-  const filteredQuestions =
-    questions.filter((q) => {
+  const filteredQuestions = useMemo(() => {
+    const search =
+      searchTerm.toLowerCase().trim();
+
+    return questions.filter((q) => {
       const matchesTab =
         activeTab === "ALL" ||
-        q.testCategory ===
-          activeTab;
+        q.testCategory === activeTab;
 
       const matchesExam =
         selectedExam === "ALL" ||
-        q.examType ===
-          selectedExam;
+        q.examType === selectedExam;
 
       const matchesSubject =
         selectedSubject === "ALL" ||
-        q.subject ===
-          selectedSubject;
+        q.subject === selectedSubject;
 
       const matchesClass =
-        selectedClassName ===
-          "ALL" ||
+        selectedClassName === "ALL" ||
         q.className ===
           selectedClassName;
 
-      const search =
-        searchTerm.toLowerCase();
-
       const matchesSearch =
+        !search ||
         q.question
           ?.toLowerCase()
           .includes(search) ||
@@ -755,798 +1818,837 @@ export default function QuestionBank() {
         matchesSearch
       );
     });
+  }, [
+    questions,
+    activeTab,
+    selectedExam,
+    selectedSubject,
+    selectedClassName,
+    searchTerm,
+  ]);
 
   // ============================================================
-  // UI
+  // TABLE RENDER
   // ============================================================
+// ============================================================
+// TABLE RENDER
+// ============================================================
+
+const renderTable = (
+  table: TableData,
+  editable: boolean,
+  question?: Question
+) => {
+  if (!table?.headers?.length) {
+    return null;
+  }
+
+  const rowColors = table.rowColors || [];
+  const columnColors = table.columnColors || [];
+
+  const isInline =
+    !!question && question === inlineQuestion;
 
   return (
-    <div
-      style={{
-        padding: "30px",
-        maxWidth: "1350px",
-        margin: "0 auto",
-        fontFamily:
-          "Segoe UI, sans-serif",
-        background:
-          "#f8fafc",
-        minHeight: "100vh",
-      }}
-    >
-      {/* HEADER */}
+    <div className="qb-table-wrapper">
 
-      <div
-        style={{
-          display: "flex",
-          justifyContent:
-            "space-between",
-          alignItems: "center",
-          marginBottom: "25px",
-          background:
-            "#ffffff",
-          padding: "20px",
-          borderRadius:
-            "12px",
-          boxShadow:
-            "0 2px 4px rgba(0,0,0,0.05)",
-          flexWrap: "wrap",
-          gap: "15px",
-        }}
-      >
-        <div>
-          <h1
-            style={{
-              margin: 0,
-              color:
-                "#1e293b",
-              fontSize:
-                "24px",
-            }}
-          >
-            🎯 Master Question Bank
-            & PDF Parser
-          </h1>
-
-          <p
-            style={{
-              margin:
-                "5px 0 0 0",
-              color:
-                "#64748b",
-              fontSize:
-                "14px",
-            }}
-          >
-            Manage drafts, test
-            categories and upload
-            question paper PDFs.
-          </p>
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            gap: "10px",
-            flexWrap: "wrap",
-          }}
-        >
-          <button
-            onClick={
-              handlePublishAll
-            }
-            style={{
-              background:
-                "#16a34a",
-              color: "#fff",
-              padding:
-                "10px 16px",
-              border: "none",
-              borderRadius:
-                "8px",
-              cursor:
-                "pointer",
-              fontWeight:
-                "600",
-            }}
-          >
-            🚀 Publish All
-          </button>
-
-          <button
-            onClick={
-              handleDeleteAll
-            }
-            style={{
-              background:
-                "#dc2626",
-              color: "#fff",
-              padding:
-                "10px 16px",
-              border: "none",
-              borderRadius:
-                "8px",
-              cursor:
-                "pointer",
-              fontWeight:
-                "600",
-            }}
-          >
-            🗑️ Delete All
-          </button>
-
-          <button
-            onClick={() =>
-              setShowPdfModal(
-                true
-              )
-            }
-            style={{
-              background:
-                "#7c3aed",
-              color: "#fff",
-              padding:
-                "10px 16px",
-              border: "none",
-              borderRadius:
-                "8px",
-              cursor:
-                "pointer",
-              fontWeight:
-                "600",
-            }}
-          >
-            📄 Upload PDF
-          </button>
-
-          <button
-            onClick={() => {
-              if (
-                showAddForm
-              ) {
-                resetForm();
-              } else {
-                setShowAddForm(
-                  true
-                );
-              }
-            }}
-            style={{
-              background:
-                "#2563eb",
-              color: "#fff",
-              padding:
-                "10px 16px",
-              border: "none",
-              borderRadius:
-                "8px",
-              cursor:
-                "pointer",
-              fontWeight:
-                "600",
-            }}
-          >
-            {showAddForm
-              ? "Close Form"
-              : "+ Add Question"}
-          </button>
-        </div>
-      </div>
-
-      {/* TABS */}
-
-      <div
-        style={{
-          display: "flex",
-          gap: "10px",
-          marginBottom:
-            "20px",
-          borderBottom:
-            "2px solid #e2e8f0",
-          paddingBottom:
-            "10px",
-          flexWrap: "wrap",
-        }}
-      >
-        {[
-          {
-            key: "ALL",
-            label: `All Questions (${questions.length})`,
-          },
-          {
-            key: "mock",
-            label: `Mock Tests (${
-              questions.filter(
-                (q) =>
-                  q.testCategory ===
-                  "mock"
-              ).length
-            })`,
-          },
-          {
-            key: "daily",
-            label: `Daily Tests (${
-              questions.filter(
-                (q) =>
-                  q.testCategory ===
-                  "daily"
-              ).length
-            })`,
-          },
-          {
-            key: "subject",
-            label: `Subject Tests (${
-              questions.filter(
-                (q) =>
-                  q.testCategory ===
-                  "subject"
-              ).length
-            })`,
-          },
-        ].map(
-          (tab) => (
-            <button
-              key={
-                tab.key
-              }
-              onClick={() =>
-                setActiveTab(
-                  tab.key
-                )
-              }
-              style={{
-                padding:
-                  "10px 20px",
-                borderRadius:
-                  "8px",
-                border:
-                  "none",
-                cursor:
-                  "pointer",
-                fontWeight:
-                  "600",
-                fontSize:
-                  "14px",
-                background:
-                  activeTab ===
-                  tab.key
-                    ? "#2563eb"
-                    : "#ffffff",
-                color:
-                  activeTab ===
-                  tab.key
-                    ? "#ffffff"
-                    : "#64748b",
-              }}
-            >
-              {tab.label}
-            </button>
-          )
-        )}
-      </div>
-
-      {/* PDF MODAL */}
-
-      {showPdfModal && (
-        <div
-          style={{
-            position:
-              "fixed",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height:
-              "100%",
-            background:
-              "rgba(0,0,0,0.5)",
-            display:
-              "flex",
-            justifyContent:
-              "center",
-            alignItems:
-              "center",
-            zIndex: 1000,
-          }}
-        >
-          <div
-            style={{
-              background:
-                "#fff",
-              padding:
-                "30px",
-              borderRadius:
-                "12px",
-              width:
-                "480px",
-              maxWidth:
-                "90%",
-              boxShadow:
-                "0 10px 25px rgba(0,0,0,0.1)",
-            }}
-          >
-            <h3
-              style={{
-                marginTop: 0,
-                color:
-                  "#1e293b",
-              }}
-            >
-              📄 Upload Question
-              Paper PDF
-            </h3>
-
-            <p
-              style={{
-                fontSize:
-                  "13px",
-                color:
-                  "#64748b",
-                marginBottom:
-                  "15px",
-              }}
-            >
-              Select Class, Exam Type
-              and Test Type before
-              uploading.
-            </p>
-
-            <form
-              onSubmit={
-                handlePdfSubmit
-              }
-            >
-              <div
-                style={{
-                  marginBottom:
-                    "12px",
-                }}
-              >
-                <label
-                  style={{
-                    fontSize:
-                      "12px",
-                    fontWeight:
-                      "700",
-                    color:
-                      "#475569",
-                    display:
-                      "block",
-                    marginBottom:
-                      "4px",
-                  }}
-                >
-                  CLASS NAME
-                </label>
-
-                <select
-                  value={
-                    pdfClassName
-                  }
-                  onChange={(e) =>
-                    setPdfClassName(
-                      e.target.value
-                    )
-                  }
-                  style={{
-                    width:
-                      "100%",
-                    padding:
-                      "9px",
-                    borderRadius:
-                      "6px",
-                    border:
-                      "1px solid #cbd5e1",
-                  }}
-                >
-                  <option value="1st PUC">
-                    1st PUC
-                  </option>
-
-                  <option value="2nd PUC">
-                    2nd PUC
-                  </option>
-                </select>
-              </div>
-
-              <div
-                style={{
-                  marginBottom:
-                    "12px",
-                }}
-              >
-                <label
-                  style={{
-                    fontSize:
-                      "12px",
-                    fontWeight:
-                      "700",
-                    color:
-                      "#475569",
-                    display:
-                      "block",
-                    marginBottom:
-                      "4px",
-                  }}
-                >
-                  EXAM TYPE
-                </label>
-
-                <select
-                  value={
-                    pdfExamType
-                  }
-                  onChange={(e) =>
-                    setPdfExamType(
-                      e.target.value
-                    )
-                  }
-                  style={{
-                    width:
-                      "100%",
-                    padding:
-                      "9px",
-                    borderRadius:
-                      "6px",
-                    border:
-                      "1px solid #cbd5e1",
-                  }}
-                >
-                  <option value="JEE">
-                    JEE Mains
-                  </option>
-
-                  <option value="NEET">
-                    NEET UG
-                  </option>
-                </select>
-              </div>
-
-              <div
-                style={{
-                  marginBottom:
-                    "12px",
-                }}
-              >
-                <label
-                  style={{
-                    fontSize:
-                      "12px",
-                    fontWeight:
-                      "700",
-                    color:
-                      "#475569",
-                    display:
-                      "block",
-                    marginBottom:
-                      "4px",
-                  }}
-                >
-                  TEST TYPE
-                </label>
-
-                <select
-                  value={
-                    pdfTestCategory
-                  }
-                  onChange={(e) =>
-                    setPdfTestCategory(
-                      e.target.value
-                    )
-                  }
-                  style={{
-                    width:
-                      "100%",
-                    padding:
-                      "9px",
-                    borderRadius:
-                      "6px",
-                    border:
-                      "1px solid #cbd5e1",
-                  }}
-                >
-                  <option value="mock">
-                    Mock Test
-                  </option>
-
-                  <option value="daily">
-                    Daily Test
-                  </option>
-
-                  <option value="subject">
-                    Subject Test
-                  </option>
-                </select>
-              </div>
-
-              <div
-                style={{
-                  marginBottom:
-                    "15px",
-                }}
-              >
-                <label
-                  style={{
-                    fontSize:
-                      "12px",
-                    fontWeight:
-                      "700",
-                    color:
-                      "#475569",
-                    display:
-                      "block",
-                    marginBottom:
-                      "4px",
-                  }}
-                >
-                  SELECT PDF FILE
-                </label>
-
-                <input
-                  type="file"
-                  accept=".pdf,application/pdf"
-                  onChange={(e) => {
-                    const file =
-                      e.target.files?.[0] ||
-                      null;
-
-                    setPdfFile(
-                      file
-                    );
-                  }}
-                  style={{
-                    width:
-                      "100%",
-                    padding:
-                      "8px",
-                    border:
-                      "1px dashed #cbd5e1",
-                    borderRadius:
-                      "6px",
-                    boxSizing:
-                      "border-box",
-                  }}
-                  required
-                />
-
-                {pdfFile && (
-                  <p
-                    style={{
-                      fontSize:
-                        "12px",
-                      color:
-                        "#475569",
-                      marginTop:
-                        "6px",
-                    }}
-                  >
-                    Selected:{" "}
-                    {
-                      pdfFile.name
-                    }
-                  </p>
-                )}
-              </div>
-
-              <div
-                style={{
-                  display:
-                    "flex",
-                  justifyContent:
-                    "flex-end",
-                  gap:
-                    "10px",
-                  marginTop:
-                    "20px",
-                }}
-              >
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowPdfModal(
-                      false
-                    );
-                    setPdfFile(
-                      null
-                    );
-                  }}
-                  disabled={
-                    parsing
-                  }
-                  style={{
-                    background:
-                      "#e2e8f0",
-                    border:
-                      "none",
-                    padding:
-                      "8px 16px",
-                    borderRadius:
-                      "6px",
-                    cursor:
-                      "pointer",
-                    fontWeight:
-                      "600",
-                  }}
-                >
-                  Cancel
-                </button>
-
-                <button
-                  type="submit"
-                  disabled={
-                    parsing
-                  }
-                  style={{
-                    background:
-                      "#7c3aed",
-                    color:
-                      "#fff",
-                    border:
-                      "none",
-                    padding:
-                      "8px 16px",
-                    borderRadius:
-                      "6px",
-                    cursor:
-                      parsing
-                        ? "not-allowed"
-                        : "pointer",
-                    fontWeight:
-                      "600",
-                    opacity:
-                      parsing
-                        ? 0.7
-                        : 1,
-                  }}
-                >
-                  {parsing
-                    ? "Processing PDF..."
-                    : "Extract & Save"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-            {/* ======================================================
-          FILTERS
+      {/* ======================================================
+          TABLE TOOLBAR
       ====================================================== */}
 
-      <div
-        style={{
-          background: "#ffffff",
-          padding: "20px",
-          borderRadius: "12px",
-          boxShadow:
-            "0 2px 4px rgba(0,0,0,0.05)",
-          marginBottom: "25px",
-          display: "grid",
-          gridTemplateColumns:
-            "repeat(auto-fit, minmax(200px, 1fr))",
-          gap: "15px",
-        }}
-      >
-        {/* CLASS */}
+      <div className="qb-table-toolbar">
 
-        <div>
-          <label
-            style={{
-              fontSize: "12px",
-              fontWeight: "700",
-              color: "#475569",
-              display: "block",
-              marginBottom: "5px",
-            }}
-          >
-            CLASS NAME
-          </label>
+        <div className="qb-table-title">
+          <Table2 size={17} />
 
-          <select
-            value={selectedClassName}
-            onChange={(e) =>
-              setSelectedClassName(
-                e.target.value
-              )
-            }
-            style={{
-              width: "100%",
-              padding: "10px",
-              borderRadius: "8px",
-              border:
-                "1px solid #cbd5e1",
-              background: "#f8fafc",
-            }}
-          >
-            <option value="ALL">
-              All Classes
-            </option>
+          <span>Question Table</span>
 
-            <option value="1st PUC">
-              1st PUC
-            </option>
-
-            <option value="2nd PUC">
-              2nd PUC
-            </option>
-          </select>
+          {editable && (
+            <small>
+              Drag rows / columns
+            </small>
+          )}
         </div>
 
-        {/* EXAM */}
+        {editable && (
+          <div className="qb-table-actions">
+
+            <button
+              type="button"
+              onClick={
+                isInline
+                  ? addInlineRow
+                  : addFormRow
+              }
+            >
+              <Rows3 size={15} />
+              Add Row
+            </button>
+
+            <button
+              type="button"
+              onClick={
+                isInline
+                  ? addInlineColumn
+                  : addFormColumn
+              }
+            >
+              <Columns3 size={15} />
+              Add Column
+            </button>
+
+            <button
+              type="button"
+              className="danger-light"
+              onClick={
+                isInline
+                  ? removeInlineTable
+                  : removeFormTable
+              }
+            >
+              <Trash2 size={15} />
+              Remove
+            </button>
+
+          </div>
+        )}
+
+      </div>
+
+      {/* ======================================================
+          TABLE SCROLL
+      ====================================================== */}
+
+      <div className="qb-table-scroll">
+
+        <table
+          className="qb-question-table"
+          style={{
+            tableLayout: "fixed",
+            width: "max-content",
+            minWidth: "100%",
+          }}
+        >
+
+          {/* ==================================================
+              COLUMN WIDTHS
+          ================================================== */}
+
+          <colgroup>
+
+            {editable && (
+              <col
+                style={{
+                  width: "52px",
+                }}
+              />
+            )}
+
+            {table.headers.map(
+              (_, colIndex) => (
+                <col
+                  key={colIndex}
+                  style={{
+                    width: `${
+                      columnWidths[colIndex] || 180
+                    }px`,
+                    minWidth: "80px",
+                  }}
+                />
+              )
+            )}
+
+          </colgroup>
+
+          {/* ==================================================
+              HEADER
+          ================================================== */}
+
+          <thead>
+
+            <tr>
+
+              {editable && (
+                <th className="qb-drag-head">
+                  <GripVertical size={15} />
+                </th>
+              )}
+
+              {table.headers.map(
+                (header, colIndex) => (
+
+                  <th
+                    key={colIndex}
+                    draggable={editable}
+                    style={{
+                      background:
+                        columnColors[colIndex] ||
+                        undefined,
+
+                      width: `${
+                        columnWidths[colIndex] || 180
+                      }px`,
+
+                      position: "relative",
+                    }}
+
+                    onDragStart={() => {
+                      if (editable) {
+                        setDragColumnIndex(
+                          colIndex
+                        );
+                      }
+                    }}
+
+                    onDragOver={(e) => {
+                      if (editable) {
+                        e.preventDefault();
+                      }
+                    }}
+
+                    onDrop={() => {
+
+                      if (
+                        editable &&
+                        dragColumnIndex !== null &&
+                        dragColumnIndex !== colIndex
+                      ) {
+
+                        if (isInline) {
+
+                          moveInlineColumn(
+                            dragColumnIndex,
+                            colIndex
+                          );
+
+                        } else {
+
+                          moveFormColumn(
+                            dragColumnIndex,
+                            colIndex
+                          );
+
+                        }
+
+                        setDragColumnIndex(null);
+                      }
+
+                    }}
+                  >
+
+                    {editable ? (
+
+                      <div className="qb-table-header-edit">
+
+                        {/* COLUMN DRAG */}
+
+                        <GripVertical
+                          size={14}
+                          className="drag-handle"
+                        />
+
+                        {/* HEADER INPUT */}
+
+                        <input
+                          value={header}
+                          onChange={(e) =>
+                            isInline
+                              ? updateInlineHeader(
+                                  colIndex,
+                                  e.target.value
+                                )
+                              : updateFormHeader(
+                                  colIndex,
+                                  e.target.value
+                                )
+                          }
+                        />
+
+                        {/* COLUMN COLOR */}
+
+                        <label
+                          className="qb-color-picker"
+                          title="Column color"
+                        >
+                          <Palette size={13} />
+
+                          <input
+                            type="color"
+                            value={
+                              columnColors[
+                                colIndex
+                              ] || "#ffffff"
+                            }
+                            onChange={(e) =>
+                              isInline
+                                ? updateInlineColumnColor(
+                                    colIndex,
+                                    e.target.value
+                                  )
+                                : updateFormColumnColor(
+                                    colIndex,
+                                    e.target.value
+                                  )
+                            }
+                          />
+                        </label>
+
+                        {/* DELETE COLUMN */}
+
+                        <button
+                          type="button"
+                          title="Delete column"
+                          onClick={(e) => {
+
+                            e.stopPropagation();
+
+                            if (isInline) {
+
+                              deleteInlineColumn(
+                                colIndex
+                              );
+
+                            } else {
+
+                              deleteFormColumn(
+                                colIndex
+                              );
+
+                            }
+
+                          }}
+                        >
+                          <X size={13} />
+                        </button>
+
+                        {/* COLUMN RESIZE */}
+
+                        <span
+                          className="qb-column-resize-handle"
+                          title="Drag to resize column"
+
+                          onMouseDown={(e) => {
+
+                            e.preventDefault();
+                            e.stopPropagation();
+
+                            startColumnResize(
+                              e,
+                              colIndex
+                            );
+
+                          }}
+
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                          }}
+                        />
+
+                      </div>
+
+                    ) : (
+
+                      <div className="qb-table-header-view">
+                        {header}
+                      </div>
+
+                    )}
+
+                  </th>
+
+                )
+              )}
+
+            </tr>
+
+          </thead>
+
+          {/* ==================================================
+              BODY
+          ================================================== */}
+
+          <tbody>
+
+            {table.rows.map(
+              (row, rowIndex) => {
+
+                const rowColor =
+                  rowColors[rowIndex] || "";
+
+                return (
+
+                  <tr
+                    key={rowIndex}
+                    draggable={editable}
+
+                    style={{
+                      background:
+                        rowColor || undefined,
+
+                      height: `${
+                        rowHeights[rowIndex] || 52
+                      }px`,
+                    }}
+
+                    onDragStart={() => {
+
+                      if (editable) {
+                        setDragRowIndex(
+                          rowIndex
+                        );
+                      }
+
+                    }}
+
+                    onDragOver={(e) => {
+
+                      if (editable) {
+                        e.preventDefault();
+                      }
+
+                    }}
+
+                    onDrop={() => {
+
+                      if (
+                        editable &&
+                        dragRowIndex !== null &&
+                        dragRowIndex !== rowIndex
+                      ) {
+
+                        if (isInline) {
+
+                          moveInlineRow(
+                            dragRowIndex,
+                            rowIndex
+                          );
+
+                        } else {
+
+                          moveFormRow(
+                            dragRowIndex,
+                            rowIndex
+                          );
+
+                        }
+
+                        setDragRowIndex(null);
+                      }
+
+                    }}
+                  >
+
+                    {/* ==========================================
+                        ROW CONTROL
+                    ========================================== */}
+
+                    {editable && (
+
+                      <td className="qb-drag-cell">
+
+                        <div className="qb-row-controls">
+
+                          {/* ROW DRAG */}
+
+                          <GripVertical
+                            size={17}
+                            className="drag-handle row-drag-handle"
+                            title="Drag row"
+                          />
+
+                          {/* ROW COLOR */}
+
+                          <label
+                            className="qb-color-picker row"
+                            title="Row color"
+                          >
+
+                            <Palette size={13} />
+
+                            <input
+                              type="color"
+                              value={
+                                rowColor ||
+                                "#ffffff"
+                              }
+
+                              onChange={(e) =>
+                                isInline
+                                  ? updateInlineRowColor(
+                                      rowIndex,
+                                      e.target.value
+                                    )
+                                  : updateFormRowColor(
+                                      rowIndex,
+                                      e.target.value
+                                    )
+                              }
+                            />
+
+                          </label>
+
+                        </div>
+
+                        {/* ROW RESIZE HANDLE */}
+
+                        <span
+                          className="qb-row-resize-handle"
+                          title="Drag to resize row"
+
+                          onMouseDown={(e) => {
+
+                            e.preventDefault();
+                            e.stopPropagation();
+
+                            startRowResize(
+                              e,
+                              rowIndex
+                            );
+
+                          }}
+
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                          }}
+                        />
+
+                      </td>
+
+                    )}
+
+                    {/* ==========================================
+                        CELLS
+                    ========================================== */}
+
+                    {table.headers.map(
+                      (_, colIndex) => {
+
+                        const cellColumnColor =
+                          columnColors[
+                            colIndex
+                          ];
+
+                        return (
+
+                          <td
+                            key={`${rowIndex}-${colIndex}`}
+
+                            style={{
+                              background:
+                                cellColumnColor ||
+                                rowColor ||
+                                undefined,
+
+                              height: `${
+                                rowHeights[
+                                  rowIndex
+                                ] || 52
+                              }px`,
+
+                              position: "relative",
+                            }}
+                          >
+
+                            {editable ? (
+
+                              <div className="qb-cell-edit">
+
+                                <input
+                                  value={
+                                    row[
+                                      colIndex
+                                    ] ?? ""
+                                  }
+
+                                  onChange={(e) =>
+                                    isInline
+                                      ? updateInlineCell(
+                                          rowIndex,
+                                          colIndex,
+                                          e.target.value
+                                        )
+                                      : updateFormCell(
+                                          rowIndex,
+                                          colIndex,
+                                          e.target.value
+                                        )
+                                  }
+                                />
+
+                                <span className="qb-cell-position">
+                                  {rowIndex + 1}.
+                                  {colIndex + 1}
+                                </span>
+
+                              </div>
+
+                            ) : (
+
+                              row[colIndex] || "—"
+
+                            )}
+
+                          </td>
+
+                        );
+
+                      }
+                    )}
+
+                  </tr>
+
+                );
+
+              }
+            )}
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+  );
+};
+
+
+// ============================================================
+// OPTION RENDER
+// ============================================================
+
+const renderOptions = (
+  options: string[],
+  correctAnswer: string,
+  editable: boolean,
+  inline = false
+) => {
+
+  const colors = inline
+    ? inlineOptionColors
+    : formOptionColors;
+
+  return (
+
+    <div className="qb-inline-options">
+
+      {options.map(
+        (option, index) => {
+
+          const letter =
+            String.fromCharCode(
+              65 + index
+            );
+
+          const isCorrect =
+            option === correctAnswer;
+
+          return (
+
+            <div
+              key={index}
+
+              className={`qb-inline-option ${
+                isCorrect
+                  ? "correct"
+                  : ""
+              }`}
+
+              style={{
+                background:
+                  colors[index] ||
+                  undefined,
+              }}
+            >
+
+              <span>
+                {letter}
+              </span>
+
+              <input
+                value={option}
+
+                onChange={(e) => {
+
+                  if (inline) {
+
+                    updateInlineOption(
+                      index,
+                      e.target.value
+                    );
+
+                  } else {
+
+                    handleOptionChange(
+                      index,
+                      e.target.value
+                    );
+
+                  }
+
+                }}
+
+                required
+              />
+
+              <label
+                className="qb-option-color"
+                title="Option color"
+              >
+
+                <Palette size={14} />
+
+                <input
+                  type="color"
+
+                  value={
+                    colors[index] ||
+                    "#ffffff"
+                  }
+
+                  onChange={(e) => {
+
+                    const newColors = [
+                      ...colors,
+                    ];
+
+                    newColors[index] =
+                      e.target.value;
+
+                    if (inline) {
+
+                      setInlineOptionColors(
+                        newColors
+                      );
+
+                    } else {
+
+                      setFormOptionColors(
+                        newColors
+                      );
+
+                    }
+
+                  }}
+                />
+
+              </label>
+
+              {isCorrect && (
+                <CheckCircle2
+                  size={18}
+                />
+              )}
+
+            </div>
+
+          );
+
+        }
+      )}
+
+    </div>
+  );
+};
+
+
+// ============================================================
+// INLINE EDITOR
+// ============================================================
+
+const renderInlineEditor = () => {
+
+  if (!inlineQuestion) {
+    return null;
+  }
+
+  return (
+
+    <div className="qb-inline-editor">
+
+      {/* ======================================================
+          EDITOR HEADER
+      ====================================================== */}
+
+      <div className="qb-editor-header">
 
         <div>
-          <label
-            style={{
-              fontSize: "12px",
-              fontWeight: "700",
-              color: "#475569",
-              display: "block",
-              marginBottom: "5px",
-            }}
-          >
-            EXAM TYPE
-          </label>
 
-          <select
-            value={selectedExam}
-            onChange={(e) =>
-              setSelectedExam(
-                e.target.value
-              )
-            }
-            style={{
-              width: "100%",
-              padding: "10px",
-              borderRadius: "8px",
-              border:
-                "1px solid #cbd5e1",
-              background: "#f8fafc",
-            }}
-          >
-            <option value="ALL">
-              All Exams
-            </option>
+          <span className="qb-editor-kicker">
+            INLINE EDIT MODE
+          </span>
 
-            <option value="JEE">
-              JEE Mains
-            </option>
+          <h3>
+            Question #
+            {inlineQuestion.questionNumber}
+          </h3>
 
-            <option value="NEET">
-              NEET UG
-            </option>
-          </select>
         </div>
 
-        {/* SUBJECT */}
+        <button
+          type="button"
+          className="qb-icon-btn"
+          onClick={cancelInlineEdit}
+        >
+          <X size={18} />
+        </button>
 
-        <div>
-          <label
-            style={{
-              fontSize: "12px",
-              fontWeight: "700",
-              color: "#475569",
-              display: "block",
-              marginBottom: "5px",
-            }}
-          >
-            SUBJECT
+      </div>
+
+
+      {/* ======================================================
+          BASIC FIELDS
+      ====================================================== */}
+
+      <div className="qb-editor-grid">
+
+        <div className="qb-field">
+
+          <label>
+            Question Number
+          </label>
+
+          <input
+            type="number"
+
+            value={
+              inlineQuestion.questionNumber
+            }
+
+            onChange={(e) =>
+              updateInlineField(
+                "questionNumber",
+                Number(e.target.value)
+              )
+            }
+          />
+
+        </div>
+
+
+        <div className="qb-field">
+
+          <label>
+            Subject
           </label>
 
           <select
-            value={selectedSubject}
+            value={
+              inlineQuestion.subject
+            }
+
             onChange={(e) =>
-              setSelectedSubject(
+              updateInlineField(
+                "subject",
                 e.target.value
               )
             }
-            style={{
-              width: "100%",
-              padding: "10px",
-              borderRadius: "8px",
-              border:
-                "1px solid #cbd5e1",
-              background: "#f8fafc",
-            }}
           >
-            <option value="ALL">
-              All Subjects
+
+            <option value="">
+              Select Subject
             </option>
 
             <option value="Physics">
@@ -1568,104 +2670,708 @@ export default function QuestionBank() {
             <option value="Zoology">
               Zoology
             </option>
+
           </select>
+
         </div>
 
-        {/* SEARCH */}
 
-        <div>
-          <label
-            style={{
-              fontSize: "12px",
-              fontWeight: "700",
-              color: "#475569",
-              display: "block",
-              marginBottom: "5px",
-            }}
-          >
-            SEARCH KEYWORD
+        <div className="qb-field">
+
+          <label>
+            Chapter
           </label>
 
           <input
-            type="text"
-            placeholder="Search questions or test titles..."
-            value={searchTerm}
+            value={
+              inlineQuestion.chapter || ""
+            }
+
+            onChange={(e) =>
+              updateInlineField(
+                "chapter",
+                e.target.value
+              )
+            }
+          />
+
+        </div>
+
+
+        <div className="qb-field">
+
+          <label>
+            Correct Answer
+          </label>
+
+          <select
+            value={
+              inlineQuestion.correctAnswer || ""
+            }
+
+            onChange={(e) =>
+              updateInlineField(
+                "correctAnswer",
+                e.target.value
+              )
+            }
+          >
+
+            <option value="">
+              Select correct option
+            </option>
+
+            {inlineQuestion.options.map(
+              (option, index) => (
+
+                <option
+                  key={index}
+                  value={option}
+                >
+                  {String.fromCharCode(
+                    65 + index
+                  )}{" "}
+                  — {option}
+                </option>
+
+              )
+            )}
+
+          </select>
+
+        </div>
+
+      </div>
+
+
+      {/* ======================================================
+          QUESTION TEXT
+      ====================================================== */}
+
+      <div className="qb-field full">
+
+        <label>
+          Question Text
+        </label>
+
+        <textarea
+          rows={4}
+
+          value={
+            inlineQuestion.question || ""
+          }
+
+          onChange={(e) =>
+            updateInlineField(
+              "question",
+              e.target.value
+            )
+          }
+        />
+
+      </div>
+
+
+      {/* ======================================================
+          IMAGE
+      ====================================================== */}
+
+      <div className="qb-field full">
+
+        <label>
+          Diagram / Image URL
+        </label>
+
+        <div className="qb-image-input">
+
+          <ImageIcon size={17} />
+
+          <input
+            value={
+              inlineQuestion.questionImage ||
+              ""
+            }
+
+            placeholder="https://..."
+
+            onChange={(e) =>
+              updateInlineField(
+                "questionImage",
+                e.target.value
+              )
+            }
+          />
+
+        </div>
+
+      </div>
+
+
+      {/* IMAGE PREVIEW */}
+
+      {inlineQuestion.questionImage && (
+
+        <div className="qb-image-preview">
+
+          <img
+            src={
+              inlineQuestion.questionImage
+            }
+            alt="Question diagram"
+          />
+
+          <button
+            type="button"
+
+            onClick={() =>
+              updateInlineField(
+                "questionImage",
+                ""
+              )
+            }
+          >
+            Remove Image
+          </button>
+
+        </div>
+
+      )}
+
+
+      {/* ======================================================
+          OPTIONS
+      ====================================================== */}
+
+      <div className="qb-section-title">
+
+        <span>
+          Answer Options
+        </span>
+
+      </div>
+
+      {renderOptions(
+        inlineQuestion.options,
+        inlineQuestion.correctAnswer,
+        true,
+        true
+      )}
+
+
+      {/* ======================================================
+          TABLE
+      ====================================================== */}
+
+      <div className="qb-section-title table-section-heading">
+
+        <span>
+
+          <Table2 size={18} />
+
+          Table / Data
+
+        </span>
+
+        {!inlineQuestion.tableData && (
+
+          <button
+            type="button"
+            className="qb-small-primary"
+            onClick={addInlineTable}
+          >
+
+            <Plus size={14} />
+
+            Add Table
+
+          </button>
+
+        )}
+
+      </div>
+
+
+      {inlineQuestion.tableData &&
+        renderTable(
+          inlineQuestion.tableData,
+          true,
+          inlineQuestion
+        )}
+
+
+      {/* ======================================================
+          FOOTER
+      ====================================================== */}
+
+      <div className="qb-inline-footer">
+
+        <button
+          type="button"
+          className="qb-cancel-btn"
+          onClick={cancelInlineEdit}
+        >
+
+          <X size={17} />
+
+          Cancel
+
+        </button>
+
+
+        <button
+          type="button"
+          className="qb-save-btn"
+          onClick={saveInlineEdit}
+        >
+
+          <Save size={17} />
+
+          Save Changes
+
+        </button>
+
+      </div>
+
+    </div>
+  );
+};
+  // ============================================================
+  // UI
+  // ============================================================
+
+  return (
+    <div className="question-bank-page">
+
+      {/* HERO */}
+
+      <div className="qb-hero">
+
+        <div className="qb-hero-content">
+
+          <div className="qb-brand-icon">
+            <FileText size={26} />
+          </div>
+
+          <div>
+            <span className="qb-eyebrow">
+              EXAMMASTER AI
+            </span>
+
+            <h1>
+              Master Question Bank
+            </h1>
+
+            <p>
+              Create, edit, organize and
+              publish your examination
+              questions.
+            </p>
+          </div>
+
+        </div>
+
+        <div className="qb-header-actions">
+
+          <button
+            className="qb-btn green"
+            onClick={
+              handlePublishAll
+            }
+          >
+            <CheckCircle2 size={17} />
+            Publish All
+          </button>
+
+          <button
+            className="qb-btn purple"
+            onClick={() =>
+              setShowPdfModal(true)
+            }
+          >
+            <Upload size={17} />
+            Upload PDF
+          </button>
+
+          <button
+            className="qb-btn primary"
+            onClick={() => {
+
+              if (showAddForm) {
+                resetForm();
+              } else {
+                setShowAddForm(true);
+              }
+
+            }}
+          >
+            {showAddForm ? (
+              <>
+                <X size={17} />
+                Close
+              </>
+            ) : (
+              <>
+                <Plus size={17} />
+                Add Question
+              </>
+            )}
+          </button>
+
+          <button
+            className="qb-btn danger"
+            onClick={
+              handleDeleteAll
+            }
+          >
+            <Trash2 size={17} />
+            Delete All
+          </button>
+
+        </div>
+      </div>
+
+      {/* STATS */}
+
+      <div className="qb-stats">
+
+        <div className="qb-stat-card">
+          <span>
+            Total Questions
+          </span>
+
+          <strong>
+            {questions.length}
+          </strong>
+        </div>
+
+        <div className="qb-stat-card">
+          <span>
+            Published
+          </span>
+
+          <strong>
+            {
+              questions.filter(
+                (q) =>
+                  q.isPublished
+              ).length
+            }
+          </strong>
+        </div>
+
+        <div className="qb-stat-card">
+          <span>
+            Drafts
+          </span>
+
+          <strong>
+            {
+              questions.filter(
+                (q) =>
+                  !q.isPublished
+              ).length
+            }
+          </strong>
+        </div>
+
+        <div className="qb-stat-card">
+          <span>
+            Tables
+          </span>
+
+          <strong>
+            {
+              questions.filter(
+                (q) =>
+                  q.tableData &&
+                  q.tableData.headers
+                    ?.length
+              ).length
+            }
+          </strong>
+        </div>
+
+        <div className="qb-stat-card">
+          <span>
+            Diagrams
+          </span>
+
+          <strong>
+            {
+              questions.filter(
+                (q) =>
+                  !!q.questionImage
+              ).length
+            }
+          </strong>
+        </div>
+
+      </div>
+
+      {/* TABS */}
+
+      <div className="qb-tabs">
+
+        {[
+          {
+            key: "ALL",
+            label: "All Questions",
+            count:
+              questions.length,
+          },
+          {
+            key: "mock",
+            label: "Mock Tests",
+            count:
+              questions.filter(
+                (q) =>
+                  q.testCategory ===
+                  "mock"
+              ).length,
+          },
+          {
+            key: "daily",
+            label: "Daily Tests",
+            count:
+              questions.filter(
+                (q) =>
+                  q.testCategory ===
+                  "daily"
+              ).length,
+          },
+          {
+            key: "subject",
+            label: "Subject Tests",
+            count:
+              questions.filter(
+                (q) =>
+                  q.testCategory ===
+                  "subject"
+              ).length,
+          },
+        ].map((tab) => (
+          <button
+            key={tab.key}
+            className={
+              activeTab === tab.key
+                ? "active"
+                : ""
+            }
+            onClick={() =>
+              setActiveTab(
+                tab.key
+              )
+            }
+          >
+            {tab.label}
+
+            <span>
+              {tab.count}
+            </span>
+          </button>
+        ))}
+
+      </div>
+
+      {/* FILTER */}
+
+      <div className="qb-filter-card">
+
+        <div className="qb-filter">
+          <label>
+            Class
+          </label>
+
+          <select
+            value={
+              selectedClassName
+            }
+            onChange={(e) =>
+              setSelectedClassName(
+                e.target.value
+              )
+            }
+          >
+            <option value="ALL">
+              All Classes
+            </option>
+
+            <option>
+              1st PUC
+            </option>
+
+            <option>
+              2nd PUC
+            </option>
+          </select>
+        </div>
+
+        <div className="qb-filter">
+          <label>
+            Exam
+          </label>
+
+          <select
+            value={selectedExam}
+            onChange={(e) =>
+              setSelectedExam(
+                e.target.value
+              )
+            }
+          >
+            <option value="ALL">
+              All Exams
+            </option>
+
+            <option>
+              JEE
+            </option>
+
+            <option>
+              NEET
+            </option>
+          </select>
+        </div>
+
+        <div className="qb-filter">
+          <label>
+            Subject
+          </label>
+
+          <select
+            value={
+              selectedSubject
+            }
+            onChange={(e) =>
+              setSelectedSubject(
+                e.target.value
+              )
+            }
+          >
+            <option value="ALL">
+              All Subjects
+            </option>
+
+            <option>
+              Physics
+            </option>
+
+            <option>
+              Chemistry
+            </option>
+
+            <option>
+              Mathematics
+            </option>
+
+            <option>
+              Botany
+            </option>
+
+            <option>
+              Zoology
+            </option>
+          </select>
+        </div>
+
+        <div className="qb-search">
+
+          <Search size={18} />
+
+          <input
+            placeholder="Search questions, chapters, test titles..."
+            value={
+              searchTerm
+            }
             onChange={(e) =>
               setSearchTerm(
                 e.target.value
               )
             }
-            style={{
-              width: "100%",
-              padding: "10px",
-              borderRadius: "8px",
-              border:
-                "1px solid #cbd5e1",
-              background: "#f8fafc",
-              boxSizing:
-                "border-box",
-            }}
           />
+
         </div>
+
+        <button
+          className="qb-refresh"
+          onClick={
+            fetchQuestions
+          }
+        >
+          <RefreshCw size={18} />
+        </button>
+
       </div>
 
-      {/* ======================================================
-          ADD / EDIT FORM
-      ====================================================== */}
+      {/* ADD FORM */}
 
       {showAddForm && (
         <form
-          onSubmit={handleSubmit}
-          style={{
-            background: "#ffffff",
-            padding: "25px",
-            borderRadius: "12px",
-            boxShadow:
-              "0 4px 25px rgba(0,0,0,0.06)",
-            marginBottom: "30px",
-            border:
-              "1px solid #e2e8f0",
-          }}
+          className="qb-add-form"
+          onSubmit={
+            handleSubmit
+          }
         >
-          <h3
-            style={{
-              marginTop: 0,
-              color: "#1e293b",
-              borderBottom:
-                "1px solid #f1f5f9",
-              paddingBottom: "10px",
-            }}
-          >
-            {editingId
-              ? "✏️ Edit Question"
-              : "➕ Add New Question Manually"}
-          </h3>
 
-          {/* BASIC INFO */}
-
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns:
-                "repeat(auto-fit, minmax(200px, 1fr))",
-              gap: "15px",
-              marginBottom: "15px",
-            }}
-          >
-            {/* CLASS */}
+          <div className="qb-form-header">
 
             <div>
-              <label
-                style={{
-                  fontSize: "13px",
-                  fontWeight: "600",
-                }}
-              >
-                Class Name:
+              <span>
+                QUESTION EDITOR
+              </span>
+
+              <h2>
+                {editingId
+                  ? "Edit Question"
+                  : "Create New Question"}
+              </h2>
+            </div>
+
+            <button
+              type="button"
+              onClick={
+                resetForm
+              }
+              className="qb-icon-btn"
+            >
+              <X size={19} />
+            </button>
+
+          </div>
+
+          <div className="qb-editor-grid">
+
+            <div className="qb-field">
+              <label>
+                Question Number
+              </label>
+
+              <input
+                type="number"
+                value={
+                  formData.questionNumber
+                }
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    questionNumber:
+                      Number(
+                        e.target.value
+                      ),
+                  })
+                }
+              />
+            </div>
+
+            <div className="qb-field">
+              <label>
+                Class
               </label>
 
               <select
-                value={formData.className}
+                value={
+                  formData.className
+                }
                 onChange={(e) =>
                   setFormData({
                     ...formData,
@@ -1673,39 +3379,26 @@ export default function QuestionBank() {
                       e.target.value,
                   })
                 }
-                style={{
-                  width: "100%",
-                  padding: "9px",
-                  marginTop: "5px",
-                  borderRadius: "6px",
-                  border:
-                    "1px solid #cbd5e1",
-                }}
               >
-                <option value="1st PUC">
+                <option>
                   1st PUC
                 </option>
 
-                <option value="2nd PUC">
+                <option>
                   2nd PUC
                 </option>
               </select>
             </div>
 
-            {/* EXAM */}
-
-            <div>
-              <label
-                style={{
-                  fontSize: "13px",
-                  fontWeight: "600",
-                }}
-              >
-                Exam Type:
+            <div className="qb-field">
+              <label>
+                Exam
               </label>
 
               <select
-                value={formData.examType}
+                value={
+                  formData.examType
+                }
                 onChange={(e) =>
                   setFormData({
                     ...formData,
@@ -1713,35 +3406,59 @@ export default function QuestionBank() {
                       e.target.value,
                   })
                 }
-                style={{
-                  width: "100%",
-                  padding: "9px",
-                  marginTop: "5px",
-                  borderRadius: "6px",
-                  border:
-                    "1px solid #cbd5e1",
-                }}
               >
-                <option value="JEE">
+                <option>
                   JEE
                 </option>
 
-                <option value="NEET">
+                <option>
                   NEET
                 </option>
               </select>
             </div>
 
-            {/* TEST CATEGORY */}
+            <div className="qb-field">
+              <label>
+                Subject
+              </label>
 
-            <div>
-              <label
-                style={{
-                  fontSize: "13px",
-                  fontWeight: "600",
-                }}
+              <select
+                value={
+                  formData.subject
+                }
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    subject:
+                      e.target.value,
+                  })
+                }
               >
-                Test Category:
+                <option>
+                  Physics
+                </option>
+
+                <option>
+                  Chemistry
+                </option>
+
+                <option>
+                  Mathematics
+                </option>
+
+                <option>
+                  Botany
+                </option>
+
+                <option>
+                  Zoology
+                </option>
+              </select>
+            </div>
+
+            <div className="qb-field">
+              <label>
+                Test Category
               </label>
 
               <select
@@ -1755,14 +3472,6 @@ export default function QuestionBank() {
                       e.target.value,
                   })
                 }
-                style={{
-                  width: "100%",
-                  padding: "9px",
-                  marginTop: "5px",
-                  borderRadius: "6px",
-                  border:
-                    "1px solid #cbd5e1",
-                }}
               >
                 <option value="mock">
                   Mock Test
@@ -1778,82 +3487,32 @@ export default function QuestionBank() {
               </select>
             </div>
 
-            {/* SUBJECT */}
-
-            <div>
-              <label
-                style={{
-                  fontSize: "13px",
-                  fontWeight: "600",
-                }}
-              >
-                Subject:
-              </label>
-
-              <select
-                value={formData.subject}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    subject:
-                      e.target.value,
-                  })
-                }
-                style={{
-                  width: "100%",
-                  padding: "9px",
-                  marginTop: "5px",
-                  borderRadius: "6px",
-                  border:
-                    "1px solid #cbd5e1",
-                }}
-              >
-                <option value="Physics">
-                  Physics
-                </option>
-
-                <option value="Chemistry">
-                  Chemistry
-                </option>
-
-                <option value="Mathematics">
-                  Mathematics
-                </option>
-
-                <option value="Botany">
-                  Botany
-                </option>
-
-                <option value="Zoology">
-                  Zoology
-                </option>
-              </select>
-            </div>
-          </div>
-
-          {/* TITLE / CHAPTER */}
-
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns:
-                "2fr 1fr",
-              gap: "15px",
-              marginBottom: "15px",
-            }}
-          >
-            <div>
-              <label
-                style={{
-                  fontSize: "13px",
-                  fontWeight: "600",
-                }}
-              >
-                Test Title:
+            <div className="qb-field">
+              <label>
+                Chapter
               </label>
 
               <input
-                type="text"
+                value={
+                  formData.chapter
+                }
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    chapter:
+                      e.target.value,
+                  })
+                }
+                placeholder="Kinematics"
+              />
+            </div>
+
+            <div className="qb-field full">
+              <label>
+                Test Title
+              </label>
+
+              <input
                 value={
                   formData.testTitle
                 }
@@ -1865,75 +3524,22 @@ export default function QuestionBank() {
                   })
                 }
                 required
-                style={{
-                  width: "100%",
-                  padding: "9px",
-                  marginTop: "5px",
-                  borderRadius: "6px",
-                  border:
-                    "1px solid #cbd5e1",
-                  boxSizing:
-                    "border-box",
-                }}
               />
             </div>
 
-            <div>
-              <label
-                style={{
-                  fontSize: "13px",
-                  fontWeight: "600",
-                }}
-              >
-                Chapter Name:
-              </label>
-
-              <input
-                type="text"
-                value={
-                  formData.chapter
-                }
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    chapter:
-                      e.target.value,
-                  })
-                }
-                placeholder="e.g. Kinematics"
-                style={{
-                  width: "100%",
-                  padding: "9px",
-                  marginTop: "5px",
-                  borderRadius: "6px",
-                  border:
-                    "1px solid #cbd5e1",
-                  boxSizing:
-                    "border-box",
-                }}
-              />
-            </div>
           </div>
 
-          {/* QUESTION */}
+          <div className="qb-field full">
 
-          <div
-            style={{
-              marginBottom: "15px",
-            }}
-          >
-            <label
-              style={{
-                fontSize: "13px",
-                fontWeight: "600",
-              }}
-            >
-              Question Text:
+            <label>
+              Question Text
             </label>
 
             <textarea
-              rows={3}
-              value={formData.question}
+              rows={5}
+              value={
+                formData.question
+              }
               onChange={(e) =>
                 setFormData({
                   ...formData,
@@ -1941,147 +3547,113 @@ export default function QuestionBank() {
                     e.target.value,
                 })
               }
+              placeholder="Enter question..."
               required
-              style={{
-                width: "100%",
-                padding: "9px",
-                marginTop: "5px",
-                borderRadius: "6px",
-                border:
-                  "1px solid #cbd5e1",
-                boxSizing:
-                  "border-box",
-              }}
             />
+
           </div>
 
           {/* IMAGE */}
+                     <div className="qb-field full">
+  <label>
+    <ImageIcon size={15} />
+    Question Diagram / Image (Upload or URL)
+  </label>
 
-          <div
-            style={{
-              marginBottom: "15px",
-            }}
-          >
-            <label
-              style={{
-                fontSize: "13px",
-                fontWeight: "600",
-              }}
-            >
-              Question Image URL
-              (Optional):
-            </label>
+  {/* Upload Image */}
+  <div
+    className="qb-image-upload"
+    style={{ marginBottom: "10px" }}
+  >
+    <ImageIcon size={17} />
 
-            <input
-              type="text"
-              value={
-                formData.questionImage
-              }
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  questionImage:
-                    e.target.value,
-                })
-              }
-              placeholder="https://example.com/diagram.png"
-              style={{
-                width: "100%",
-                padding: "9px",
-                marginTop: "5px",
-                borderRadius: "6px",
-                border:
-                  "1px solid #cbd5e1",
-                boxSizing:
-                  "border-box",
-              }}
-            />
-          </div>
+    <input
+      type="file"
+      accept="image/*"
+      onChange={(e) => {
+        const file = e.target.files?.[0];
 
+        if (!file) return;
+
+        // IMPORTANT:
+        // Do NOT save blob URL to database.
+        // Keep the selected file for Cloudinary upload.
+        setSelectedImageFile(file);
+
+        // Preview only
+        const previewUrl = URL.createObjectURL(file);
+        setImagePreviewUrl(previewUrl);
+      }}
+    />
+  </div>
+
+  {/* Paste Image URL */}
+  <div className="qb-image-input">
+    <ImageIcon size={17} />
+
+    <input
+      type="text"
+      value={formData.questionImage || ""}
+      onChange={(e) => {
+        updateQuestionImage(e.target.value);
+        setImagePreviewUrl(e.target.value);
+        setSelectedImageFile(null);
+      }}
+      placeholder="https://example.com/diagram.png"
+    />
+  </div>
+</div>
+
+{/* Image Preview */}
+{(imagePreviewUrl || formData.questionImage) && (
+  <div className="qb-image-preview">
+    <img
+      src={imagePreviewUrl || formData.questionImage}
+      alt="Question diagram"
+      onError={(e) => {
+        e.currentTarget.style.display = "none";
+      }}
+    />
+
+    <button
+      type="button"
+      onClick={() => {
+        setSelectedImageFile(null);
+        setImagePreviewUrl("");
+        updateQuestionImage("");
+      }}
+    >
+      Remove
+    </button>
+  </div>
+)}
           {/* OPTIONS */}
 
-          <div
-            style={{
-              marginBottom: "15px",
-            }}
-          >
-            <label
-              style={{
-                fontSize: "13px",
-                fontWeight: "600",
-              }}
-            >
-              Options:
-            </label>
+          <div className="qb-section-title">
 
-            {formData.options.map(
-              (opt, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    display: "flex",
-                    gap: "10px",
-                    marginBottom:
-                      "8px",
-                    alignItems:
-                      "center",
-                  }}
-                >
-                  <span
-                    style={{
-                      fontWeight:
-                        "bold",
-                      width: "20px",
-                    }}
-                  >
-                    {String.fromCharCode(
-                      65 + idx
-                    )}
-                  </span>
+            <span>
+              Answer Options
+            </span>
 
-                  <input
-                    type="text"
-                    value={opt}
-                    onChange={(e) =>
-                      handleOptionChange(
-                        idx,
-                        e.target.value
-                      )
-                    }
-                    required
-                    style={{
-                      width: "100%",
-                      padding:
-                        "8px",
-                      borderRadius:
-                        "6px",
-                      border:
-                        "1px solid #cbd5e1",
-                    }}
-                  />
-                </div>
-              )
-            )}
+            <small>
+              Choose colors for options
+            </small>
+
           </div>
 
-          {/* CORRECT ANSWER */}
+          {renderOptions(
+            formData.options,
+            formData.correctAnswer,
+            true
+          )}
 
-          <div
-            style={{
-              marginBottom: "20px",
-            }}
-          >
-            <label
-              style={{
-                fontSize: "13px",
-                fontWeight: "600",
-              }}
-            >
-              Correct Answer:
+          <div className="qb-field">
+
+            <label>
+              Correct Answer
             </label>
 
-            <input
-              type="text"
+            <select
               value={
                 formData.correctAnswer
               }
@@ -2093,491 +3665,717 @@ export default function QuestionBank() {
                 })
               }
               required
-              style={{
-                width: "100%",
-                padding: "9px",
-                marginTop: "5px",
-                borderRadius: "6px",
-                border:
-                  "1px solid #cbd5e1",
-                boxSizing:
-                  "border-box",
-              }}
-            />
+            >
+              <option value="">
+                Select Correct Answer
+              </option>
+
+              {formData.options.map(
+                (option, index) => (
+                  <option
+                    key={index}
+                    value={option}
+                  >
+                    {String.fromCharCode(
+                      65 + index
+                    )}{" "}
+                    — {option}
+                  </option>
+                )
+              )}
+
+            </select>
+
           </div>
 
-          {/* BUTTONS */}
+          {/* TABLE */}
 
-          <div
-            style={{
-              display: "flex",
-              gap: "10px",
-            }}
-          >
+          <div className="qb-section-title table-section-heading">
+
+            <span>
+              <Table2 size={18} />
+              Question Table
+            </span>
+
+            {!formData.tableData && (
+              <button
+                type="button"
+                className="qb-small-primary"
+                onClick={
+                  addFormTable
+                }
+              >
+                <Plus size={14} />
+                Add Table
+              </button>
+            )}
+
+          </div>
+
+          {formData.tableData &&
+            renderTable(
+              formData.tableData,
+              true
+            )}
+
+          {/* FOOTER */}
+
+          <div className="qb-form-footer">
+
+            <button
+              type="button"
+              className="qb-cancel-btn"
+              onClick={
+                resetForm
+              }
+            >
+              <X size={17} />
+              Cancel
+            </button>
+
             <button
               type="submit"
-              style={{
-                background:
-                  "#16a34a",
-                color: "#fff",
-                padding:
-                  "10px 20px",
-                border: "none",
-                borderRadius:
-                  "6px",
-                cursor:
-                  "pointer",
-                fontWeight:
-                  "600",
-              }}
+              className="qb-save-btn"
             >
+              <Save size={17} />
+
               {editingId
                 ? "Update Question"
                 : "Save as Draft"}
             </button>
 
-            <button
-              type="button"
-              onClick={resetForm}
-              style={{
-                background:
-                  "#e2e8f0",
-                color:
-                  "#334155",
-                padding:
-                  "10px 16px",
-                border: "none",
-                borderRadius:
-                  "6px",
-                cursor:
-                  "pointer",
-                fontWeight:
-                  "600",
-              }}
-            >
-              Cancel
-            </button>
           </div>
+
         </form>
       )}
 
-      {/* ======================================================
-          QUESTIONS LIST
-      ====================================================== */}
+      {/* RESULTS */}
 
-      <h3
-        style={{
-          color: "#1e293b",
-          marginBottom: "15px",
-        }}
-      >
-        📋 Filtered Results (
-        {filteredQuestions.length})
-      </h3>
+      <div className="qb-results-header">
+
+        <div>
+          <span className="qb-eyebrow">
+            QUESTION LIBRARY
+          </span>
+
+          <h2>
+            Questions
+
+            <small>
+              {
+                filteredQuestions.length
+              }
+            </small>
+          </h2>
+        </div>
+
+      </div>
+
+      {/* LOADING */}
 
       {loading ? (
-        <p>
-          Loading questions...
-        </p>
+        <div className="qb-empty">
+
+          <RefreshCw
+            className="spin"
+            size={30}
+          />
+
+          <h3>
+            Loading questions...
+          </h3>
+
+        </div>
       ) : filteredQuestions.length ===
         0 ? (
-        <div
-          style={{
-            background: "#fff",
-            padding: "40px",
-            textAlign:
-              "center",
-            borderRadius:
-              "12px",
-            color:
-              "#64748b",
-          }}
-        >
-          No questions found
-          matching your filter
-          criteria.
+        <div className="qb-empty">
+
+          <FileText size={40} />
+
+          <h3>
+            No questions found
+          </h3>
+
+          <p>
+            Try changing your
+            filters or create a
+            new question.
+          </p>
+
         </div>
       ) : (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns:
-              "1fr",
-            gap: "15px",
-          }}
-        >
+        <div className="qb-question-list">
+
           {filteredQuestions.map(
-            (q, index) => (
-              <div
-                key={
-                  q._id ||
-                  index
-                }
-                style={{
-                  background:
-                    "#ffffff",
-                  padding:
-                    "20px",
-                  borderRadius:
-                    "12px",
-                  boxShadow:
-                    "0 2px 5px rgba(0,0,0,0.04)",
-                  border:
-                    "1px solid #e2e8f0",
-                  display:
-                    "flex",
-                  justifyContent:
-                    "space-between",
-                  alignItems:
-                    "flex-start",
-                  gap:
-                    "20px",
-                }}
-              >
-                {/* QUESTION CONTENT */}
+            (q, index) => {
 
-                <div
-                  style={{
-                    flex: 1,
-                  }}
+              const isInlineEditing =
+                inlineEditingId ===
+                q._id;
+
+              const isExpanded =
+                expandedId ===
+                q._id;
+
+              if (
+                isInlineEditing
+              ) {
+                return (
+                  <React.Fragment
+                    key={
+                      q._id ||
+                      index
+                    }
+                  >
+                    {renderInlineEditor()}
+                  </React.Fragment>
+                );
+              }
+
+              return (
+                <article
+                  className="qb-question-card"
+                  key={
+                    q._id ||
+                    index
+                  }
                 >
-                  {/* TAGS */}
 
-                  <div
-                    style={{
-                      display:
-                        "flex",
-                      gap: "8px",
-                      marginBottom:
-                        "8px",
-                      alignItems:
-                        "center",
-                      flexWrap:
-                        "wrap",
-                    }}
-                  >
-                    <span
-                      style={{
-                        background:
-                          "#f3e8ff",
-                        color:
-                          "#6b21a8",
-                        padding:
-                          "2px 8px",
-                        borderRadius:
-                          "4px",
-                        fontSize:
-                          "11px",
-                        fontWeight:
-                          "700",
-                      }}
-                    >
-                      {q.className ||
-                        "2nd PUC"}
-                    </span>
+                  {/* CARD TOP */}
 
-                    <span
-                      style={{
-                        background:
-                          q.examType ===
-                          "JEE"
-                            ? "#e0e7ff"
-                            : "#dcfce7",
-                        color:
-                          q.examType ===
-                          "JEE"
-                            ? "#3730a3"
-                            : "#166534",
-                        padding:
-                          "2px 8px",
-                        borderRadius:
-                          "4px",
-                        fontSize:
-                          "11px",
-                        fontWeight:
-                          "700",
-                      }}
-                    >
-                      {q.examType}
-                    </span>
+                  <div className="qb-card-top">
 
-                    <span
-                      style={{
-                        background:
-                          "#f1f5f9",
-                        color:
-                          "#475569",
-                        padding:
-                          "2px 8px",
-                        borderRadius:
-                          "4px",
-                        fontSize:
-                          "11px",
-                        fontWeight:
-                          "700",
-                        textTransform:
-                          "uppercase",
-                      }}
-                    >
-                      {q.testCategory}{" "}
-                      Test
-                    </span>
-
-                    <span
-                      style={{
-                        background:
-                          "#fef3c7",
-                        color:
-                          "#92400e",
-                        padding:
-                          "2px 8px",
-                        borderRadius:
-                          "4px",
-                        fontSize:
-                          "11px",
-                        fontWeight:
-                          "700",
-                      }}
-                    >
-                      {q.subject}
-                    </span>
-
-                    <span
-                      style={{
-                        background:
-                          q.isPublished
-                            ? "#dcfce7"
-                            : "#fee2e2",
-                        color:
-                          q.isPublished
-                            ? "#166534"
-                            : "#991b1b",
-                        padding:
-                          "2px 8px",
-                        borderRadius:
-                          "4px",
-                        fontSize:
-                          "11px",
-                        fontWeight:
-                          "700",
-                      }}
-                    >
-                      {q.isPublished
-                        ? "🟢 Published"
-                        : "🟠 Draft"}
-                    </span>
-
-                    {q.testTitle && (
-                      <span
-                        style={{
-                          background:
-                            "#e0f2fe",
-                          color:
-                            "#0369a1",
-                          padding:
-                            "2px 8px",
-                          borderRadius:
-                            "4px",
-                          fontSize:
-                            "11px",
-                          fontWeight:
-                            "600",
-                        }}
-                      >
-                        📁{" "}
-                        {
-                          q.testTitle
-                        }
-                      </span>
-                    )}
-                  </div>
-
-                  {/* QUESTION */}
-
-                  <h4
-                    style={{
-                      margin:
-                        "0 0 10px 0",
-                      color:
-                        "#1e293b",
-                      fontSize:
-                        "16px",
-                    }}
-                  >
-                    Q
-                    {q.questionNumber ||
-                      index + 1}
-                    .{" "}
-                    {q.question}
-                  </h4>
-
-                  {/* IMAGE */}
-
-                  {q.questionImage && (
-                    <div
-                      style={{
-                        marginBottom:
-                          "12px",
-                      }}
-                    >
-                      <img
-                        src={
-                          q.questionImage
-                        }
-                        alt="Question Diagram"
-                        style={{
-                          maxWidth:
-                            "250px",
-                          maxHeight:
-                            "150px",
-                          borderRadius:
-                            "6px",
-                          border:
-                            "1px solid #cbd5e1",
-                        }}
-                      />
+                    <div className="qb-question-number">
+                      Q
+                      {q.questionNumber ||
+                        index + 1}
                     </div>
-                  )}
 
-                  {/* OPTIONS */}
+                    <div className="qb-card-meta">
 
-                  <div
-                    style={{
-                      display:
-                        "grid",
-                      gridTemplateColumns:
-                        "1fr 1fr",
-                      gap: "8px",
-                      marginTop:
-                        "10px",
-                    }}
-                  >
-                    {q.options?.map(
-                      (
-                        opt,
-                        optIdx
-                      ) => {
-                        const isCorrect =
-                          opt ===
-                          q.correctAnswer;
+                      <span className="tag class">
+                        {q.className}
+                      </span>
 
-                        return (
-                          <div
-                            key={
-                              optIdx
-                            }
-                            style={{
-                              fontSize:
-                                "13px",
-                              padding:
-                                "6px 10px",
-                              background:
-                                isCorrect
-                                  ? "#dcfce7"
-                                  : "#f8fafc",
-                              border:
-                                `1px solid ${
-                                  isCorrect
-                                    ? "#86efac"
-                                    : "#e2e8f0"
-                                }`,
-                              borderRadius:
-                                "6px",
-                              color:
-                                isCorrect
-                                  ? "#166534"
-                                  : "#334155",
-                            }}
-                          >
-                            <strong>
-                              {String.fromCharCode(
-                                65 +
-                                  optIdx
-                              )}
-                              .
-                            </strong>{" "}
-                            {opt}{" "}
-                            {isCorrect &&
-                              "✓ (Correct)"}
-                          </div>
-                        );
-                      }
-                    )}
+                      <span className="tag exam">
+                        {q.examType}
+                      </span>
+
+                      <span className="tag subject">
+                        {q.subject}
+                      </span>
+
+                      <span className="tag category">
+                        {q.testCategory}
+                      </span>
+
+                      <span
+                        className={`tag status ${
+                          q.isPublished
+                            ? "published"
+                            : "draft"
+                        }`}
+                      >
+                        {q.isPublished
+                          ? "Published"
+                          : "Draft"}
+                      </span>
+
+                      {q.tableData && (
+                        <span className="tag table">
+                          <Table2
+                            size={12}
+                          />
+                          Table
+                        </span>
+                      )}
+
+                      {q.questionImage && (
+                        <span className="tag image">
+                          <ImageIcon
+                            size={12}
+                          />
+                          Diagram
+                        </span>
+                      )}
+
+                    </div>
+
+                    <div className="qb-card-actions">
+
+                      <button
+                        className="card-edit"
+                        onClick={() =>
+                          startInlineEdit(
+                            q
+                          )
+                        }
+                      >
+                        <Edit3
+                          size={15}
+                        />
+                        Inline Edit
+                      </button>
+
+                      <button
+                        className="card-edit-form"
+                        onClick={() =>
+                          handleEdit(
+                            q
+                          )
+                        }
+                      >
+                        <Edit3
+                          size={15}
+                        />
+                        Full Edit
+                      </button>
+
+                      <button
+                        className="card-delete"
+                        onClick={() =>
+                          handleDelete(
+                            q._id
+                          )
+                        }
+                      >
+                        <Trash2
+                          size={15}
+                        />
+                      </button>
+
+                      <button
+                        className="card-expand"
+                        onClick={() =>
+                          setExpandedId(
+                            isExpanded
+                              ? null
+                              : q._id ||
+                                  null
+                          )
+                        }
+                      >
+                        {isExpanded ? (
+                          <ChevronUp
+                            size={17}
+                          />
+                        ) : (
+                          <ChevronDown
+                            size={17}
+                          />
+                        )}
+                      </button>
+
+                    </div>
+
                   </div>
-                </div>
 
-                {/* ACTIONS */}
+                  {/* BODY */}
 
-                <div
-                  style={{
-                    display:
-                      "flex",
-                    flexDirection:
-                      "column",
-                    gap: "8px",
-                    minWidth:
-                      "90px",
-                  }}
-                >
-                  <button
-                    onClick={() =>
-                      handleEdit(q)
-                    }
-                    style={{
-                      background:
-                        "#eab308",
-                      color:
-                        "#fff",
-                      border:
-                        "none",
-                      padding:
-                        "8px 12px",
-                      borderRadius:
-                        "6px",
-                      cursor:
-                        "pointer",
-                      fontWeight:
-                        "600",
-                      fontSize:
-                        "13px",
-                    }}
-                  >
-                    Edit
-                  </button>
+                  <div className="qb-question-body">
 
-                  <button
-                    onClick={() =>
-                      handleDelete(
-                        q._id
-                      )
-                    }
-                    style={{
-                      background:
-                        "#ef4444",
-                      color:
-                        "#fff",
-                      border:
-                        "none",
-                      padding:
-                        "8px 12px",
-                      borderRadius:
-                        "6px",
-                      cursor:
-                        "pointer",
-                      fontWeight:
-                        "600",
-                      fontSize:
-                        "13px",
-                    }}
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            )
+                    <h3>
+                      {q.question}
+                    </h3>
+
+                    {q.chapter && (
+                      <div className="qb-chapter">
+                        Chapter:{" "}
+                        {q.chapter}
+                      </div>
+                    )}
+
+                    {/* IMAGE */}
+
+                    {q.questionImage && (
+                      <div className="qb-card-image">
+
+                        <img
+                          src={
+                            q.questionImage
+                          }
+                          alt="Question diagram"
+                        />
+
+                      </div>
+                    )}
+
+                    {/* TABLE */}
+
+                    {q.tableData &&
+                      q.tableData
+                        .headers
+                        ?.length >
+                        0 && (
+                        <div className="qb-display-table">
+
+                          {renderTable(
+                            q.tableData,
+                            false,
+                            q
+                          )}
+
+                        </div>
+                      )}
+
+                    {/* OPTIONS */}
+
+                    <div className="qb-display-options">
+
+                      {q.options?.map(
+                        (
+                          option,
+                          optIndex
+                        ) => {
+
+                          const isCorrect =
+                            option ===
+                            q.correctAnswer;
+
+                          const optionColors =
+                            (q as any)
+                              .optionColors ||
+                            [];
+
+                          return (
+                            <div
+                              key={
+                                optIndex
+                              }
+                              className={`qb-display-option ${
+                                isCorrect
+                                  ? "correct"
+                                  : ""
+                              }`}
+                              style={{
+                                background:
+                                  optionColors[
+                                    optIndex
+                                  ] ||
+                                  undefined,
+                              }}
+                            >
+
+                              <span>
+                                {String.fromCharCode(
+                                  65 +
+                                    optIndex
+                                )}
+                              </span>
+
+                              <div>
+                                {
+                                  option
+                                }
+                              </div>
+
+                              {isCorrect && (
+                                <CheckCircle2
+                                  size={
+                                    17
+                                  }
+                                />
+                              )}
+
+                            </div>
+                          );
+                        }
+                      )}
+
+                    </div>
+
+                    {/* EXTRA */}
+
+                    {isExpanded && (
+                      <div className="qb-extra-info">
+
+                        <div>
+                          <span>
+                            Test Title
+                          </span>
+
+                          <strong>
+                            {
+                              q.testTitle
+                            }
+                          </strong>
+                        </div>
+
+                        <div>
+                          <span>
+                            Test ID
+                          </span>
+
+                          <strong>
+                            {
+                              q.testId
+                            }
+                          </strong>
+                        </div>
+
+                        <div>
+                          <span>
+                            Marks
+                          </span>
+
+                          <strong>
+                            +
+                            {
+                              q.marksPerQuestion
+                            }
+                          </strong>
+                        </div>
+
+                        <div>
+                          <span>
+                            Negative
+                          </span>
+
+                          <strong>
+                            -
+                            {
+                              q.negativeMarks
+                            }
+                          </strong>
+                        </div>
+
+                        <div>
+                          <span>
+                            Duration
+                          </span>
+
+                          <strong>
+                            {
+                              q.durationMinutes
+                            }{" "}
+                            min
+                          </strong>
+                        </div>
+
+                      </div>
+                    )}
+
+                  </div>
+
+                </article>
+              );
+            }
           )}
+
         </div>
       )}
+
+      {/* PDF MODAL */}
+
+      {showPdfModal && (
+        <div className="qb-modal-backdrop">
+
+          <div className="qb-pdf-modal">
+
+            <div className="qb-modal-header">
+
+              <div>
+                <span>
+                  PDF IMPORT
+                </span>
+
+                <h2>
+                  Upload Question Paper
+                </h2>
+              </div>
+
+              <button
+                className="qb-icon-btn"
+                onClick={() => {
+                  setShowPdfModal(
+                    false
+                  );
+
+                  setPdfFile(null);
+                }}
+              >
+                <X size={19} />
+              </button>
+
+            </div>
+
+            <form
+              onSubmit={
+                handlePdfSubmit
+              }
+            >
+
+              <div className="qb-field">
+
+                <label>
+                  Class Name
+                </label>
+
+                <select
+                  value={
+                    pdfClassName
+                  }
+                  onChange={(e) =>
+                    setPdfClassName(
+                      e.target.value
+                    )
+                  }
+                >
+                  <option>
+                    1st PUC
+                  </option>
+
+                  <option>
+                    2nd PUC
+                  </option>
+                </select>
+
+              </div>
+
+              <div className="qb-field">
+
+                <label>
+                  Exam Type
+                </label>
+
+                <select
+                  value={
+                    pdfExamType
+                  }
+                  onChange={(e) =>
+                    setPdfExamType(
+                      e.target.value
+                    )
+                  }
+                >
+                  <option value="JEE">
+                    JEE Mains
+                  </option>
+
+                  <option value="NEET">
+                    NEET UG
+                  </option>
+                </select>
+
+              </div>
+
+              <div className="qb-field">
+
+                <label>
+                  Test Type
+                </label>
+
+                <select
+                  value={
+                    pdfTestCategory
+                  }
+                  onChange={(e) =>
+                    setPdfTestCategory(
+                      e.target.value
+                    )
+                  }
+                >
+                  <option value="mock">
+                    Mock Test
+                  </option>
+
+                  <option value="daily">
+                    Daily Test
+                  </option>
+
+                  <option value="subject">
+                    Subject Test
+                  </option>
+                </select>
+
+              </div>
+
+              <div className="qb-upload-box">
+
+                <Upload size={28} />
+
+                <strong>
+                  Select PDF
+                </strong>
+
+                <span>
+                  Question paper PDF
+                </span>
+
+                <input
+                  type="file"
+                  accept=".pdf,application/pdf"
+                  onChange={(e) =>
+                    setPdfFile(
+                      e.target.files?.[0] ||
+                        null
+                    )
+                  }
+                />
+
+                {pdfFile && (
+                  <div className="selected-file">
+                    {
+                      pdfFile.name
+                    }
+                  </div>
+                )}
+
+              </div>
+
+              <div className="qb-modal-footer">
+
+                <button
+                  type="button"
+                  className="qb-cancel-btn"
+                  disabled={
+                    parsing
+                  }
+                  onClick={() => {
+                    setShowPdfModal(
+                      false
+                    );
+
+                    setPdfFile(null);
+                  }}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  className="qb-save-btn"
+                  disabled={
+                    parsing
+                  }
+                >
+                  {parsing ? (
+                    <>
+                      <RefreshCw
+                        size={16}
+                        className="spin"
+                      />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <Upload
+                        size={16}
+                      />
+                      Extract & Save
+                    </>
+                  )}
+                </button>
+
+              </div>
+
+            </form>
+
+          </div>
+
+        </div>
+      )}
+
     </div>
   );
 }

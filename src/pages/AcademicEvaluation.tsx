@@ -1,205 +1,360 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Award,
+  BookOpen,
+  CheckCircle2,
+  GraduationCap,
+  ShieldCheck,
+  Brain,
+  Star,
+  Target,
+  TrendingUp,
+} from "lucide-react";
+import "./AcademicEvaluation.css";
 
 export default function AcademicEvaluation() {
   const { studentId } = useParams();
   const navigate = useNavigate();
-  const [ratings, setRatings] = useState<any>({});
-  
+
+  const [ratings, setRatings] = useState<Record<string, number>>({});
+
   const questions = [
-    "Attendance",
-    "Subject Understanding",
-    "Exam Performance",
-    "Homework Completion",
-    "Learning Interest"
+    {
+      title: "Attendance",
+      description: "Regularity and classroom participation",
+      icon: Target,
+    },
+    {
+      title: "Subject Understanding",
+      description: "Concept clarity and academic understanding",
+      icon: BookOpen,
+    },
+    {
+      title: "Exam Performance",
+      description: "Performance in tests and examinations",
+      icon: TrendingUp,
+    },
+    {
+      title: "Homework Completion",
+      description: "Consistency in assignments and practice",
+      icon: CheckCircle2,
+    },
+    {
+      title: "Learning Interest",
+      description: "Curiosity, engagement and willingness to learn",
+      icon: Brain,
+    },
   ];
 
-  const changeRating = (question: string, value: number) => {
-    setRatings({
-      ...ratings,
-      [question]: value
-    });
+  const ratedCount = Object.keys(ratings).length;
+
+  const totalScore = useMemo(() => {
+    return Object.values(ratings).reduce(
+      (sum, value) => sum + value,
+      0
+    );
+  }, [ratings]);
+
+  const average =
+    ratedCount > 0
+      ? (totalScore / ratedCount).toFixed(1)
+      : "0.0";
+
+  const progress = Math.round(
+    (ratedCount / questions.length) * 100
+  );
+
+  const changeRating = (
+    question: string,
+    value: number
+  ) => {
+    setRatings((previous) => ({
+      ...previous,
+      [question]: value,
+    }));
   };
 
-  // Enterprise Professional Theme Styles
-  const styles = {
-    pageWrapper: {
-      minHeight: "100vh",
-      background: "#f4f5f7",
-      padding: "48px 20px",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-    },
-    container: {
-      width: "100%",
-      maxWidth: "720px",
-      padding: "40px",
-      background: "#ffffff",
-      borderRadius: "12px",
-      boxShadow: "0 4px 24px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)",
-      border: "1px solid #e5e7eb",
-      color: "#1f2937",
-    },
-    headerSection: {
-      borderBottom: "1px solid #e5e7eb",
-      paddingBottom: "24px",
-      marginBottom: "28px",
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "flex-start",
-    },
-    titleGroup: {
-      display: "flex",
-      flexDirection: "column" as const,
-      gap: "6px",
-    },
-    title: {
-      fontSize: "24px",
-      fontWeight: "700",
-      color: "#111827",
-      margin: "0",
-      letterSpacing: "-0.3px",
-    },
-    subtitle: {
-      fontSize: "14px",
-      color: "#6b7280",
-      margin: "0",
-      fontWeight: "400",
-    },
-    studentBadge: {
-      fontSize: "12px",
-      fontWeight: "600",
-      color: "#374151",
-      background: "#f3f4f6",
-      border: "1px solid #e5e7eb",
-      padding: "6px 14px",
-      borderRadius: "6px",
-      letterSpacing: "0.2px",
-    },
-    questionCard: {
-      background: "#fafafa",
-      border: "1px solid #e5e7eb",
-      borderRadius: "8px",
-      padding: "20px 24px",
-      marginBottom: "16px",
-      display: "flex",
-      flexDirection: "column" as const,
-      gap: "12px",
-      transition: "border-color 0.15s ease",
-    },
-    questionHeader: {
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-    },
-    questionTitle: {
-      fontSize: "15px",
-      fontWeight: "600",
-      color: "#374151",
-      margin: "0",
-    },
-    statusLabel: (isRated: boolean) => ({
-      fontSize: "12px",
-      fontWeight: "500",
-      color: isRated ? "#059669" : "#9ca3af",
-      background: isRated ? "#ecfdf5" : "transparent",
-      padding: "2px 8px",
-      borderRadius: "4px",
-    }),
-    starsWrapper: {
-      display: "flex",
-      gap: "8px",
-    },
-    starBtn: (isSelected: boolean) => ({
-      background: isSelected ? "#fffbeb" : "#ffffff",
-      border: isSelected ? "1px solid #f59e0b" : "1px solid #d1d5db",
-      borderRadius: "6px",
-      cursor: "pointer",
-      fontSize: "18px",
-      width: "38px",
-      height: "38px",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      transition: "all 0.15s ease",
-      boxShadow: isSelected ? "0 1px 3px rgba(245, 158, 11, 0.15)" : "none",
-    }),
-    actionSection: {
-      marginTop: "32px",
-      display: "flex",
-      justifyContent: "flex-end",
-    },
-    continueBtn: {
-      padding: "12px 28px",
-      background: "#111827",
-      color: "#ffffff",
-      border: "none",
-      borderRadius: "8px",
-      fontSize: "14px",
-      fontWeight: "600",
-      cursor: "pointer",
-      boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
-      transition: "background-color 0.15s ease",
-    },
+  const handleContinue = () => {
+    if (ratedCount !== questions.length) return;
+
+    navigate(
+      `/mentor/evaluation/${studentId}/action`
+    );
   };
 
   return (
-    <div style={styles.pageWrapper}>
-      <div style={styles.container}>
-        
-        <div style={styles.headerSection}>
-          <div style={styles.titleGroup}>
-            <h1 style={styles.title}>Academic Evaluation</h1>
-            <p style={styles.subtitle}>Assess and record student performance metrics</p>
+    <div className="evaluation-page">
+
+      {/* Background decoration */}
+      <div className="evaluation-grid" />
+      <div className="evaluation-orb evaluation-orb-one" />
+      <div className="evaluation-orb evaluation-orb-two" />
+
+      <main className="evaluation-shell">
+
+        {/* ================= HEADER ================= */}
+
+        <header className="evaluation-header">
+
+          <button
+            className="evaluation-back"
+            onClick={() => navigate(-1)}
+            type="button"
+          >
+            <ArrowLeft size={17} />
+            Back
+          </button>
+
+          <div className="evaluation-heading">
+
+            <div className="evaluation-title-row">
+
+              <div className="evaluation-icon">
+                <GraduationCap size={23} />
+              </div>
+
+              <div>
+                <div className="evaluation-eyebrow">
+                  STUDENT ASSESSMENT
+                </div>
+
+                <h1>
+                  Academic Evaluation
+                </h1>
+              </div>
+
+            </div>
+
+            <p>
+              Evaluate the student's academic progress,
+              consistency and learning engagement.
+            </p>
+
           </div>
-          <div style={styles.studentBadge}>
-            ID: {studentId}
+
+          <div className="student-id-card">
+            <span>STUDENT ID</span>
+            <strong>{studentId || "—"}</strong>
           </div>
+
+        </header>
+
+        {/* ================= SUMMARY ================= */}
+
+        <section className="evaluation-summary">
+
+          <div className="summary-main">
+
+            <div className="summary-icon">
+              <Award size={20} />
+            </div>
+
+            <div>
+              <span>Assessment Progress</span>
+
+              <strong>
+                {ratedCount}{" "}
+                <small>/ {questions.length} completed</small>
+              </strong>
+            </div>
+
+          </div>
+
+          <div className="progress-area">
+
+            <div className="progress-track">
+              <div
+                className="progress-fill"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+
+            <span>{progress}%</span>
+
+          </div>
+
+          <div className="summary-stat">
+            <span>Average Rating</span>
+            <strong>{average}/5</strong>
+          </div>
+
+        </section>
+
+        {/* ================= SECURITY ================= */}
+
+        <div className="evaluation-security">
+          <ShieldCheck size={16} />
+
+          <span>
+            Academic evaluation is securely recorded for
+            authorized mentor access.
+          </span>
         </div>
 
-        {questions.map((q) => {
-          const currentRating = ratings[q] || 0;
-          return (
-            <div key={q} style={styles.questionCard}>
-              <div style={styles.questionHeader}>
-                <h3 style={styles.questionTitle}>{q}</h3>
-                <span style={styles.statusLabel(currentRating > 0)}>
-                  {currentRating > 0 ? `${currentRating}/5 Rated` : "Pending"}
-                </span>
-              </div>
-              
-              <div style={styles.starsWrapper}>
-                {[1, 2, 3, 4, 5].map((star) => {
-                  const isSelected = currentRating >= star;
-                  return (
-                    <button
-                      key={star}
-                      onClick={() => changeRating(q, star)}
-                      style={styles.starBtn(isSelected)}
-                    >
-                      {isSelected ? "⭐" : "☆"}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
+        {/* ================= QUESTIONS ================= */}
 
-        <div style={styles.actionSection}>
+        <section className="evaluation-list">
+
+          {questions.map((question, index) => {
+
+            const Icon = question.icon;
+            const currentRating =
+              ratings[question.title] || 0;
+
+            return (
+              <article
+                key={question.title}
+                className={`evaluation-card ${
+                  currentRating
+                    ? "evaluation-card-rated"
+                    : ""
+                }`}
+              >
+
+                <div className="question-top">
+
+                  <div className="question-number">
+                    {String(index + 1).padStart(2, "0")}
+                  </div>
+
+                  <div className="question-icon">
+                    <Icon size={19} />
+                  </div>
+
+                  <div className="question-content">
+
+                    <h2>
+                      {question.title}
+                    </h2>
+
+                    <p>
+                      {question.description}
+                    </p>
+
+                  </div>
+
+                  <div
+                    className={`rating-status ${
+                      currentRating
+                        ? "rating-status-complete"
+                        : ""
+                    }`}
+                  >
+                    {currentRating ? (
+                      <>
+                        <CheckCircle2 size={13} />
+                        Rated
+                      </>
+                    ) : (
+                      "Pending"
+                    )}
+                  </div>
+
+                </div>
+
+                <div className="rating-area">
+
+                  <div className="rating-label">
+                    <span>
+                      {currentRating
+                        ? `Selected: ${currentRating}/5`
+                        : "Select performance rating"}
+                    </span>
+
+                    <small>
+                      1 = Needs Improvement
+                      <b>5 = Excellent</b>
+                    </small>
+                  </div>
+
+                  <div className="rating-buttons">
+
+                    {[1, 2, 3, 4, 5].map(
+                      (star) => {
+
+                        const selected =
+                          currentRating >= star;
+
+                        return (
+                          <button
+                            key={star}
+                            type="button"
+                            aria-label={`Rate ${star} out of 5`}
+                            className={`rating-button ${
+                              selected
+                                ? "rating-button-selected"
+                                : ""
+                            }`}
+                            onClick={() =>
+                              changeRating(
+                                question.title,
+                                star
+                              )
+                            }
+                          >
+                            <Star
+                              size={19}
+                              fill={
+                                selected
+                                  ? "currentColor"
+                                  : "none"
+                              }
+                            />
+
+                            <span>{star}</span>
+                          </button>
+                        );
+                      }
+                    )}
+
+                  </div>
+
+                </div>
+
+              </article>
+            );
+          })}
+
+        </section>
+
+        {/* ================= FOOTER ACTION ================= */}
+
+        <footer className="evaluation-footer">
+
+          <div className="footer-info">
+
+            <div className="footer-check">
+              <CheckCircle2 size={15} />
+            </div>
+
+            <div>
+              <strong>
+                Ready for the next stage?
+              </strong>
+
+              <span>
+                Complete all ratings before continuing.
+              </span>
+            </div>
+
+          </div>
+
           <button
-            style={styles.continueBtn}
-            onClick={() => {
-              navigate(`/mentor/evaluation/${studentId}/action`);
-            }}
+            type="button"
+            className="continue-button"
+            disabled={ratedCount !== questions.length}
+            onClick={handleContinue}
           >
             Continue Assessment
+            <ArrowRight size={17} />
           </button>
-        </div>
 
-      </div>
+        </footer>
+
+      </main>
     </div>
   );
 }

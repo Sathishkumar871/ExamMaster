@@ -9,6 +9,11 @@ import {
   Phone,
   BookOpen,
   ShieldCheck,
+  X,
+  Send,
+  Sparkles,
+  Bot,
+  Lightbulb,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -45,6 +50,7 @@ const faqData: FAQItem[] = [
     answer:
       "Yes. You can contact the college admission team directly by phone or WhatsApp using the contact details provided on the website.",
   },
+
   {
     category: "Courses",
     question: "What courses or streams are available?",
@@ -57,6 +63,7 @@ const faqData: FAQItem[] = [
     answer:
       "Students can discuss their academic interests, future plans and preferred subjects with the college team before selecting a stream. The faculty can help students understand the available combinations.",
   },
+
   {
     category: "Faculty",
     question: "Where can I see the college faculty information?",
@@ -69,6 +76,7 @@ const faqData: FAQItem[] = [
     answer:
       "Faculty contact details may be provided on the website where appropriate. For general academic enquiries, students and parents can contact the college administration or admission team.",
   },
+
   {
     category: "Students",
     question: "How can students login to the examination platform?",
@@ -87,6 +95,7 @@ const faqData: FAQItem[] = [
     answer:
       "Students can access result-related features through their student account when those features are enabled for their account.",
   },
+
   {
     category: "Examinations",
     question: "What is the purpose of the examination platform?",
@@ -99,6 +108,7 @@ const faqData: FAQItem[] = [
     answer:
       "The Question Bank is an academic resource used to organize and manage examination questions by subjects, chapters and other academic categories.",
   },
+
   {
     category: "Campus",
     question: "Where is STG Pre-University College located?",
@@ -111,6 +121,7 @@ const faqData: FAQItem[] = [
     answer:
       "The Contact section of the website contains a Google Maps location link. You can use it to open the college location and get directions.",
   },
+
   {
     category: "Contact",
     question: "What is the college contact number?",
@@ -123,6 +134,7 @@ const faqData: FAQItem[] = [
     answer:
       "Yes. The website provides a WhatsApp enquiry option. You can use it to send an admission or general college enquiry directly.",
   },
+
   {
     category: "Website",
     question: "How can I contact the college if my question is not listed here?",
@@ -156,13 +168,18 @@ const FAQ: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState("All");
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
+  // ASK QUESTION
+  const [isAskOpen, setIsAskOpen] = useState(false);
+  const [userQuestion, setUserQuestion] = useState("");
+  const [askedAnswer, setAskedAnswer] = useState<FAQItem | null>(null);
+  const [noAnswer, setNoAnswer] = useState(false);
+
   const filteredFAQs = useMemo(() => {
     const query = search.trim().toLowerCase();
 
     return faqData.filter((faq) => {
       const categoryMatch =
-        activeCategory === "All" ||
-        faq.category === activeCategory;
+        activeCategory === "All" || faq.category === activeCategory;
 
       const searchMatch =
         !query ||
@@ -175,9 +192,155 @@ const FAQ: React.FC = () => {
   }, [search, activeCategory]);
 
   const toggleFAQ = (index: number) => {
-    setOpenIndex((previous) =>
-      previous === index ? null : index
-    );
+    setOpenIndex((previous) => (previous === index ? null : index));
+  };
+
+  // =====================================================
+  // SMART QUESTION MATCHING
+  // =====================================================
+
+  const findBestAnswer = (question: string): FAQItem | null => {
+    const query = question
+      .toLowerCase()
+      .replace(/[?.,!]/g, "")
+      .trim();
+
+    if (!query) return null;
+
+    const words = query
+      .split(/\s+/)
+      .filter((word) => word.length > 2);
+
+    let bestMatch: FAQItem | null = null;
+    let bestScore = 0;
+
+    faqData.forEach((faq) => {
+      const searchableText =
+        `${faq.question} ${faq.answer} ${faq.category}`.toLowerCase();
+
+      let score = 0;
+
+      words.forEach((word) => {
+        if (searchableText.includes(word)) {
+          score += 1;
+        }
+      });
+
+      // Important phrase matches
+      if (
+        query.includes("admission") &&
+        searchableText.includes("admission")
+      ) {
+        score += 4;
+      }
+
+      if (
+        query.includes("course") &&
+        searchableText.includes("course")
+      ) {
+        score += 4;
+      }
+
+      if (
+        query.includes("faculty") &&
+        searchableText.includes("faculty")
+      ) {
+        score += 4;
+      }
+
+      if (
+        query.includes("teacher") &&
+        searchableText.includes("faculty")
+      ) {
+        score += 3;
+      }
+
+      if (
+        query.includes("daily test") &&
+        searchableText.includes("daily tests")
+      ) {
+        score += 5;
+      }
+
+      if (
+        query.includes("question bank") &&
+        searchableText.includes("question bank")
+      ) {
+        score += 5;
+      }
+
+      if (
+        query.includes("exam") &&
+        searchableText.includes("examination")
+      ) {
+        score += 3;
+      }
+
+      if (
+        query.includes("result") &&
+        searchableText.includes("result")
+      ) {
+        score += 4;
+      }
+
+      if (
+        query.includes("login") &&
+        searchableText.includes("login")
+      ) {
+        score += 4;
+      }
+
+      if (
+        query.includes("whatsapp") &&
+        searchableText.includes("whatsapp")
+      ) {
+        score += 5;
+      }
+
+      if (
+        query.includes("phone") ||
+        query.includes("contact")
+      ) {
+        if (searchableText.includes("contact")) {
+          score += 4;
+        }
+      }
+
+      if (score > bestScore) {
+        bestScore = score;
+        bestMatch = faq;
+      }
+    });
+
+    return bestScore >= 1 ? bestMatch : null;
+  };
+
+  const handleAskQuestion = () => {
+    const answer = findBestAnswer(userQuestion);
+
+    if (answer) {
+      setAskedAnswer(answer);
+      setNoAnswer(false);
+    } else {
+      setAskedAnswer(null);
+      setNoAnswer(true);
+    }
+  };
+
+  const clearAskQuestion = () => {
+    setUserQuestion("");
+    setAskedAnswer(null);
+    setNoAnswer(false);
+  };
+
+  const openAskModal = () => {
+    clearAskQuestion();
+    setIsAskOpen(true);
+  };
+
+  const closeAskModal = () => {
+    setIsAskOpen(false);
+    clearAskQuestion();
   };
 
   return (
@@ -190,6 +353,9 @@ const FAQ: React.FC = () => {
       <section className="college-hero faq-hero">
 
         <div className="college-hero-overlay" />
+
+        <div className="college-hero-glow glow-one" />
+        <div className="college-hero-glow glow-two" />
 
         <div className="college-hero-content">
 
@@ -219,6 +385,16 @@ const FAQ: React.FC = () => {
             courses, faculty, examinations, students and the
             college.
           </p>
+
+          <button
+            type="button"
+            className="hero-ask-button"
+            onClick={openAskModal}
+          >
+            <Sparkles size={17} />
+            Ask a Question
+            <span className="hero-ask-arrow">→</span>
+          </button>
 
         </div>
       </section>
@@ -250,6 +426,15 @@ const FAQ: React.FC = () => {
               to quickly find the information you need.
             </p>
           </div>
+
+          <button
+            type="button"
+            className="faq-intro-ask"
+            onClick={openAskModal}
+          >
+            <Sparkles size={17} />
+            Ask Question
+          </button>
 
         </section>
 
@@ -478,7 +663,6 @@ const FAQ: React.FC = () => {
               WhatsApp
             </a>
 
-
             <a href="tel:+918951787788">
               <Phone size={17} />
               Call
@@ -551,6 +735,294 @@ const FAQ: React.FC = () => {
         </section>
 
       </main>
+
+
+      {/* =====================================================
+          FLOATING ASK QUESTION BUTTON
+      ===================================================== */}
+
+      <button
+        type="button"
+        className="floating-ask-button"
+        onClick={openAskModal}
+        aria-label="Ask a question"
+      >
+        <span className="floating-ask-icon">
+          <Sparkles size={19} />
+        </span>
+
+        <span className="floating-ask-text">
+          Ask a Question
+        </span>
+      </button>
+
+
+      {/* =====================================================
+          ASK QUESTION MODAL
+      ===================================================== */}
+
+      {isAskOpen && (
+
+        <div
+          className="ask-modal-overlay"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) {
+              closeAskModal();
+            }
+          }}
+        >
+
+          <div className="ask-modal">
+
+            {/* MODAL HEADER */}
+
+            <div className="ask-modal-header">
+
+              <div className="ask-modal-brand">
+
+                <div className="ask-modal-icon">
+                  <Bot size={23} />
+                </div>
+
+                <div>
+                  <span>
+                    STG COLLEGE ASSIST
+                  </span>
+
+                  <h2>
+                    Ask Your Question
+                  </h2>
+                </div>
+
+              </div>
+
+              <button
+                type="button"
+                className="ask-close-button"
+                onClick={closeAskModal}
+                aria-label="Close"
+              >
+                <X size={20} />
+              </button>
+
+            </div>
+
+
+            {/* MODAL BODY */}
+
+            <div className="ask-modal-body">
+
+              <div className="ask-welcome">
+
+                <div className="ask-welcome-icon">
+                  <Lightbulb size={19} />
+                </div>
+
+                <div>
+                  <strong>
+                    What would you like to know?
+                  </strong>
+
+                  <p>
+                    Ask about admissions, courses, exams,
+                    students, faculty or the campus.
+                  </p>
+                </div>
+
+              </div>
+
+
+              {/* QUESTION INPUT */}
+
+              <div className="ask-input-wrapper">
+
+                <textarea
+                  value={userQuestion}
+                  onChange={(e) => {
+                    setUserQuestion(e.target.value);
+
+                    if (askedAnswer || noAnswer) {
+                      setAskedAnswer(null);
+                      setNoAnswer(false);
+                    }
+                  }}
+                  placeholder="Example: How can I apply for admission?"
+                  rows={4}
+                  autoFocus
+                />
+
+                <span className="ask-character-count">
+                  {userQuestion.length}/300
+                </span>
+
+              </div>
+
+
+              {/* SUGGESTIONS */}
+
+              <div className="ask-suggestions">
+
+                <span>
+                  Try asking:
+                </span>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setUserQuestion(
+                      "How can I apply for admission?"
+                    )
+                  }
+                >
+                  Admission
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setUserQuestion(
+                      "What courses are available?"
+                    )
+                  }
+                >
+                  Courses
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setUserQuestion(
+                      "Where can students find Daily Tests?"
+                    )
+                  }
+                >
+                  Daily Tests
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setUserQuestion(
+                      "What is the college contact number?"
+                    )
+                  }
+                >
+                  Contact
+                </button>
+
+              </div>
+
+
+              {/* ASK BUTTON */}
+
+              <button
+                type="button"
+                className="ask-submit-button"
+                onClick={handleAskQuestion}
+                disabled={!userQuestion.trim()}
+              >
+                <Send size={17} />
+                Find My Answer
+              </button>
+
+
+              {/* ANSWER */}
+
+              {askedAnswer && (
+
+                <div className="ask-result success-result">
+
+                  <div className="ask-result-top">
+
+                    <div className="ask-result-icon">
+                      <Sparkles size={18} />
+                    </div>
+
+                    <div>
+                      <span>
+                        BEST MATCH • {askedAnswer.category}
+                      </span>
+
+                      <h3>
+                        {askedAnswer.question}
+                      </h3>
+                    </div>
+
+                  </div>
+
+                  <div className="ask-result-answer">
+                    <p>
+                      {askedAnswer.answer}
+                    </p>
+                  </div>
+
+                </div>
+
+              )}
+
+
+              {/* NO ANSWER */}
+
+              {noAnswer && (
+
+                <div className="ask-result no-answer-result">
+
+                  <div className="ask-result-top">
+
+                    <div className="ask-result-icon">
+                      <MessageCircle size={18} />
+                    </div>
+
+                    <div>
+                      <span>
+                        WE COULDN'T FIND A MATCH
+                      </span>
+
+                      <h3>
+                        Let the STG College Team help you
+                      </h3>
+                    </div>
+
+                  </div>
+
+                  <p>
+                    We couldn't find a matching answer in
+                    our FAQ database. You can contact the
+                    college directly and ask your question.
+                  </p>
+
+                  <div className="no-answer-actions">
+
+                    <a
+                      href={`https://wa.me/918951787788?text=${encodeURIComponent(
+                        `Hi STG College, I have a question: ${userQuestion}`
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <MessageCircle size={16} />
+                      Ask on WhatsApp
+                    </a>
+
+                    <a href="tel:+918951787788">
+                      <Phone size={16} />
+                      Call College
+                    </a>
+
+                  </div>
+
+                </div>
+
+              )}
+
+            </div>
+
+          </div>
+
+        </div>
+
+      )}
+
     </div>
   );
 };

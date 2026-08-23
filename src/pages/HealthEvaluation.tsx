@@ -12,7 +12,7 @@ import {
   Loader2, 
   Calendar, 
   CheckCircle2,
-  Sparkles
+  
 } from "lucide-react";
 import "./Evaluation.css";
 
@@ -89,7 +89,7 @@ export default function HealthEvaluation() {
           </div>
           <div className="header-right">
             <div className="progress-pill">
-              <Sparkles size={14} /> {completedFields}/4 Completed
+               {completedFields}/4 Completed
             </div>
             <div className="date-badge">
               <Calendar size={14} /> {currentDate}

@@ -31,7 +31,7 @@ export default function Mathematics() {
 
   const [studentId, setStudentId] = useState<string>("STU1001");
   const [studentName, setStudentName] = useState<string>("Student");
-  const [className, setClassName] = useState<string>("1st PUC");
+  const [className, setClassName] = useState<string>("2nd PUC");
 
   const [selectedChapter, setSelectedChapter] = useState<string | null>(null);
   

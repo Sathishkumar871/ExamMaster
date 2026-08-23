@@ -1,557 +1,1650 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import FaceVerification from "./../components/FaceVerification";
+
+import {
+  ArrowLeft,
+  ArrowRight,
+  Award,
+  BookOpen,
+  CheckCircle2,
+  Clock3,
+  FileQuestion,
+  GraduationCap,
+  Info,
+  LockKeyhole,
+  RefreshCw,
+  ShieldCheck,
+  Target,
+  Trophy,
+  Wifi,
+  WifiOff,
+  X,
+  Zap,
+} from "lucide-react";
+
+import MockTestInterface from "../components/MockTestInterface";
 import "./MockTests.css";
 
-// ఆటోమేటిక్ డిటెక్షన్ (Local & Render)
-const API_BASE_URL = 
-  window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+/* =========================================================
+   API
+========================================================= */
+
+const API_BASE_URL =
+  window.location.hostname === "localhost" ||
+  window.location.hostname === "127.0.0.1"
     ? "http://localhost:5000"
     : "https://exammaster-backend-up1y.onrender.com";
 
+/* =========================================================
+   TYPES
+========================================================= */
+
 interface Question {
   _id: string;
+
   questionText?: string;
   question?: string;
+
   options: string[];
+
   correctAnswer: string;
+
   isPublished?: boolean;
   status?: string;
+
   examType?: string;
   exam?: string;
+
   testCategory?: string;
   category?: string;
+
   className?: string;
   class?: string;
+
+  subject?: string;
+
+  chapter?: string;
+  chapterName?: string;
+
+  questionNumber?: number;
+
+  [key: string]: any;
 }
+
+interface ExamResult {
+  _id?: string;
+
+  score?: number;
+  marks?: number;
+
+  totalQuestions?: number;
+  attemptedQuestions?: number;
+
+  correctAnswers?: number;
+  wrongAnswers?: number;
+  unansweredQuestions?: number;
+
+  percentage?: number;
+
+  grade?: string;
+  status?: string;
+
+  examName?: string;
+  subject?: string;
+  chapter?: string;
+  className?: string;
+  examType?: string;
+
+  createdAt?: string;
+  submittedAt?: string;
+
+  timeTaken?: number;
+
+  [key: string]: any;
+}
+
+type Step =
+  | "dashboard"
+  | "instructions"
+  | "greeting"
+  | "exam";
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+const safeParse = <T,>(
+  value: string | null
+): T | null => {
+  if (!value) return null;
+
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return null;
+  }
+};
+
+const normalize = (value?: string) =>
+  String(value || "")
+    .trim()
+    .toLowerCase();
+
+const clampPercentage = (value: number) =>
+  Math.max(
+    0,
+    Math.min(
+      100,
+      Number.isFinite(value) ? value : 0
+    )
+  );
+
+/* =========================================================
+   COMPONENT
+========================================================= */
 
 export default function MockTests() {
   const navigate = useNavigate();
 
-  const [step, setStep] = useState<string>("verify");
-  
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  /* =======================================================
+     FLOW
+  ======================================================= */
 
-  const [studentName, setStudentName] = useState("Student");
-  const [studentId, setStudentId] = useState("");
-  const [className, setClassName] = useState<string>("");
-  const [examType, setExamType] = useState<string>("NEET"); 
-  
-  const [violationCount, setViolationCount] = useState<number>(0);
-  const [submitted, setSubmitted] = useState<boolean>(false);
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  
-  const [answers, setAnswers] = useState<Record<string, string>>(() => {
-    const saved = localStorage.getItem("exam_answers");
-    return saved ? JSON.parse(saved) : {};
-  });
+  const [step, setStep] =
+    useState<Step>("dashboard");
 
-  const [markedForReview, setMarkedForReview] = useState<Record<string, boolean>>(() => {
-    const saved = localStorage.getItem("exam_marked");
-    return saved ? JSON.parse(saved) : {};
-  });
+  /* =======================================================
+     PREVIOUS RESULT
+  ======================================================= */
 
-  const [timeLeft, setTimeLeft] = useState<number>(30 * 60);
+  const [alreadySubmitted, setAlreadySubmitted] =
+    useState(false);
 
-  // Stats for result page
-  const [score, setScore] = useState<number>(0);
-  const [correctCount, setCorrectCount] = useState<number>(0);
-  const [wrongCount, setWrongCount] = useState<number>(0);
-  const [unattemptedCount, setUnattemptedCount] = useState<number>(0);
-  const [attemptedCount, setAttemptedCount] = useState<number>(0);
+  const [examResult, setExamResult] =
+    useState<ExamResult | null>(null);
 
-  // 1. Retrieve student details
+  /* =======================================================
+     QUESTIONS
+  ======================================================= */
+
+  const [questions, setQuestions] =
+    useState<Question[]>([]);
+
+  /* =======================================================
+     STATES
+  ======================================================= */
+
+  const [loading, setLoading] =
+    useState(false);
+
+  const [checkingSubmission, setCheckingSubmission] =
+    useState(true);
+
+  const [error, setError] =
+    useState("");
+
+  const [studentName, setStudentName] =
+    useState("Student");
+
+  const [studentId, setStudentId] =
+    useState("");
+
+  const [className, setClassName] =
+    useState("");
+
+  const [examType, setExamType] =
+    useState("NEET");
+
+  const [showInstructions, setShowInstructions] =
+    useState(false);
+
+  const [isReady, setIsReady] =
+    useState(false);
+
+  const [isOnline, setIsOnline] =
+    useState(navigator.onLine);
+
+  /* =========================================================
+     NETWORK STATUS
+  ========================================================= */
+
   useEffect(() => {
-    const token = localStorage.getItem("studentToken") || localStorage.getItem("token");
+    const handleOnline = () => {
+      setIsOnline(true);
+    };
+
+    const handleOffline = () => {
+      setIsOnline(false);
+    };
+
+    window.addEventListener(
+      "online",
+      handleOnline
+    );
+
+    window.addEventListener(
+      "offline",
+      handleOffline
+    );
+
+    return () => {
+      window.removeEventListener(
+        "online",
+        handleOnline
+      );
+
+      window.removeEventListener(
+        "offline",
+        handleOffline
+      );
+    };
+  }, []);
+
+  /* =========================================================
+     LOAD STUDENT
+  ========================================================= */
+
+  useEffect(() => {
+    const token =
+      localStorage.getItem("studentToken") ||
+      localStorage.getItem("token");
 
     if (!token) {
       navigate("/login");
       return;
     }
 
-    const getStoredName = () => {
-      const direct = localStorage.getItem("studentName") || localStorage.getItem("name");
-      if (direct) return direct;
-      
-      const userStr = localStorage.getItem("user") || localStorage.getItem("student");
-      if (userStr) {
-        try {
-          const obj = JSON.parse(userStr);
-          if (obj?.name) return obj.name;
-        } catch (e) {}
-      }
-      return "Student";
-    };
+    const user =
+      safeParse<any>(
+        localStorage.getItem("user")
+      ) ||
+      safeParse<any>(
+        localStorage.getItem("student")
+      ) ||
+      {};
 
-    const getStoredId = () => {
-      const direct = localStorage.getItem("studentId") || localStorage.getItem("id");
-      if (direct) return direct;
+    const storedName =
+      localStorage.getItem("studentName") ||
+      localStorage.getItem("name") ||
+      user?.name ||
+      "Student";
 
-      const userStr = localStorage.getItem("user") || localStorage.getItem("student");
-      if (userStr) {
-        try {
-          const obj = JSON.parse(userStr);
-          if (obj?.studentId || obj?.id) return obj.studentId || obj.id;
-        } catch (e) {}
-      }
-      return "ID-N/A";
-    };
+    const storedId =
+      localStorage.getItem("studentId") ||
+      localStorage.getItem("id") ||
+      user?.studentId ||
+      user?.id ||
+      user?._id ||
+      "";
 
-    const getStoredClass = () => {
-      const direct = localStorage.getItem("className") || localStorage.getItem("class") || localStorage.getItem("puc");
-      if (direct) return direct;
+    const storedClass =
+      localStorage.getItem("className") ||
+      localStorage.getItem("class") ||
+      localStorage.getItem("puc") ||
+      user?.className ||
+      user?.class ||
+      user?.puc ||
+      "";
 
-      const userStr = localStorage.getItem("user") || localStorage.getItem("student");
-      if (userStr) {
-        try {
-          const obj = JSON.parse(userStr);
-          if (obj?.className) return obj.className;
-          if (obj?.class) return obj.class;
-          if (obj?.puc) return obj.puc;
-        } catch (e) {}
-      }
-      return "";
-    };
+    const storedExam =
+      localStorage.getItem("examType") ||
+      localStorage.getItem("exam") ||
+      user?.examType ||
+      user?.exam ||
+      "NEET";
 
-    const getStoredExamType = () => {
-      const direct = localStorage.getItem("examType") || localStorage.getItem("exam");
-      if (direct) return direct;
+    setStudentName(storedName);
+    setStudentId(storedId);
+    setClassName(storedClass);
+    setExamType(storedExam);
 
-      const userStr = localStorage.getItem("user") || localStorage.getItem("student");
-      if (userStr) {
-        try {
-          const obj = JSON.parse(userStr);
-          if (obj?.examType) return obj.examType;
-          if (obj?.exam) return obj.exam;
-        } catch (e) {}
-      }
-      return "NEET";
-    };
+    if (!storedId) {
+      setCheckingSubmission(false);
 
-    setStudentName(getStoredName());
-    setStudentId(getStoredId());
-    setClassName(getStoredClass());
-    setExamType(getStoredExamType());
-  }, [navigate]);
+      setError(
+        "Student identification could not be found. Please log in again."
+      );
 
-  // 🎯 DYNAMIC BACKEND FETCH FUNCTION (Using API_BASE_URL)
-  const fetchQuestionsForClass = async (selectedClass: string, selectedExamType: string) => {
-    setLoading(true);
-    setError("");
-    const token = localStorage.getItem("studentToken") || localStorage.getItem("token");
-
-    try {
-      const queryParams = new URLSearchParams();
-      if (selectedClass) queryParams.append("className", selectedClass);
-      if (selectedExamType) queryParams.append("examType", selectedExamType);
-
-      const response = await fetch(`${API_BASE_URL}/api/questions/mock-tests?${queryParams.toString()}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data?.message || "Failed to load questions");
-      }
-
-      const loadedQuestions = data.questions || data.data || data;
-      
-      console.log(`🎯 Dedicated Mock Test Questions Loaded: ${loadedQuestions.length}`);
-
-      setQuestions(loadedQuestions);
-      const calculatedTime = loadedQuestions.length > 0 ? loadedQuestions.length * 60 : 30 * 60;
-      setTimeLeft(calculatedTime);
-    } catch (err: any) {
-      console.error(err);
-      setError("Unable to load mock questions: " + err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (step === "exam" && !submitted) {
-      localStorage.setItem("exam_answers", JSON.stringify(answers));
-      localStorage.setItem("exam_marked", JSON.stringify(markedForReview));
-    }
-  }, [answers, markedForReview, step, submitted]);
-
-  useEffect(() => {
-    if (step !== "exam" || submitted || isSubmitting) return;
-
-    if (timeLeft <= 0) {
-      submitExam();
       return;
     }
 
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
+    /* =====================================================
+       CACHE PREVIOUS RESULT
+    ===================================================== */
 
-    return () => clearInterval(timer);
-  }, [step, submitted, timeLeft, isSubmitting]);
+    const cachedResult =
+      localStorage.getItem(
+        `exam_result_${storedId}_${storedExam}`
+      );
 
-  const handleFaceVerified = () => {
-    setStep("dashboard");
-  };
+    const cachedSubmitted =
+      localStorage.getItem(
+        `exam_submitted_${storedId}_${storedExam}`
+      );
 
-  const handleViolation = (count: number) => {
-    setViolationCount((prev) => prev + count);
-  };
+    if (
+      cachedSubmitted === "true" &&
+      cachedResult
+    ) {
+      const parsedResult =
+        safeParse<ExamResult>(
+          cachedResult
+        );
 
-  const handleStartExam = async () => {
-    setStep("greeting");
-    await fetchQuestionsForClass(className, examType);
-
-    setTimeout(() => {
-      setStep("exam");
-      setCurrentQuestion(0);
-    }, 3000);
-  };
-
-  const selectAnswer = (answer: string) => {
-    const question = questions[currentQuestion];
-    if (!question) return;
-
-    setAnswers((prev) => ({
-      ...prev,
-      [question._id]: answer,
-    }));
-  };
-
-  const nextQuestion = () => {
-    if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion((prev) => prev + 1);
-      window.scrollTo(0, 0);
-    }
-  };
-
-  const previousQuestion = () => {
-    if (currentQuestion > 0) {
-      setCurrentQuestion((prev) => prev - 1);
-      window.scrollTo(0, 0);
-    }
-  };
-
-  // SUBMIT EXAM LOGIC (Using API_BASE_URL)
-  const submitExam = async () => {
-    if (isSubmitting || submitted) return;
-
-    setIsSubmitting(true);
-
-    let correct = 0;
-    let wrong = 0;
-    let unattempted = 0;
-    const reviewList: any[] = [];
-    const totalQ = questions.length;
-
-    questions.forEach((q) => {
-      const userAns = answers[q._id] || "";
-      const isCorrect = userAns === q.correctAnswer;
-
-      if (!userAns) {
-        unattempted++;
-      } else if (isCorrect) {
-        correct++;
-      } else {
-        wrong++;
+      if (parsedResult) {
+        setExamResult(parsedResult);
+        setAlreadySubmitted(true);
       }
+    }
 
-      reviewList.push({
-        questionId: q._id,
-        question: q.question || q.questionText || "",
-        selectedAnswer: userAns || "Not Attempted",
-        correctAnswer: q.correctAnswer,
-        isCorrect,
-      });
-    });
+    checkBackendSubmission(
+      storedId,
+      token,
+      storedExam
+    );
+  }, [navigate]);
 
-    const attempted = totalQ - unattempted;
-    const calculatedScore = correct;
-    const percentage = totalQ > 0 ? Math.round((correct / totalQ) * 100) : 0;
-    const status = percentage >= 35 ? "PASS" : "FAIL";
-    const grade = percentage >= 85 ? "A" : percentage >= 60 ? "B" : percentage >= 35 ? "C" : "F";
+  /* =========================================================
+     BACKEND PREVIOUS RESULT CHECK
+  ========================================================= */
 
-    setScore(calculatedScore);
-    setAttemptedCount(attempted);
-    setCorrectCount(correct);
-    setWrongCount(wrong);
-    setUnattemptedCount(unattempted);
-
-    setSubmitted(true);
-    setStep("results-view");
-
-    const payload = {
-      studentId,
-      studentName,
-      examId: questions[0]?._id || "MOCK_TEST_EXAM",
-      examName: `${examType} Mock Test (${className || "Assessment"})`,
-      testCategory: "mock",
-      subject: examType || "NEET/JEE",
-      totalQuestions: totalQ,
-      attemptedQuestions: attempted,
-      unansweredQuestions: unattempted,
-      correctAnswers: correct,
-      wrongAnswers: wrong,
-      marks: calculatedScore,
-      percentage,
-      grade,
-      status,
-      timeTaken: Math.round((questions.length * 60 - timeLeft) / 60),
-      warnings: violationCount,
-      review: reviewList,
-    };
+  const checkBackendSubmission = async (
+    id: string,
+    token: string,
+    currentExamType: string
+  ) => {
+    setCheckingSubmission(true);
 
     try {
-      const token = localStorage.getItem("studentToken") || localStorage.getItem("token");
-      
-      const response = await fetch(`${API_BASE_URL}/api/results/submit`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
+      const response =
+        await fetch(
+          `${API_BASE_URL}/api/results/student/${encodeURIComponent(
+            id
+          )}`,
+          {
+            method: "GET",
+            headers: {
+              Authorization:
+                `Bearer ${token}`,
+              "Content-Type":
+                "application/json",
+            },
+          }
+        );
+
+      /*
+       * IMPORTANT:
+       * Previous-result API failure
+       * must NOT block new exam.
+       */
 
       if (!response.ok) {
-        console.error("Result submission failed with status:", response.status);
+        console.warn(
+          "Previous result check failed."
+        );
+
+        return;
       }
-    } catch (e) {
-      console.error("Backend result submission error:", e);
+
+      const data =
+        await response.json();
+
+      const resultsList: ExamResult[] =
+        Array.isArray(data)
+          ? data
+          : Array.isArray(data?.results)
+          ? data.results
+          : Array.isArray(data?.data)
+          ? data.data
+          : [];
+
+      const target =
+        normalize(currentExamType);
+
+      const matchingResults =
+        resultsList.filter(
+          (result) => {
+            const subject =
+              normalize(result.subject);
+
+            const examName =
+              normalize(result.examName);
+
+            const resultExamType =
+              normalize(result.examType);
+
+            return (
+              subject === target ||
+              resultExamType === target ||
+              examName.includes(target)
+            );
+          }
+        );
+
+      if (
+        matchingResults.length > 0
+      ) {
+        const sortedResults =
+          [...matchingResults].sort(
+            (a, b) => {
+              const first =
+                new Date(
+                  a.submittedAt ||
+                    a.createdAt ||
+                    0
+                ).getTime();
+
+              const second =
+                new Date(
+                  b.submittedAt ||
+                    b.createdAt ||
+                    0
+                ).getTime();
+
+              return second - first;
+            }
+          );
+
+        const latestResult =
+          sortedResults[0];
+
+        setExamResult(latestResult);
+        setAlreadySubmitted(true);
+
+        localStorage.setItem(
+          `exam_submitted_${id}_${currentExamType}`,
+          "true"
+        );
+
+        localStorage.setItem(
+          `exam_result_${id}_${currentExamType}`,
+          JSON.stringify(latestResult)
+        );
+      }
+    } catch (err) {
+      console.error(
+        "Backend submission verification failed:",
+        err
+      );
     } finally {
-      setIsSubmitting(false);
-      localStorage.removeItem("exam_answers");
-      localStorage.removeItem("exam_marked");
+      setCheckingSubmission(false);
     }
   };
 
-  const formatTime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
+  /* =========================================================
+     FETCH MOCK QUESTIONS
+  ========================================================= */
 
-    if (hours > 0) {
-      return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+  const fetchQuestionsForClass =
+    async (
+      selectedClass: string,
+      selectedExamType: string
+    ) => {
+      setLoading(true);
+      setError("");
+
+      const token =
+        localStorage.getItem(
+          "studentToken"
+        ) ||
+        localStorage.getItem(
+          "token"
+        );
+
+      if (!token) {
+        navigate("/login");
+        setLoading(false);
+        return false;
+      }
+
+      try {
+        const queryParams =
+          new URLSearchParams();
+
+        if (selectedClass) {
+          queryParams.append(
+            "className",
+            selectedClass
+          );
+        }
+
+        if (selectedExamType) {
+          queryParams.append(
+            "examType",
+            selectedExamType
+          );
+        }
+
+        const response =
+          await fetch(
+            `${API_BASE_URL}/api/questions/mock-tests?${queryParams.toString()}`,
+            {
+              method: "GET",
+              headers: {
+                Authorization:
+                  `Bearer ${token}`,
+                "Content-Type":
+                  "application/json",
+              },
+            }
+          );
+
+        const data =
+          await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data?.message ||
+              data?.error ||
+              "Unable to load mock test questions."
+          );
+        }
+
+        const loadedQuestions =
+          data?.questions ||
+          data?.data ||
+          data;
+
+        if (
+          !Array.isArray(
+            loadedQuestions
+          )
+        ) {
+          throw new Error(
+            "The server returned an invalid question format."
+          );
+        }
+
+        if (
+          loadedQuestions.length === 0
+        ) {
+          throw new Error(
+            "No questions are currently available for this mock test."
+          );
+        }
+
+        /* =================================================
+           NORMALIZE QUESTIONS
+        ================================================= */
+
+        const normalizedQuestions =
+          loadedQuestions.map(
+            (
+              question: any,
+              index: number
+            ) => ({
+              ...question,
+
+              _id:
+                question?._id ||
+                question?.id ||
+                `mock-question-${index}`,
+
+              questionText:
+                question?.questionText ||
+                question?.question ||
+                "",
+
+              question:
+                question?.question ||
+                question?.questionText ||
+                "",
+
+              options:
+                Array.isArray(
+                  question?.options
+                )
+                  ? question.options
+                  : [],
+
+              correctAnswer:
+                question?.correctAnswer ||
+                "",
+            })
+          );
+
+        /* =================================================
+           REMOVE INVALID QUESTIONS
+        ================================================= */
+
+        const validQuestions =
+          normalizedQuestions.filter(
+            (question: any) =>
+              question.question &&
+              Array.isArray(
+                question.options
+              ) &&
+              question.options.length >= 2
+          );
+
+        if (
+          validQuestions.length === 0
+        ) {
+          throw new Error(
+            "No valid questions were found for this mock test."
+          );
+        }
+
+        /* =================================================
+           QUESTION NUMBER
+        ================================================= */
+
+        const finalQuestions =
+          validQuestions.map(
+            (
+              question: any,
+              index: number
+            ) => ({
+              ...question,
+
+              questionNumber:
+                question.questionNumber ||
+                index + 1,
+            })
+          );
+
+        /* =================================================
+           SAVE
+        ================================================= */
+
+        setQuestions(
+          finalQuestions
+        );
+
+        return true;
+      } catch (err: any) {
+        console.error(
+          "Mock test question loading error:",
+          err
+        );
+
+        setError(
+          err?.message ||
+            "Unable to load the mock test."
+        );
+
+        return false;
+      } finally {
+        setLoading(false);
+      }
+    };
+
+  /* =========================================================
+     START BUTTON
+  ========================================================= */
+
+  const handleStartExam = () => {
+    if (checkingSubmission) {
+      return;
     }
-    return `${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+
+    if (!isOnline) {
+      setError(
+        "You are currently offline. Please reconnect to the internet before starting the exam."
+      );
+
+      return;
+    }
+
+    setError("");
+    setShowInstructions(true);
   };
 
-  const current = questions[currentQuestion];
+  /* =========================================================
+     MODAL → READY SCREEN
+  ========================================================= */
 
-  // 1. FACE VERIFICATION SCREEN
-  if (step === "verify") {
-    return (
-      <FaceVerification
-        onVerified={handleFaceVerified}
-        onViolation={handleViolation}
-      />
-    );
-  }
+  const handleContinueToInstructions =
+    () => {
+      setShowInstructions(false);
+      setStep("instructions");
+      setError("");
+    };
 
-  // 2. DASHBOARD
+  /* =========================================================
+     READY → LOAD QUESTIONS
+     → GREETING
+     → EXAM
+  ========================================================= */
+
+  const handleReady = async () => {
+    if (!isOnline) {
+      setError(
+        "A stable internet connection is required to start the exam."
+      );
+
+      return;
+    }
+
+    if (loading) {
+      return;
+    }
+
+    setError("");
+
+    /*
+     * Load questions first.
+     */
+
+    const success =
+      await fetchQuestionsForClass(
+        className,
+        examType
+      );
+
+    if (!success) {
+      setIsReady(false);
+      return;
+    }
+
+    /*
+     * Questions successfully loaded.
+     *
+     * Show All The Best screen.
+     */
+
+    setStep("greeting");
+
+    /*
+     * Small delay for greeting.
+     */
+
+    window.setTimeout(() => {
+      setStep("exam");
+    }, 2200);
+  };
+
+  /* =========================================================
+     RESULT PERCENTAGE
+  ========================================================= */
+
+  const percentage =
+    useMemo(() => {
+      return clampPercentage(
+        Number(
+          examResult?.percentage || 0
+        )
+      );
+    }, [examResult]);
+
+  /* =========================================================
+     PERFORMANCE
+  ========================================================= */
+
+  const performance =
+    useMemo(() => {
+      if (percentage >= 85) {
+        return {
+          title:
+            "Excellent Performance",
+
+          description:
+            "Outstanding work. Your preparation is producing strong results.",
+
+          icon: (
+            <Trophy size={28} />
+          ),
+
+          className:
+            "excellent",
+        };
+      }
+
+      if (percentage >= 70) {
+        return {
+          title:
+            "Strong Performance",
+
+          description:
+            "Good work. A little more refinement can push your score even higher.",
+
+          icon: (
+            <Award size={28} />
+          ),
+
+          className:
+            "strong",
+        };
+      }
+
+      if (percentage >= 50) {
+        return {
+          title:
+            "Good Progress",
+
+          description:
+            "You are on the right track. Focus on your weaker areas for improvement.",
+
+          icon: (
+            <Target size={28} />
+          ),
+
+          className:
+            "progress",
+        };
+      }
+
+      return {
+        title:
+          "Needs More Practice",
+
+        description:
+          "Use this result as a guide and strengthen your fundamentals before the next attempt.",
+
+        icon: (
+          <BookOpen size={28} />
+        ),
+
+        className:
+          "focus",
+      };
+    }, [percentage]);
+
+  /* =========================================================
+     DASHBOARD
+  ========================================================= */
+
   if (step === "dashboard") {
     return (
-      <div className="exam-page">
-        <div className="start-wrapper">
-          <div className="start-card" style={{ textAlign: "center", padding: "40px", maxWidth: "500px", margin: "auto", background: "#fff", borderRadius: "12px", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
-            <div className="test-badge" style={{ marginBottom: "12px", display: "inline-block", background: "#e0f2fe", color: "#0284c7", padding: "4px 12px", borderRadius: "20px", fontSize: "12px", fontWeight: "bold" }}>
-              {examType.toUpperCase()} MOCK TEST {className ? `(${className})` : ""}
-            </div>
-            
-            <h1 style={{ marginBottom: "10px", color: "#1e293b" }}>Welcome, {studentName}!</h1>
-            
-            <div style={{ background: "#f8fafc", padding: "16px", borderRadius: "8px", margin: "20px 0", border: "1px solid #e2e8f0", textAlign: "left" }}>
-              <p style={{ margin: "6px 0", color: "#475569", fontSize: "14px" }}>
-                🆔 <strong>Student ID:</strong> <span style={{ color: "#0f172a" }}>{studentId}</span>
-              </p>
-              <p style={{ margin: "6px 0", color: "#475569", fontSize: "14px" }}>
-                📚 <strong>Class Name:</strong> <span style={{ color: "#2563eb", fontWeight: "bold" }}>{className || "Not Specified"}</span>
-              </p>
-              <p style={{ margin: "6px 0", color: "#475569", fontSize: "14px" }}>
-                🎯 <strong>Exam Type:</strong> <span style={{ color: "#7c3aed", fontWeight: "bold" }}>{examType || "NEET"}</span>
-              </p>
-              <p style={{ margin: "6px 0", color: "#16a34a", fontSize: "14px" }}>
-                ✅ <strong>Face Verification:</strong> <span style={{ fontWeight: "bold" }}>Authenticated Successfully</span>
-              </p>
-            </div>
+      <>
+        <div className="mock-page">
+          <div className="mock-container">
 
-            <p style={{ color: "#64748b", marginBottom: "24px", fontSize: "14px" }}>
-              Your {examType} assessment package for {className || "Class"} is ready.
-            </p>
-            
-            <button 
-              className="start-button" 
-              onClick={handleStartExam}
-              style={{ background: "#3b82f6", color: "#fff", padding: "14px 28px", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: "bold", width: "100%", fontSize: "16px" }}
-            >
-              Start Test Now →
-            </button>
+            {/* HEADER */}
+
+            <header className="mock-header">
+
+              <button
+                className="mock-back-btn"
+                onClick={() =>
+                  navigate(
+                    "/dashboard"
+                  )
+                }
+              >
+                <ArrowLeft size={17} />
+
+                Dashboard
+              </button>
+
+              <div className="mock-online-status">
+
+                {isOnline ? (
+                  <>
+                    <Wifi size={14} />
+
+                    Online
+                  </>
+                ) : (
+                  <>
+                    <WifiOff
+                      size={14}
+                    />
+
+                    Offline
+                  </>
+                )}
+
+              </div>
+
+            </header>
+
+            {/* HERO */}
+
+            <section className="mock-hero">
+
+              <div className="mock-hero-content">
+
+                <div className="mock-eyebrow">
+
+                 
+
+                  EXAM SIMULATION
+
+                </div>
+
+                <h1>
+                  Ready for your
+                  next
+                  <span>
+                    {" "}
+                    challenge?
+                  </span>
+                </h1>
+
+                <p>
+                  Test your knowledge,
+                  improve your accuracy,
+                  and measure your
+                  preparation with a
+                  focused mock
+                  assessment.
+                </p>
+
+                <div className="mock-hero-tags">
+
+                  <span>
+                    <ShieldCheck
+                      size={14}
+                    />
+
+                    Secure Assessment
+                  </span>
+
+                  <span>
+                    <Target
+                      size={14}
+                    />
+
+                    Performance Tracking
+                  </span>
+
+                  <span>
+                    <Zap size={14} />
+
+                    Instant Evaluation
+                  </span>
+
+                </div>
+
+              </div>
+
+              <div className="mock-hero-visual">
+
+                <div className="mock-orbit mock-orbit-one" />
+
+                <div className="mock-orbit mock-orbit-two" />
+
+                <div className="mock-hero-icon">
+
+                  <GraduationCap
+                    size={48}
+                  />
+
+                </div>
+
+              </div>
+
+            </section>
+
+            {/* START GRID */}
+
+            <section className="mock-start-grid">
+
+              {/* MAIN CARD */}
+
+              <div className="mock-start-card">
+
+                <div className="mock-card-top">
+
+                  <div className="mock-test-icon">
+
+                    <BookOpen
+                      size={23}
+                    />
+
+                  </div>
+
+                  <div className="mock-test-status">
+
+                    {checkingSubmission ? (
+                      <>
+                        <RefreshCw
+                          size={13}
+                          className="mock-spin"
+                        />
+
+                        Checking
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2
+                          size={13}
+                        />
+
+                        Available
+                      </>
+                    )}
+
+                  </div>
+
+                </div>
+
+                <div className="mock-test-category">
+                  {examType.toUpperCase()}
+                </div>
+
+                <h2>
+                  Full Mock Assessment
+                </h2>
+
+                <p>
+                  A comprehensive
+                  assessment designed
+                  for your current
+                  academic level.
+                </p>
+
+                <div className="mock-info-grid">
+
+                  <div>
+
+                    <FileQuestion
+                      size={17}
+                    />
+
+                    <span>
+                      Questions
+
+                      <strong>
+                        180
+                      </strong>
+                    </span>
+
+                  </div>
+
+                  <div>
+
+                    <Clock3
+                      size={17}
+                    />
+
+                    <span>
+                      Estimated Time
+
+                      <strong>
+                        3 Hours
+                      </strong>
+                    </span>
+
+                  </div>
+
+                  <div>
+
+                    <GraduationCap
+                      size={17}
+                    />
+
+                    <span>
+                    PATTERN 
+
+                      <strong>
+                        NEET
+                      </strong>
+                    </span>
+
+                  </div>
+
+                  <div>
+
+                    <ShieldCheck
+                      size={17}
+                    />
+
+                    <span>
+                      Marks
+
+                      <strong>
+                        720
+                      </strong>
+                    </span>
+
+                  </div>
+
+                </div>
+
+                {!isOnline && (
+                  <div className="mock-warning">
+
+                    <WifiOff size={15} />
+
+                    Internet connection
+                    required before
+                    starting.
+
+                  </div>
+                )}
+
+                {error && (
+                  <div className="mock-inline-error">
+
+                    <Info size={15} />
+
+                    {error}
+
+                  </div>
+                )}
+
+                <button
+                  className="mock-start-btn"
+                  onClick={
+                    handleStartExam
+                  }
+                  disabled={
+                    checkingSubmission ||
+                    loading ||
+                    !isOnline
+                  }
+                >
+
+                  {checkingSubmission ? (
+                    <>
+                      <RefreshCw
+                        size={17}
+                        className="mock-spin"
+                      />
+
+                      Checking...
+                    </>
+                  ) : (
+                    <>
+                      {alreadySubmitted
+                        ? "Start New Mock Test"
+                        : "Start Mock Test"}
+
+                      <ArrowRight
+                        size={18}
+                      />
+                    </>
+                  )}
+
+                </button>
+
+              </div>
+
+              {/* SIDE CARD */}
+
+              <aside className="mock-side-card">
+
+                <div className="mock-side-icon">
+
+                  <LockKeyhole
+                    size={21}
+                  />
+
+                </div>
+
+                <h3>
+                  Before You Begin
+                </h3>
+
+                <ul>
+
+                  <li>
+                    <CheckCircle2
+                      size={15}
+                    />
+
+                    Ensure a stable
+                    internet connection.
+                  </li>
+
+                  <li>
+                    <CheckCircle2
+                      size={15}
+                    />
+
+                    Keep your device
+                    charged.
+                  </li>
+
+                  <li>
+                    <CheckCircle2
+                      size={15}
+                    />
+
+                    Choose a quiet
+                    environment.
+                  </li>
+
+                  <li>
+                    <CheckCircle2
+                      size={15}
+                    />
+
+                    Do not refresh during
+                    the assessment.
+                  </li>
+
+                  <li>
+                    <CheckCircle2
+                      size={15}
+                    />
+
+                    Submit only after
+                    reviewing your answers.
+                  </li>
+
+                </ul>
+
+              </aside>
+
+            </section>
+
+            {/* SECURITY */}
+
+            <section className="mock-security-strip">
+
+              <ShieldCheck size={19} />
+
+              <div>
+
+                <strong>
+                  Secure Examination
+                  Environment
+                </strong>
+
+                <span>
+                  Your attempt is
+                  verified with the
+                  server before the
+                  assessment begins.
+                </span>
+
+              </div>
+
+            </section>
+
           </div>
         </div>
+
+        {/* INSTRUCTIONS MODAL */}
+
+        {showInstructions && (
+          <div className="mock-modal-overlay">
+
+            <div className="mock-instructions-modal">
+
+              <button
+                className="mock-modal-close"
+                onClick={() =>
+                  setShowInstructions(
+                    false
+                  )
+                }
+                aria-label="Close instructions"
+              >
+                <X size={19} />
+              </button>
+
+              <div className="mock-modal-icon">
+
+                <ShieldCheck
+                  size={25}
+                />
+
+              </div>
+
+              <span className="mock-modal-label">
+                EXAM INSTRUCTIONS
+              </span>
+
+              <h2>
+                Please review before
+                starting
+              </h2>
+
+              <p className="mock-modal-description">
+                Once the assessment
+                begins, your attempt
+                will be treated as an
+                active examination
+                session.
+              </p>
+
+              <div className="mock-instruction-list">
+
+                <div>
+                  <span>01</span>
+
+                  <p>
+                    Read every question
+                    carefully before
+                    selecting an answer.
+                  </p>
+                </div>
+
+                <div>
+                  <span>02</span>
+
+                  <p>
+                    Manage your time
+                    carefully throughout
+                    the assessment.
+                  </p>
+                </div>
+
+                <div>
+                  <span>03</span>
+
+                  <p>
+                    Avoid refreshing or
+                    closing the browser
+                    during the test.
+                  </p>
+                </div>
+
+                <div>
+                  <span>04</span>
+
+                  <p>
+                    Your answers will be
+                    evaluated after
+                    submission.
+                  </p>
+                </div>
+
+              </div>
+
+              <button
+                className="mock-modal-primary"
+                onClick={
+                  handleContinueToInstructions
+                }
+              >
+                Continue
+
+                <ArrowRight
+                  size={17}
+                />
+              </button>
+
+            </div>
+
+          </div>
+        )}
+
+      </>
+    );
+  }
+
+  /* =========================================================
+     FINAL READINESS SCREEN
+  ========================================================= */
+
+  if (step === "instructions") {
+    return (
+      <div className="mock-page">
+
+        <div className="mock-ready-container">
+
+          <button
+            className="mock-back-btn"
+            onClick={() =>
+              setStep("dashboard")
+            }
+          >
+            <ArrowLeft size={17} />
+
+            Back
+          </button>
+
+          <div className="mock-ready-card">
+
+            <div className="mock-ready-header">
+
+              <div className="mock-ready-icon">
+
+                <LockKeyhole
+                  size={28}
+                />
+
+              </div>
+
+              <div>
+
+                <span>
+                  SECURE ASSESSMENT
+                </span>
+
+                <h1>
+                  Final readiness
+                  check
+                </h1>
+
+              </div>
+
+            </div>
+
+            <div className="mock-ready-exam">
+
+              <div>
+                <span>
+                  Exam
+                </span>
+
+                <strong>
+                  {examType} Full Mock
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  Candidate
+                </span>
+
+                <strong>
+                  {studentName}
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  Class
+                </span>
+
+                <strong>
+                  {className ||
+                    "General"}
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  Questions
+                </span>
+
+                <strong>
+                  Will load securely
+                </strong>
+              </div>
+
+            </div>
+
+            <div className="mock-checklist">
+
+              <label>
+
+                <input
+                  type="checkbox"
+                  checked={isReady}
+                  onChange={(event) =>
+                    setIsReady(
+                      event.target
+                        .checked
+                    )
+                  }
+                />
+
+                <span className="mock-checkbox">
+
+                  {isReady && (
+                    <CheckCircle2
+                      size={17}
+                    />
+                  )}
+
+                </span>
+
+                <span>
+                  I am ready to begin
+                  the assessment and
+                  understand the
+                  examination
+                  instructions.
+                </span>
+
+              </label>
+
+            </div>
+
+            {error && (
+              <div className="mock-inline-error">
+
+                <Info size={15} />
+
+                {error}
+
+              </div>
+            )}
+
+            <button
+              className="mock-begin-btn"
+              disabled={
+                !isReady ||
+                loading
+              }
+              onClick={
+                handleReady
+              }
+            >
+
+              {loading ? (
+                <>
+                  <RefreshCw
+                    size={17}
+                    className="mock-spin"
+                  />
+
+                  Preparing Exam...
+                </>
+              ) : (
+                <>
+                  Enter Examination
+
+                  <ArrowRight
+                    size={18}
+                  />
+                </>
+              )}
+
+            </button>
+
+            <p className="mock-secure-note">
+
+              <ShieldCheck
+                size={14}
+              />
+
+              Your attempt will be
+              securely processed by
+              the examination system.
+
+            </p>
+
+          </div>
+
+        </div>
+
       </div>
     );
   }
 
-  // 3. GREETING SCREEN
+  /* =========================================================
+     ALL THE BEST
+  ========================================================= */
+
   if (step === "greeting") {
     return (
-      <div className="exam-page" style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", background: "linear-gradient(135deg, #1e3a8a, #3b82f6)" }}>
-        <div style={{ textAlign: "center", color: "#fff" }}>
-          <div style={{ fontSize: "65px", marginBottom: "15px" }}>🌟🚀🎯</div>
-          <h1 style={{ fontSize: "38px", marginBottom: "10px", fontWeight: "bold" }}>
-            All The Best, <span style={{ color: "#facc15" }}>{studentName}</span>!
+      <div className="mock-greeting">
+
+        <div className="mock-greeting-glow" />
+
+        <div className="mock-greeting-content">
+
+          <div className="mock-greeting-icon">
+
+            <Trophy size={42} />
+
+          </div>
+
+          <div className="mock-greeting-label">
+            EXAM READY
+          </div>
+
+          <h1>
+            All the best,
+            <span>
+              {studentName}
+            </span>
           </h1>
-          <p style={{ fontSize: "18px", opacity: "0.9" }}>
-            Get ready for your <span style={{ fontWeight: "bold", textDecoration: "underline" }}>{examType} - {className || "Assessment"}</span> test.
+
+          <p>
+            Stay calm, stay focused,
+            and give your best.
           </p>
-          <div className="loading-spinner" style={{ margin: "30px auto", borderColor: "#fff", borderTopColor: "transparent" }} />
-        </div>
-      </div>
-    );
-  }
 
-  // 4. RESULTS PAGE
-  if (step === "results-view" || submitted) {
-    const totalQ = questions.length;
-    const percentage = totalQ > 0 ? Math.round((correctCount / totalQ) * 100) : 0;
-
-    return (
-      <div className="exam-page">
-        <div className="result-wrapper" style={{ maxWidth: "650px", margin: "40px auto" }}>
-          <div className="result-card" style={{ textAlign: "center", padding: "40px", background: "#fff", borderRadius: "12px", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
-            <div className="result-icon" style={{ background: "#dcfce7", color: "#16a34a", marginBottom: "16px", fontSize: "32px", display: "inline-block", padding: "12px 20px", borderRadius: "50%" }}>🎉</div>
-            <span className="result-label" style={{ color: "#16a34a", fontWeight: "bold", display: "block" }}>TEST SUBMITTED SUCCESSFULLY</span>
-            <h1 style={{ color: "#1e293b", marginTop: "8px" }}>Performance Report</h1>
-            <p style={{ color: "#64748b", fontSize: "14px", marginBottom: "20px" }}>{examType} Mock Test ({className || "Assessment"})</p>
-            
-            <div style={{ background: "#f8fafc", padding: "20px", borderRadius: "10px", margin: "20px 0", border: "1px solid #e2e8f0" }}>
-              <span style={{ fontSize: "14px", color: "#475569" }}>Your Final Score</span>
-              <div style={{ fontSize: "38px", fontWeight: "bold", color: "#2563eb", marginTop: "6px" }}>
-                {score} / {totalQ}
-              </div>
-              <div style={{ fontSize: "16px", fontWeight: "600", color: percentage >= 35 ? "#16a34a" : "#dc2626", marginTop: "4px" }}>
-                Percentage: {percentage}%
-              </div>
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "10px", margin: "20px 0" }}>
-              <div style={{ background: "#f0fdf4", padding: "10px", borderRadius: "8px", border: "1px solid #bbf7d0" }}>
-                <span style={{ fontSize: "12px", color: "#16a34a", display: "block" }}>Correct</span>
-                <strong style={{ fontSize: "18px", color: "#15803d" }}>{correctCount}</strong>
-              </div>
-              <div style={{ background: "#fef2f2", padding: "10px", borderRadius: "8px", border: "1px solid #fecaca" }}>
-                <span style={{ fontSize: "12px", color: "#dc2626", display: "block" }}>Wrong</span>
-                <strong style={{ fontSize: "18px", color: "#b91c1c" }}>{wrongCount}</strong>
-              </div>
-              <div style={{ background: "#f8fafc", padding: "10px", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
-                <span style={{ fontSize: "12px", color: "#64748b", display: "block" }}>Skipped</span>
-                <strong style={{ fontSize: "18px", color: "#475569" }}>{unattemptedCount}</strong>
-              </div>
-              <div style={{ background: "#eff6ff", padding: "10px", borderRadius: "8px", border: "1px solid #bfdbfe" }}>
-                <span style={{ fontSize: "12px", color: "#2563eb", display: "block" }}>Attempted</span>
-                <strong style={{ fontSize: "18px", color: "#1d4ed8" }}>{attemptedCount}</strong>
-              </div>
-            </div>
-
-            <button 
-              className="result-button" 
-              onClick={() => navigate("/")}
-              style={{ marginTop: "16px", background: "#3b82f6", color: "#fff", padding: "12px 28px", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "bold", fontSize: "15px" }}
-            >
-              Return to Dashboard →
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // 5. LOADING SCREEN
-  if (loading) {
-    return (
-      <div className="exam-loading">
-        <div className="loading-spinner" />
-        <h2>Loading {examType} Mock Test</h2>
-        <p>Please wait while we prepare your exam environment...</p>
-      </div>
-    );
-  }
-
-  // 6. ERROR SCREEN
-  if (error) {
-    return (
-      <div className="exam-error-page">
-        <div className="error-card">
-          <div className="error-icon">!</div>
-          <h2>Unable to Load Test</h2>
-          <p>{error}</p>
-          <button onClick={() => window.location.reload()}>Try Again</button>
-        </div>
-      </div>
-    );
-  }
-
-  // 7. EXAM SCREEN
-  return (
-    <div className="exam-page">
-      <header className="exam-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 20px", background: "#fff", borderBottom: "1px solid #e2e8f0" }}>
-        <div>
-          <div style={{ fontWeight: "bold", color: "#3b82f6" }}>{examType} Mock Test ({className})</div>
-          <div style={{ fontSize: "12px", color: "#64748b" }}>{studentName} ({studentId})</div>
-        </div>
-        <div className="exam-timer" style={{ background: "#fef2f2", color: "#dc2626", padding: "6px 12px", borderRadius: "6px" }}>
-          <span style={{ fontSize: "11px", display: "block" }}>TIME LEFT</span>
-          <strong>⏱ {formatTime(timeLeft)}</strong>
-        </div>
-      </header>
-
-      <main className="question-layout">
-        <section className="question-section">
-          <div className="question-card">
-            <span style={{ fontSize: "12px", color: "#64748b", fontWeight: "600" }}>Question {currentQuestion + 1} of {questions.length}</span>
-            <h1 style={{ marginTop: "8px" }}>{current?.questionText || current?.question}</h1>
-
-            <div className="options">
-              {current?.options?.map((option, index) => {
-                const selected = answers[current._id] === option;
-                return (
-                  <button
-                    key={current._id ? `${current._id}-opt-${index}` : index}
-                    className={`option ${selected ? "selected" : ""}`}
-                    onClick={() => selectAnswer(option)}
-                  >
-                    <span className="option-letter">{String.fromCharCode(65 + index)}</span>
-                    <span className="option-text">{option}</span>
-                  </button>
-                );
-              })}
-            </div>
+          <div className="mock-greeting-loader">
+            <span />
           </div>
 
-          <div className="navigation-buttons">
-            <button onClick={previousQuestion} disabled={currentQuestion === 0}>← Previous</button>
-            {currentQuestion === questions.length - 1 ? (
-              <button 
-                onClick={submitExam} 
-                disabled={isSubmitting}
-                style={{ background: "#22c55e", color: "white" }}
-              >
-                {isSubmitting ? "Submitting..." : "Submit Test ✓"}
-              </button>
-            ) : (
-              <button onClick={nextQuestion}>Next Question →</button>
-            )}
-          </div>
-        </section>
-      </main>
-    </div>
-  );
+          <small>
+            Starting your examination...
+          </small>
+
+        </div>
+
+      </div>
+    );
+  }
+
+  /* =========================================================
+     EXAM / QUESTIONS INTERFACE
+  ========================================================= */
+
+  if (step === "exam") {
+    return (
+      <div className="mock-exam-page">
+
+        <MockTestInterface
+          subject={
+            examType || "NEET"
+          }
+
+          className={
+            className || "General"
+          }
+
+          chapterName={
+            `${examType || "NEET"} Full Mock Assessment`
+          }
+
+          questions={
+            questions
+          }
+
+          studentId={
+            studentId
+          }
+
+          studentName={
+            studentName
+          }
+
+          themeColor="#4F46E5"
+
+          onBack={() =>
+            setStep("dashboard")
+          }
+
+          apiBaseUrl={
+            API_BASE_URL
+          }
+        />
+
+      </div>
+    );
+  }
+
+  return null;
 }
