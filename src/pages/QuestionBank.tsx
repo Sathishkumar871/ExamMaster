@@ -57,6 +57,8 @@ interface Question {
   isPublished: boolean;
 
   tableData?: TableData | null;
+  tableHeaders?: string[];
+  tableRows?: string[][];
 }
 
 // ============================================================
@@ -163,6 +165,7 @@ export default function QuestionBank() {
   const [formData, setFormData] = useState<Question>(
     createEmptyQuestion()
   );
+
   const [selectedImageFile, setSelectedImageFile] =
   useState<File | null>(null);
 
@@ -2251,12 +2254,12 @@ const renderTable = (
 
                           {/* ROW DRAG */}
 
-                          <GripVertical
-                            size={17}
-                            className="drag-handle row-drag-handle"
-                            title="Drag row"
-                          />
-
+                         <span title="Drag row">
+                       <GripVertical
+                     size={17}
+                      className="drag-handle row-drag-handle"
+                      />
+                      </span>
                           {/* ROW COLOR */}
 
                           <label
