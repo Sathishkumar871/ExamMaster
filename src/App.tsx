@@ -18,7 +18,7 @@ import Leaderboard from "./pages/Leaderboard";
 import AnswerReview from "./pages/AnswerReview";
 import AcademicHelp from "./pages/student/AcademicHelp";
 import MockTests from "./pages/MockTests";
-import JEEMockTest from "./pages/JEEMOCKTEST";
+import JEEMockTest from "./pages/JEEMockTest";
 import DailyTest from "./pages/DailyTest";
 import StudentComplaints from "./pages/StudentComplaints";
 
