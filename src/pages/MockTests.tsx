@@ -32,8 +32,8 @@ import "./MockTests.css";
 const API_BASE_URL =
   window.location.hostname === "localhost" ||
   window.location.hostname === "127.0.0.1"
-    ? "http://localhost:5000"
-    : "https://exammaster-backend-up1y.onrender.com";
+    ? "http://localhost:5000/api"
+    : "https://exammaster-backend-up1y.onrender.com/api";
 
 /* =========================================================
    TYPES
@@ -356,9 +356,17 @@ export default function MockTests() {
     setCheckingSubmission(true);
 
     try {
+      /*
+       * IMPORTANT:
+       *
+       * API_BASE_URL already contains /api.
+       *
+       * Therefore DO NOT add /api again.
+       */
+
       const response =
         await fetch(
-          `${API_BASE_URL}/api/results/student/${encodeURIComponent(
+          `${API_BASE_URL}/results/student/${encodeURIComponent(
             id
           )}`,
           {
@@ -373,7 +381,6 @@ export default function MockTests() {
         );
 
       /*
-       * IMPORTANT:
        * Previous-result API failure
        * must NOT block new exam.
        */
@@ -515,9 +522,16 @@ export default function MockTests() {
           );
         }
 
+        /*
+         * IMPORTANT:
+         *
+         * API_BASE_URL already has /api.
+         * So here we use /questions, NOT /api/questions.
+         */
+
         const response =
           await fetch(
-            `${API_BASE_URL}/api/questions/mock-tests?${queryParams.toString()}`,
+            `${API_BASE_URL}/questions/mock-tests?${queryParams.toString()}`,
             {
               method: "GET",
               headers: {
@@ -722,10 +736,6 @@ export default function MockTests() {
 
     setError("");
 
-    /*
-     * Load questions first.
-     */
-
     const success =
       await fetchQuestionsForClass(
         className,
@@ -737,17 +747,7 @@ export default function MockTests() {
       return;
     }
 
-    /*
-     * Questions successfully loaded.
-     *
-     * Show All The Best screen.
-     */
-
     setStep("greeting");
-
-    /*
-     * Small delay for greeting.
-     */
 
     window.setTimeout(() => {
       setStep("exam");
@@ -896,11 +896,7 @@ export default function MockTests() {
               <div className="mock-hero-content">
 
                 <div className="mock-eyebrow">
-
-                 
-
                   EXAM SIMULATION
-
                 </div>
 
                 <h1>
@@ -1066,7 +1062,7 @@ export default function MockTests() {
                     />
 
                     <span>
-                    PATTERN 
+                      PATTERN
 
                       <strong>
                         NEET

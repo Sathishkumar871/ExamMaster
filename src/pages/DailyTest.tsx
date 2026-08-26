@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -12,12 +13,11 @@ import TestInterface from "../components/TestInterface";
 // ======================================================
 // API BASE URL
 // ======================================================
-
 const API_BASE_URL =
   window.location.hostname === "localhost" ||
   window.location.hostname === "127.0.0.1"
-    ? "http://localhost:5000"
-    : "https://exammaster-backend-up1y.onrender.com";
+    ? "http://localhost:5000/api"
+    : "https://exammaster-backend-up1y.onrender.com/api";
 
 // ======================================================
 // QUESTION TYPE
@@ -66,13 +66,17 @@ export default function DailyTests() {
   // STATE
   // ====================================================
 
-  const [step, setStep] = useState<PageStep>("dashboard");
+  const [step, setStep] =
+    useState<PageStep>("dashboard");
 
-  const [questions, setQuestions] = useState<Question[]>([]);
+  const [questions, setQuestions] =
+    useState<Question[]>([]);
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] =
+    useState(false);
 
-  const [error, setError] = useState("");
+  const [error, setError] =
+    useState("");
 
   // ====================================================
   // STUDENT DETAILS
@@ -138,8 +142,14 @@ export default function DailyTests() {
         className: selectedClass || "2nd PUC",
       });
 
+      // ==================================================
+      // IMPORTANT:
+      // API_BASE_URL already contains /api
+      // So DO NOT add /api again here.
+      // ==================================================
+
       const response = await fetch(
-        `${API_BASE_URL}/api/questions/daily-tests?${queryParams.toString()}`,
+        `${API_BASE_URL}/questions/daily-tests?${queryParams.toString()}`,
         {
           method: "GET",
 
@@ -519,7 +529,9 @@ export default function DailyTests() {
 
               <button
                 type="button"
-                onClick={() => setStep("dashboard")}
+                onClick={() =>
+                  setStep("dashboard")
+                }
               >
                 <ArrowLeft size={14} />
 
@@ -568,7 +580,9 @@ export default function DailyTests() {
 
             <button
               type="button"
-              onClick={() => setStep("dashboard")}
+              onClick={() =>
+                setStep("dashboard")
+              }
             >
               Back to Daily Test
             </button>
@@ -607,7 +621,6 @@ export default function DailyTests() {
       isAlreadySubmitted={false}
 
       initialAnswers={answers}
-
     />
   );
 }

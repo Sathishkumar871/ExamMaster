@@ -6,6 +6,8 @@ import React, {
   useState,
 } from "react";
 
+import { useNavigate } from "react-router-dom";
+
 import {
   AlertTriangle,
   ArrowLeft,
@@ -21,7 +23,6 @@ import {
   RotateCcw,
   Send,
   ShieldCheck,
-  
   X,
   Zap,
 } from "lucide-react";
@@ -32,6 +33,22 @@ import "./MockTestInterface.css";
 // TYPES
 // ======================================================
 
+interface QuestionImage {
+  url?: string;
+  imageUrl?: string;
+  src?: string;
+  alt?: string;
+  caption?: string;
+}
+
+interface Option {
+  text?: string;
+  value?: string;
+  label?: string;
+  imageUrl?: string;
+  image?: string;
+}
+
 interface Question {
   _id?: string;
   id?: string;
@@ -39,34 +56,30 @@ interface Question {
   questionText?: string;
   question?: string;
 
-  options: string[] | any[];
+  options: string[] | Option[] | any[];
 
-  /*
-   * Backend may return:
-   * A / B / C / D
-   * OR
-   * actual option text
-   * OR
-   * 1 / 2 / 3 / 4
-   */
   correctAnswer: string;
 
   subject?: string;
   chapter?: string;
   chapterName?: string;
-
-  /*
-   * IMPORTANT:
-   * Original PDF question number.
-   */
   questionNumber?: number;
+
+  // Image support
+  imageUrl?: string;
+  questionImage?: string | QuestionImage;
+  image?: string | QuestionImage;
+  images?: QuestionImage[] | string[];
+
+  // Optional question type
+  questionType?: string;
+  type?: string;
 }
 
 interface MockTestInterfaceProps {
   subject: string;
   className: string;
   chapterName: string;
-
   questions: Question[];
 
   studentId: string;
@@ -90,6 +103,18 @@ interface ReviewItem {
   isCorrect: boolean;
 }
 
+interface ResultSummary {
+  correct: number;
+  wrong: number;
+  unattempted: number;
+  attempted: number;
+  totalQuestions: number;
+  percentage: number;
+  status: string;
+  grade: string;
+  reviewList: ReviewItem[];
+}
+
 // ======================================================
 // COMPONENT
 // ======================================================
@@ -105,15 +130,15 @@ export default function MockTestInterface({
   onBack,
   apiBaseUrl,
 }: MockTestInterfaceProps) {
+  const navigate = useNavigate();
+
   // ====================================================
   // STATE
   // ====================================================
 
-  const [currentQuestion, setCurrentQuestion] =
-    useState(0);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
 
-  const [answers, setAnswers] =
-    useState<AnswerMap>({});
+  const [answers, setAnswers] = useState<AnswerMap>({});
 
   const [markedForReview, setMarkedForReview] =
     useState<ReviewMap>({});
@@ -143,7 +168,7 @@ export default function MockTestInterface({
     useState("");
 
   const [resultSummary, setResultSummary] =
-    useState<any>(null);
+    useState<ResultSummary | null>(null);
 
   const hasSubmittedRef =
     useRef(false);
@@ -183,8 +208,11 @@ export default function MockTestInterface({
   const timerStorageKey =
     `${testKey}_timer`;
 
+  const resultStorageKey =
+    `${testKey}_result`;
+
   // ====================================================
-  // QUESTION HELPERS
+  // QUESTION ID
   // ====================================================
 
   const getQuestionId = useCallback(
@@ -201,6 +229,10 @@ export default function MockTestInterface({
     []
   );
 
+  // ====================================================
+  // QUESTION TEXT
+  // ====================================================
+
   const getQuestionText = useCallback(
     (question?: Question) => {
       if (!question) return "";
@@ -213,6 +245,10 @@ export default function MockTestInterface({
     },
     []
   );
+
+  // ====================================================
+  // OPTION TEXT
+  // ====================================================
 
   const getOptionText = useCallback(
     (option: any) => {
@@ -238,6 +274,102 @@ export default function MockTestInterface({
   );
 
   // ====================================================
+  // IMAGE URL HELPER
+  // ====================================================
+
+  const getImageUrl = useCallback(
+    (value: any): string => {
+      if (!value) return "";
+
+      if (typeof value === "string") {
+        return value;
+      }
+
+      if (typeof value === "object") {
+        return (
+          value.url ||
+          value.imageUrl ||
+          value.src ||
+          ""
+        );
+      }
+
+      return "";
+    },
+    []
+  );
+
+  // ====================================================
+  // QUESTION IMAGES
+  // ====================================================
+
+  const getQuestionImages = useCallback(
+    (question?: Question): string[] => {
+      if (!question) return [];
+
+      const images: string[] = [];
+
+      if (question.imageUrl) {
+        images.push(question.imageUrl);
+      }
+
+      if (question.questionImage) {
+        const url = getImageUrl(
+          question.questionImage
+        );
+
+        if (url) {
+          images.push(url);
+        }
+      }
+
+      if (question.image) {
+        const url = getImageUrl(
+          question.image
+        );
+
+        if (url) {
+          images.push(url);
+        }
+      }
+
+      if (Array.isArray(question.images)) {
+        question.images.forEach((item) => {
+          const url = getImageUrl(item);
+
+          if (url) {
+            images.push(url);
+          }
+        });
+      }
+
+      return Array.from(
+        new Set(images.filter(Boolean))
+      );
+    },
+    [getImageUrl]
+  );
+
+  // ====================================================
+  // OPTION IMAGE
+  // ====================================================
+
+  const getOptionImage = useCallback(
+    (option: any): string => {
+      if (!option || typeof option !== "object") {
+        return "";
+      }
+
+      return (
+        option.imageUrl ||
+        option.image ||
+        ""
+      );
+    },
+    []
+  );
+
+  // ====================================================
   // NORMALIZE ANSWER
   // ====================================================
 
@@ -252,7 +384,7 @@ export default function MockTestInterface({
   );
 
   // ====================================================
-  // CHECK CORRECT ANSWER
+  // CHECK ANSWER
   // ====================================================
 
   const isAnswerCorrect = useCallback(
@@ -276,18 +408,12 @@ export default function MockTestInterface({
         return false;
       }
 
-      // -----------------------------------------------
-      // DIRECT TEXT MATCH
-      // -----------------------------------------------
-
+      // Direct match
       if (selected === correct) {
         return true;
       }
 
-      // -----------------------------------------------
       // A / B / C / D
-      // -----------------------------------------------
-
       const letters = [
         "a",
         "b",
@@ -299,45 +425,12 @@ export default function MockTestInterface({
         letters.indexOf(correct);
 
       if (correctLetterIndex >= 0) {
-        const selectedOption =
+        const correctOption =
           question.options?.[
             correctLetterIndex
           ];
 
-        if (
-          selectedOption !== undefined
-        ) {
-          const correctText =
-            normalizeAnswer(
-              getOptionText(
-                selectedOption
-              )
-            );
-
-          if (selected === correctText) {
-            return true;
-          }
-        }
-      }
-
-      // -----------------------------------------------
-      // 1 / 2 / 3 / 4
-      // -----------------------------------------------
-
-      const numericIndex =
-        ["1", "2", "3", "4"].indexOf(
-          correct
-        );
-
-      if (numericIndex >= 0) {
-        const correctOption =
-          question.options?.[
-            numericIndex
-          ];
-
-        if (
-          correctOption !== undefined
-        ) {
+        if (correctOption !== undefined) {
           const correctText =
             normalizeAnswer(
               getOptionText(
@@ -345,16 +438,48 @@ export default function MockTestInterface({
               )
             );
 
-          if (selected === correctText) {
+          if (
+            selected === correctText
+          ) {
             return true;
           }
         }
       }
 
-      // -----------------------------------------------
-      // "OPTION A", "OPTION B" etc.
-      // -----------------------------------------------
+      // 1 / 2 / 3 / 4
+      const numbers = [
+        "1",
+        "2",
+        "3",
+        "4",
+      ];
 
+      const numericIndex =
+        numbers.indexOf(correct);
+
+      if (numericIndex >= 0) {
+        const correctOption =
+          question.options?.[
+            numericIndex
+          ];
+
+        if (correctOption !== undefined) {
+          const correctText =
+            normalizeAnswer(
+              getOptionText(
+                correctOption
+              )
+            );
+
+          if (
+            selected === correctText
+          ) {
+            return true;
+          }
+        }
+      }
+
+      // Option A / Option B / ...
       const optionMatch =
         correct.match(
           /(?:option\s*)?([abcd])/
@@ -403,10 +528,6 @@ export default function MockTestInterface({
           currentQuestion
         )
       : "";
-
-  // ====================================================
-  // DISPLAY QUESTION NUMBER
-  // ====================================================
 
   const currentDisplayQuestionNumber =
     currentQ?.questionNumber ??
@@ -463,7 +584,7 @@ export default function MockTestInterface({
     answeredCount;
 
   // ====================================================
-  // RESTORE ANSWERS / REVIEW / TIMER
+  // RESTORE STATE
   // ====================================================
 
   useEffect(() => {
@@ -490,7 +611,8 @@ export default function MockTestInterface({
 
           if (
             parsed &&
-            typeof parsed === "object"
+            typeof parsed ===
+              "object"
           ) {
             setAnswers(parsed);
           }
@@ -508,7 +630,8 @@ export default function MockTestInterface({
 
           if (
             parsed &&
-            typeof parsed === "object"
+            typeof parsed ===
+              "object"
           ) {
             setMarkedForReview(
               parsed
@@ -516,7 +639,7 @@ export default function MockTestInterface({
           }
         } catch {
           console.warn(
-            "Invalid saved review state."
+            "Invalid saved review."
           );
         }
       }
@@ -586,7 +709,7 @@ export default function MockTestInterface({
       );
     } catch (error) {
       console.warn(
-        "Unable to save review state:",
+        "Unable to save review:",
         error
       );
     }
@@ -652,14 +775,13 @@ export default function MockTestInterface({
       }, 1000);
 
     return () => {
-      window.clearInterval(
-        timer
-      );
+      window.clearInterval(timer);
     };
   }, [
     submitted,
     isSubmitting,
     questions.length,
+    timeLeft,
   ]);
 
   // ====================================================
@@ -669,10 +791,7 @@ export default function MockTestInterface({
   const formatTime = useCallback(
     (seconds: number) => {
       const safeSeconds =
-        Math.max(
-          0,
-          seconds
-        );
+        Math.max(0, seconds);
 
       const hours =
         Math.floor(
@@ -722,10 +841,6 @@ export default function MockTestInterface({
     []
   );
 
-  // ====================================================
-  // TIMER STATUS
-  // ====================================================
-
   const timerDanger =
     timeLeft <= 60;
 
@@ -740,9 +855,7 @@ export default function MockTestInterface({
   const handleSelectOption =
     useCallback(
       (option: string) => {
-        if (
-          !currentQuestionId
-        ) {
+        if (!currentQuestionId) {
           return;
         }
 
@@ -763,9 +876,7 @@ export default function MockTestInterface({
 
   const handleClearAnswer =
     useCallback(() => {
-      if (
-        !currentQuestionId
-      ) {
+      if (!currentQuestionId) {
         return;
       }
 
@@ -790,9 +901,7 @@ export default function MockTestInterface({
 
   const handleToggleReview =
     useCallback(() => {
-      if (
-        !currentQuestionId
-      ) {
+      if (!currentQuestionId) {
         return;
       }
 
@@ -842,9 +951,7 @@ export default function MockTestInterface({
 
   const handleReviewAndNext =
     useCallback(() => {
-      if (
-        !currentQuestionId
-      ) {
+      if (!currentQuestionId) {
         return;
       }
 
@@ -876,7 +983,7 @@ export default function MockTestInterface({
   // ====================================================
 
   const calculateResult =
-    useCallback(() => {
+    useCallback((): ResultSummary => {
       let correct = 0;
       let wrong = 0;
       let unattempted = 0;
@@ -896,9 +1003,7 @@ export default function MockTestInterface({
             answers[id] || "";
 
           const isCorrect =
-            Boolean(
-              userAnswer
-            ) &&
+            Boolean(userAnswer) &&
             isAnswerCorrect(
               question,
               userAnswer
@@ -906,9 +1011,7 @@ export default function MockTestInterface({
 
           if (!userAnswer) {
             unattempted++;
-          } else if (
-            isCorrect
-          ) {
+          } else if (isCorrect) {
             correct++;
           } else {
             wrong++;
@@ -984,7 +1087,7 @@ export default function MockTestInterface({
     ]);
 
   // ====================================================
-  // UNIQUE EXAM ID
+  // EXAM ID
   // ====================================================
 
   const examId = useMemo(() => {
@@ -1015,193 +1118,361 @@ export default function MockTestInterface({
   ]);
 
   // ====================================================
+  // SAVE LOCAL RESULT
+  // ====================================================
+
+  const saveLocalResult =
+    useCallback(
+      (
+        result: ResultSummary,
+        isAutoSubmit: boolean
+      ) => {
+        const historyItem = {
+          ...result,
+
+          studentId,
+          studentName,
+
+          examId,
+
+          examName:
+            `${subject} Mock Test` +
+            (chapterName
+              ? ` - ${chapterName}`
+              : " - Full Assessment"),
+
+          testCategory: "mock",
+
+          subject,
+
+          chapter:
+            chapterName || "",
+
+          className:
+            className || "",
+
+          examType:
+            subject?.toUpperCase() ===
+            "NEET"
+              ? "NEET"
+              : subject?.toUpperCase() ===
+                "JEE"
+              ? "JEE"
+              : "MOCK",
+
+          marks: result.correct,
+
+          timeTaken: Math.max(
+            0,
+            Math.round(
+              (questions.length *
+                60 -
+                timeLeft) /
+                60
+            )
+          ),
+
+          autoSubmitted:
+            isAutoSubmit,
+
+          submittedAt:
+            new Date().toISOString(),
+        };
+
+        // Save current result
+        sessionStorage.setItem(
+          resultStorageKey,
+          JSON.stringify(
+            historyItem
+          )
+        );
+
+        // Save history list
+        try {
+          const oldHistory =
+            localStorage.getItem(
+              "examHistory"
+            );
+
+          let history: any[] = [];
+
+          if (oldHistory) {
+            try {
+              const parsed =
+                JSON.parse(
+                  oldHistory
+                );
+
+              if (
+                Array.isArray(parsed)
+              ) {
+                history = parsed;
+              }
+            } catch {
+              history = [];
+            }
+          }
+
+          // Avoid duplicate exam ID
+          history = history.filter(
+            (item) =>
+              item?.examId !==
+              examId
+          );
+
+          history.unshift(
+            historyItem
+          );
+
+          localStorage.setItem(
+            "examHistory",
+            JSON.stringify(
+              history
+            )
+          );
+        } catch (error) {
+          console.warn(
+            "Unable to save exam history:",
+            error
+          );
+        }
+      },
+      [
+        studentId,
+        studentName,
+        examId,
+        subject,
+        chapterName,
+        className,
+        questions.length,
+        timeLeft,
+        resultStorageKey,
+      ]
+    );
+
+  // ====================================================
   // SUBMIT EXAM
   // ====================================================
 
-  const submitExamData = useCallback(
-    async (
-      isAutoSubmit = false
-    ) => {
-      if (
-        isSubmitting ||
-        hasSubmittedRef.current
-      ) {
-        return;
-      }
-
-      hasSubmittedRef.current =
-        true;
-
-      setIsSubmitting(true);
-      setSubmitError("");
-
-      if (isAutoSubmit) {
-        setAutoSubmitted(true);
-        setShowSubmitModal(false);
-      }
-
-      const result =
-        calculateResult();
-
-      const testType =
-        subject
-          ?.toUpperCase() ===
-        "NEET"
-          ? "NEET"
-          : subject
-              ?.toUpperCase() ===
-            "JEE"
-          ? "JEE"
-          : "MOCK";
-
-      const resultPayload = {
-        studentId,
-        studentName,
-
-        examId,
-
-        examName:
-          `${subject} Mock Test` +
-          (chapterName
-            ? ` - ${chapterName}`
-            : " - Full Assessment"),
-
-        testCategory: "mock",
-
-        subject,
-
-        chapter:
-          chapterName || "",
-
-        className:
-          className || "",
-
-        examType: testType,
-
-        totalQuestions:
-          result.totalQuestions,
-
-        attemptedQuestions:
-          result.attempted,
-
-        unansweredQuestions:
-          result.unattempted,
-
-        correctAnswers:
-          result.correct,
-
-        wrongAnswers:
-          result.wrong,
-
-        marks:
-          result.correct,
-
-        percentage:
-          result.percentage,
-
-        grade:
-          result.grade,
-
-        status:
-          result.status,
-
-        timeTaken: Math.max(
-          0,
-          Math.round(
-            (questions.length *
-              60 -
-              timeLeft) /
-              60
-          )
-        ),
-
-        autoSubmitted:
-          isAutoSubmit,
-
-        review:
-          result.reviewList,
-
-        submittedAt:
-          new Date().toISOString(),
-      };
-
-      try {
-        const token =
-          localStorage.getItem(
-            "studentToken"
-          ) ||
-          localStorage.getItem(
-            "token"
-          );
-
-        const cleanApiBase =
-          apiBaseUrl.replace(
-            /\/+$/,
-            ""
-          );
-
-        const response =
-          await fetch(
-            `${cleanApiBase}/api/results/submit`,
-            {
-              method: "POST",
-
-              headers: {
-                "Content-Type":
-                  "application/json",
-
-                ...(token
-                  ? {
-                      Authorization:
-                        `Bearer ${token}`,
-                    }
-                  : {}),
-              },
-
-              body: JSON.stringify(
-                resultPayload
-              ),
-            }
-          );
-
-        if (!response.ok) {
-          let errorMessage =
-            "Unable to submit exam.";
-
-          try {
-            const errorData =
-              await response.json();
-
-            errorMessage =
-              errorData?.message ||
-              errorData?.error ||
-              errorMessage;
-          } catch {
-            // Ignore invalid JSON
-          }
-
-          throw new Error(
-            errorMessage
-          );
+  const submitExamData =
+    useCallback(
+      async (
+        isAutoSubmit = false
+      ) => {
+        if (
+          isSubmitting ||
+          hasSubmittedRef.current
+        ) {
+          return;
         }
 
-        let serverResult =
-          null;
+        hasSubmittedRef.current =
+          true;
+
+        setIsSubmitting(true);
+        setSubmitError("");
+
+        if (isAutoSubmit) {
+          setAutoSubmitted(true);
+          setShowSubmitModal(false);
+        }
+
+        // ==============================================
+        // CALCULATE RESULT FIRST
+        // ==============================================
+
+        const result =
+          calculateResult();
+
+        const testType =
+          subject?.toUpperCase() ===
+          "NEET"
+            ? "NEET"
+            : subject?.toUpperCase() ===
+              "JEE"
+            ? "JEE"
+            : "MOCK";
+
+        const resultPayload = {
+          studentId,
+
+          studentName,
+
+          examId,
+
+          examName:
+            `${subject} Mock Test` +
+            (chapterName
+              ? ` - ${chapterName}`
+              : " - Full Assessment"),
+
+          testCategory: "mock",
+
+          subject,
+
+          chapter:
+            chapterName || "",
+
+          className:
+            className || "",
+
+          examType: testType,
+
+          totalQuestions:
+            result.totalQuestions,
+
+          attemptedQuestions:
+            result.attempted,
+
+          unansweredQuestions:
+            result.unattempted,
+
+          correctAnswers:
+            result.correct,
+
+          wrongAnswers:
+            result.wrong,
+
+          marks:
+            result.correct,
+
+          percentage:
+            result.percentage,
+
+          grade:
+            result.grade,
+
+          status:
+            result.status,
+
+          timeTaken: Math.max(
+            0,
+            Math.round(
+              (questions.length *
+                60 -
+                timeLeft) /
+                60
+            )
+          ),
+
+          autoSubmitted:
+            isAutoSubmit,
+
+          review:
+            result.reviewList,
+
+          submittedAt:
+            new Date().toISOString(),
+        };
+
+        // ==============================================
+        // SAVE RESULT LOCALLY FIRST
+        // ==============================================
+
+        saveLocalResult(
+          result,
+          isAutoSubmit
+        );
+
+        // ==============================================
+        // IMPORTANT:
+        // RESULT IS ALREADY CALCULATED
+        // ==============================================
+
+        setResultSummary(result);
+
+        // ==============================================
+        // TRY BACKEND SAVE
+        // ==============================================
 
         try {
-          serverResult =
-            await response.json();
-        } catch {
-          // Empty response is allowed
+          const token =
+            localStorage.getItem(
+              "studentToken"
+            ) ||
+            localStorage.getItem(
+              "token"
+            );
+
+          const cleanApiBase =
+            apiBaseUrl
+              .replace(
+                /\/+$/,
+                ""
+              );
+
+         const submitUrl = `${cleanApiBase}/results/submit`;
+
+        console.log(
+      "Submitting result:",
+     submitUrl
+      );
+          const response =
+            await fetch(
+              submitUrl,
+              {
+                method: "POST",
+
+                headers: {
+                  "Content-Type":
+                    "application/json",
+
+                  ...(token
+                    ? {
+                        Authorization:
+                          `Bearer ${token}`,
+                      }
+                    : {}),
+                },
+
+                body: JSON.stringify(
+                  resultPayload
+                ),
+              }
+            );
+
+          if (!response.ok) {
+            let errorMessage =
+              "Unable to save result.";
+
+            try {
+              const errorData =
+                await response.json();
+
+              errorMessage =
+                errorData?.message ||
+                errorData?.error ||
+                errorMessage;
+            } catch {
+              // ignore
+            }
+
+            console.warn(
+              "Backend result save failed:",
+              errorMessage
+            );
+
+            /*
+             * IMPORTANT:
+             * Backend route fail ayina
+             * frontend result screen stop avvakudadhu.
+             */
+          } else {
+            console.log(
+              "Result saved successfully."
+            );
+          }
+        } catch (error) {
+          console.warn(
+            "Backend submit route unavailable. Using local result:",
+            error
+          );
         }
 
-        setResultSummary({
-          ...resultPayload,
-          ...result,
-          serverResult,
-        });
+        // ==============================================
+        // CLEAR EXAM STATE
+        // ==============================================
 
-        // Clear saved exam state
         sessionStorage.removeItem(
           answerStorageKey
         );
@@ -1214,45 +1485,36 @@ export default function MockTestInterface({
           timerStorageKey
         );
 
+        // ==============================================
+        // SHOW RESULT SCREEN
+        // ==============================================
+
         setSubmitted(true);
-        setAutoSubmitted(false);
-      } catch (error: any) {
-        console.error(
-          "Exam submission error:",
-          error
-        );
-
-        hasSubmittedRef.current =
-          false;
 
         setAutoSubmitted(false);
 
-        setSubmitError(
-          error?.message ||
-            "Exam submission failed. Please try again."
-        );
-      } finally {
         setIsSubmitting(false);
+
         setShowSubmitModal(false);
-      }
-    },
-    [
-      isSubmitting,
-      calculateResult,
-      subject,
-      chapterName,
-      className,
-      studentId,
-      studentName,
-      examId,
-      questions.length,
-      timeLeft,
-      apiBaseUrl,
-      answerStorageKey,
-      reviewStorageKey,
-      timerStorageKey,
-    ]
-  );
+      },
+      [
+        isSubmitting,
+        calculateResult,
+        subject,
+        chapterName,
+        className,
+        studentId,
+        studentName,
+        examId,
+        questions.length,
+        timeLeft,
+        apiBaseUrl,
+        saveLocalResult,
+        answerStorageKey,
+        reviewStorageKey,
+        timerStorageKey,
+      ]
+    );
 
   // ====================================================
   // AUTO SUBMIT
@@ -1277,7 +1539,7 @@ export default function MockTestInterface({
   ]);
 
   // ====================================================
-  // KEYBOARD SHORTCUTS
+  // KEYBOARD
   // ====================================================
 
   useEffect(() => {
@@ -1399,6 +1661,17 @@ export default function MockTestInterface({
     ]);
 
   // ====================================================
+  // GO TO RESULT HISTORY
+  // ====================================================
+
+  const handleGoToHistory =
+    useCallback(() => {
+      navigate(
+        "/exam-history"
+      );
+    }, [navigate]);
+
+  // ====================================================
   // EMPTY QUESTIONS
   // ====================================================
 
@@ -1424,6 +1697,7 @@ export default function MockTestInterface({
             className="premium-btn primary"
           >
             <ArrowLeft size={18} />
+
             Back to Dashboard
           </button>
         </div>
@@ -1432,91 +1706,199 @@ export default function MockTestInterface({
   }
 
   // ====================================================
-  // SUBMITTED SCREEN
+  // RESULT SCREEN
   // ====================================================
 
-  if (submitted) {
+  if (
+    submitted &&
+    resultSummary
+  ) {
     return (
       <div className="exam-page result-page">
         <div className="result-card">
+
+          {/* SUCCESS ICON */}
+
           <div className="result-success-icon">
-            <CheckCircle2 size={38} />
+            <CheckCircle2 size={42} />
           </div>
 
+          {/* BADGE */}
+
           <div className="result-badge">
-           
             TEST SUBMITTED
           </div>
+
+          {/* TITLE */}
 
           <h1>
             Test Submitted Successfully
           </h1>
 
           <p>
-            Your {subject} mock test has
-            been submitted successfully.
+            Your {subject} mock test
+            has been submitted
+            successfully.
           </p>
 
-          {resultSummary && (
-            <div className="result-mini-grid">
-              <div>
-                <span>
-                  Score
-                </span>
+          {/* SCORE */}
 
-                <strong>
-                  {
-                    resultSummary.correct
-                  }
-                  /
-                  {
-                    resultSummary.totalQuestions
-                  }
-                </strong>
-              </div>
+          <div className="result-score-main">
+            <span>Your Score</span>
 
-              <div>
-                <span>
-                  Percentage
-                </span>
+            <strong>
+              {resultSummary.correct}
+              <small>
+                /{resultSummary.totalQuestions}
+              </small>
+            </strong>
+          </div>
 
-                <strong>
-                  {
-                    resultSummary.percentage
-                  }%
-                </strong>
-              </div>
+          {/* RESULT GRID */}
 
-              <div>
-                <span>
-                  Grade
-                </span>
+          <div className="result-mini-grid">
 
-                <strong>
-                  {
-                    resultSummary.grade
-                  }
-                </strong>
-              </div>
+            <div>
+              <span>
+                Correct
+              </span>
+
+              <strong>
+                {resultSummary.correct}
+              </strong>
             </div>
-          )}
+
+            <div>
+              <span>
+                Wrong
+              </span>
+
+              <strong>
+                {resultSummary.wrong}
+              </strong>
+            </div>
+
+            <div>
+              <span>
+                Unanswered
+              </span>
+
+              <strong>
+                {resultSummary.unattempted}
+              </strong>
+            </div>
+
+            <div>
+              <span>
+                Percentage
+              </span>
+
+              <strong>
+                {resultSummary.percentage}%
+              </strong>
+            </div>
+
+            <div>
+              <span>
+                Grade
+              </span>
+
+              <strong>
+                {resultSummary.grade}
+              </strong>
+            </div>
+
+            <div>
+              <span>
+                Status
+              </span>
+
+              <strong
+                className={
+                  resultSummary.status ===
+                  "PASS"
+                    ? "result-pass"
+                    : "result-fail"
+                }
+              >
+                {resultSummary.status}
+              </strong>
+            </div>
+
+          </div>
+
+          {/* DETAILED SUMMARY */}
+
+          <div className="result-detail-summary">
+
+            <div>
+              <span>
+                Total Questions
+              </span>
+
+              <strong>
+                {
+                  resultSummary.totalQuestions
+                }
+              </strong>
+            </div>
+
+            <div>
+              <span>
+                Attempted
+              </span>
+
+              <strong>
+                {
+                  resultSummary.attempted
+                }
+              </strong>
+            </div>
+
+            <div>
+              <span>
+                Accuracy
+              </span>
+
+              <strong>
+                {resultSummary.attempted >
+                0
+                  ? Math.round(
+                      (resultSummary.correct /
+                        resultSummary.attempted) *
+                        100
+                    )
+                  : 0}
+                %
+              </strong>
+            </div>
+
+          </div>
+
+          {/* SECURE INFO */}
 
           <div className="result-info">
             <ShieldCheck size={18} />
 
             <span>
-              Your result has been securely
-              recorded.
+              Your result has been
+              recorded successfully.
             </span>
           </div>
 
+          {/* GO HISTORY BUTTON */}
+
           <button
-            onClick={onBack}
+            onClick={
+              handleGoToHistory
+            }
             className="premium-btn primary result-back-btn"
           >
-            Return to Dashboard
+            Go to Result History
+
             <ArrowRight size={18} />
           </button>
+
         </div>
       </div>
     );
@@ -1533,17 +1915,21 @@ export default function MockTestInterface({
         {
           "--exam-primary":
             themeColor,
+
           "--exam-primary-dark":
             themeColor,
         } as React.CSSProperties
       }
     >
+
       {/* ==================================================
           HEADER
       ================================================== */}
 
       <header className="exam-header">
+
         <div className="exam-header-left">
+
           <button
             className="header-back-btn"
             onClick={handleExit}
@@ -1557,7 +1943,9 @@ export default function MockTestInterface({
           </div>
 
           <div className="exam-heading">
+
             <div className="exam-title-row">
+
               <h3>
                 {subject} Mock Test
               </h3>
@@ -1573,6 +1961,7 @@ export default function MockTestInterface({
                   ? "JEE"
                   : "MOCK"}
               </span>
+
             </div>
 
             <span>
@@ -1580,10 +1969,12 @@ export default function MockTestInterface({
                 "Full Assessment"}{" "}
               • {className}
             </span>
+
           </div>
         </div>
 
         <div className="exam-header-right">
+
           <div className="live-status">
             <span />
             LIVE
@@ -1619,26 +2010,33 @@ export default function MockTestInterface({
           >
             Exit
           </button>
+
         </div>
       </header>
 
       {/* ==================================================
-          EXAM BODY
+          BODY
       ================================================== */}
 
       <div className="exam-body">
+
         {/* ==================================================
             QUESTION PANEL
         ================================================== */}
 
         <main className="question-panel">
-          {/* TOP META */}
+
+          {/* TOP BAR */}
 
           <div className="question-topbar">
+
             <div>
+
               <div className="question-progress-label">
                 QUESTION{" "}
-                {currentDisplayQuestionNumber}{" "}
+                {
+                  currentDisplayQuestionNumber
+                }{" "}
                 OF{" "}
                 {questions.length}
               </div>
@@ -1655,9 +2053,11 @@ export default function MockTestInterface({
                   }}
                 />
               </div>
+
             </div>
 
             <div className="question-top-actions">
+
               <button
                 className={`small-action ${
                   markedForReview[
@@ -1678,12 +2078,17 @@ export default function MockTestInterface({
                   ? "Review Marked"
                   : "Mark Review"}
               </button>
+
             </div>
+
           </div>
 
-          {/* QUESTION */}
+          {/* ==================================================
+              QUESTION
+          ================================================== */}
 
           <section className="question-content">
+
             <div className="question-number">
               Q
               {
@@ -1692,30 +2097,78 @@ export default function MockTestInterface({
             </div>
 
             <div className="question-main">
+
               <h1>
                 {getQuestionText(
                   currentQ
                 )}
               </h1>
 
-              <div className="question-hint">
-                
+              {/* ==========================================
+                  QUESTION IMAGES
+              ========================================== */}
 
+              {getQuestionImages(
+                currentQ
+              ).map(
+                (
+                  imageUrl,
+                  index
+                ) => (
+                  <div
+                    className="question-image-wrapper"
+                    key={`${currentQuestionId}-image-${index}`}
+                  >
+                    <img
+                      src={imageUrl}
+                      alt={`Question ${
+                        currentDisplayQuestionNumber
+                      } figure ${
+                        index + 1
+                      }`}
+                      className="question-image"
+                      loading="lazy"
+                      onError={(
+                        event
+                      ) => {
+                        const img =
+                          event.currentTarget;
+
+                        img.style.display =
+                          "none";
+                      }}
+                    />
+                  </div>
+                )
+              )}
+
+              <div className="question-hint">
                 Select your option
               </div>
+
             </div>
+
           </section>
 
-          {/* OPTIONS */}
+          {/* ==================================================
+              OPTIONS
+          ================================================== */}
 
           <div className="options-list">
+
             {currentQ?.options?.map(
               (
                 option,
                 index
               ) => {
+
                 const optionText =
                   getOptionText(
+                    option
+                  );
+
+                const optionImage =
+                  getOptionImage(
                     option
                   );
 
@@ -1745,6 +2198,7 @@ export default function MockTestInterface({
                       )
                     }
                   >
+
                     <span className="option-letter">
                       {isSelected ? (
                         <Check size={16} />
@@ -1754,23 +2208,43 @@ export default function MockTestInterface({
                     </span>
 
                     <span className="option-text">
+
                       {optionText}
+
+                      {optionImage && (
+                        <img
+                          src={
+                            optionImage
+                          }
+                          alt={`Option ${optionLetter}`}
+                          className="option-image"
+                          loading="lazy"
+                        />
+                      )}
+
                     </span>
 
                     {isSelected && (
                       <span className="selected-check">
-                        <Check size={15} />
+                        <Check
+                          size={15}
+                        />
                       </span>
                     )}
+
                   </button>
                 );
               }
             )}
+
           </div>
 
-          {/* ACTION BAR */}
+          {/* ==================================================
+              ACTION BAR
+          ================================================== */}
 
           <div className="question-actions">
+
             <button
               className="text-action danger-text"
               onClick={
@@ -1778,6 +2252,7 @@ export default function MockTestInterface({
               }
             >
               <RotateCcw size={15} />
+
               Clear Response
             </button>
 
@@ -1795,11 +2270,15 @@ export default function MockTestInterface({
                 ? "Marked • Next"
                 : "Mark & Next"}
             </button>
+
           </div>
 
-          {/* NAVIGATION */}
+          {/* ==================================================
+              NAVIGATION
+          ================================================== */}
 
           <div className="question-navigation">
+
             <button
               className="nav-btn secondary"
               disabled={
@@ -1811,6 +2290,7 @@ export default function MockTestInterface({
               }
             >
               <ChevronLeft size={19} />
+
               Previous
             </button>
 
@@ -1818,11 +2298,13 @@ export default function MockTestInterface({
               <span>
                 ← →
               </span>
+
               Navigate
 
               <span>
                 1–4
               </span>
+
               Answer
             </div>
 
@@ -1830,9 +2312,12 @@ export default function MockTestInterface({
             questions.length - 1 ? (
               <button
                 className="nav-btn primary"
-                onClick={goNext}
+                onClick={
+                  goNext
+                }
               >
                 Next Question
+
                 <ChevronRight
                   size={19}
                 />
@@ -1847,10 +2332,13 @@ export default function MockTestInterface({
                 }
               >
                 Submit Test
+
                 <Send size={17} />
               </button>
             )}
+
           </div>
+
         </main>
 
         {/* ==================================================
@@ -1859,9 +2347,11 @@ export default function MockTestInterface({
 
         {showPalette && (
           <aside className="exam-sidebar">
+
             {/* STUDENT */}
 
             <div className="student-card">
+
               <div className="student-avatar">
                 {studentName
                   ?.charAt(0)
@@ -1870,6 +2360,7 @@ export default function MockTestInterface({
               </div>
 
               <div className="student-info">
+
                 <strong>
                   {studentName}
                 </strong>
@@ -1877,18 +2368,22 @@ export default function MockTestInterface({
                 <span>
                   {studentId}
                 </span>
+
               </div>
 
               <ShieldCheck
                 size={17}
                 className="verified-icon"
               />
+
             </div>
 
             {/* STATS */}
 
             <div className="exam-stats">
+
               <div className="stat-card answered">
+
                 <strong>
                   {answeredCount}
                 </strong>
@@ -1896,9 +2391,11 @@ export default function MockTestInterface({
                 <span>
                   Answered
                 </span>
+
               </div>
 
               <div className="stat-card review">
+
                 <strong>
                   {reviewCount}
                 </strong>
@@ -1906,9 +2403,11 @@ export default function MockTestInterface({
                 <span>
                   Review
                 </span>
+
               </div>
 
               <div className="stat-card unanswered">
+
                 <strong>
                   {unansweredCount}
                 </strong>
@@ -1916,13 +2415,17 @@ export default function MockTestInterface({
                 <span>
                   Remaining
                 </span>
+
               </div>
+
             </div>
 
             {/* PALETTE HEADER */}
 
             <div className="palette-header">
+
               <div>
+
                 <h4>
                   Question Palette
                 </h4>
@@ -1930,21 +2433,23 @@ export default function MockTestInterface({
                 <span>
                   Jump to any question
                 </span>
+
               </div>
 
-              <LayoutGrid
-                size={18}
-              />
+              <LayoutGrid size={18} />
+
             </div>
 
             {/* PALETTE */}
 
             <div className="question-palette">
+
               {questions.map(
                 (
                   question,
                   index
                 ) => {
+
                   const id =
                     getQuestionId(
                       question,
@@ -2018,11 +2523,13 @@ export default function MockTestInterface({
                   );
                 }
               )}
+
             </div>
 
             {/* LEGEND */}
 
             <div className="palette-legend">
+
               <div>
                 <span className="legend-dot answered-dot" />
                 Answered
@@ -2037,6 +2544,7 @@ export default function MockTestInterface({
                 <span className="legend-dot unanswered-dot" />
                 Not Answered
               </div>
+
             </div>
 
             {/* SUBMIT */}
@@ -2063,14 +2571,18 @@ export default function MockTestInterface({
                 </small>
               </span>
 
-              <ArrowRight size={17} />
+              <ArrowRight
+                size={17}
+              />
             </button>
+
           </aside>
         )}
+
       </div>
 
       {/* ==================================================
-          MOBILE PALETTE BUTTON
+          MOBILE PALETTE
       ================================================== */}
 
       <button
@@ -2104,12 +2616,14 @@ export default function MockTestInterface({
             )
           }
         >
+
           <div
             className="submit-modal"
             onClick={(event) =>
               event.stopPropagation()
             }
           >
+
             <button
               className="modal-close"
               onClick={() =>
@@ -2138,13 +2652,12 @@ export default function MockTestInterface({
 
             <p>
               Once submitted, your
-              responses will be recorded
-              and evaluated.
+              responses will be
+              recorded and evaluated.
             </p>
 
-            {/* SUMMARY */}
-
             <div className="submit-summary">
+
               <div>
                 <span>
                   Total
@@ -2184,11 +2697,13 @@ export default function MockTestInterface({
                   {unansweredCount}
                 </strong>
               </div>
+
             </div>
 
             {unansweredCount >
               0 && (
               <div className="submit-warning">
+
                 <AlertTriangle
                   size={17}
                 />
@@ -2200,27 +2715,32 @@ export default function MockTestInterface({
                       unansweredCount
                     }
                   </strong>{" "}
-                  unanswered question
+                  unanswered
+                  question
                   {unansweredCount >
                   1
                     ? "s"
                     : ""}
                   .
                 </span>
+
               </div>
             )}
 
             {submitError && (
               <div className="submit-error">
+
                 <AlertTriangle
                   size={17}
                 />
 
                 {submitError}
+
               </div>
             )}
 
             <div className="modal-actions">
+
               <button
                 className="modal-cancel"
                 disabled={
@@ -2246,6 +2766,7 @@ export default function MockTestInterface({
                   )
                 }
               >
+
                 {isSubmitting ? (
                   <>
                     <Loader2
@@ -2264,25 +2785,29 @@ export default function MockTestInterface({
                     Confirm Submit
                   </>
                 )}
+
               </button>
+
             </div>
+
           </div>
+
         </div>
       )}
 
       {/* ==================================================
-          AUTO SUBMIT OVERLAY
+          AUTO SUBMIT
       ================================================== */}
 
       {autoSubmitted &&
         !submitted &&
         isSubmitting && (
           <div className="auto-submit-overlay">
+
             <div className="auto-submit-card">
+
               <div className="auto-submit-icon">
-                <Clock3
-                  size={30}
-                />
+                <Clock3 size={30} />
               </div>
 
               <h2>
@@ -2298,9 +2823,12 @@ export default function MockTestInterface({
                 className="spin"
                 size={24}
               />
+
             </div>
+
           </div>
         )}
+
     </div>
   );
 }

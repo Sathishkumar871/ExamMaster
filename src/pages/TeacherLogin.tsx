@@ -84,7 +84,7 @@ export default function TeacherLogin() {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
-        credentials: "omit", // CORS సమస్యను నివారಿಸಲು 'include' బదులుగా 'omit' వాడాలి
+        credentials: "omit", 
         signal: controller.signal,
         body: JSON.stringify({
           teacherId: cleanTeacherId,
@@ -233,8 +233,8 @@ export default function TeacherLogin() {
             </div>
 
             <div>
-              <strong>ExamMaster</strong>
-              <span>Institutional Portal</span>
+              <strong>STG COLLEGE</strong>
+              <span>PRE UNIVERSITY</span>
             </div>
           </div>
 

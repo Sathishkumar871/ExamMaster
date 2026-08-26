@@ -64,13 +64,11 @@ interface Question {
 // ============================================================
 // API
 // ============================================================
-
 const API_BASE_URL =
   window.location.hostname === "localhost" ||
   window.location.hostname === "127.0.0.1"
-    ? "http://localhost:5000"
-    : "https://exammaster-backend-up1y.onrender.com";
-
+    ? "http://localhost:5000/api"
+    : "https://exammaster-backend-up1y.onrender.com/api";
 // ============================================================
 // DEFAULT COLORS
 // ============================================================
