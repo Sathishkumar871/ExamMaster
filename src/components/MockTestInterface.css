@@ -3091,3 +3091,46 @@
     display: none !important;
   }
 }
+.question-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.question-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+  min-width: 0;
+}
+
+.question-progress-label {
+  margin: 0;
+  white-space: nowrap;
+}
+
+.question-subject-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  margin: 0;
+
+  background: transparent;
+  border: none;
+  border-radius: 0;
+
+  color: #d97706;
+
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+
+  white-space: nowrap;
+}
+
+.question-top-actions {
+  flex-shrink: 0;
+}

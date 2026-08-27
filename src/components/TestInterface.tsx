@@ -23,8 +23,9 @@ import {
   ShieldCheck,
   Trophy,
   X,
-  XCircle,
 } from "lucide-react";
+
+import { useNavigate } from "react-router-dom";
 
 import "./TestInterface.css";
 
@@ -46,14 +47,15 @@ interface Question {
   chapter?: string;
   chapterName?: string;
 
-  // Original PDF/backend question number
+  // MongoDB numbering fields are intentionally
+  // NOT used for UI numbering.
   questionNumber?: number;
+  subjectQuestionNumber?: number;
+  globalQuestionNumber?: number;
 
-  // Optional images
   questionImage?: string;
   imageUrl?: string;
 
-  // Optional table data
   tableHeaders?: string[];
   tableRows?: any[][];
 }
@@ -76,10 +78,8 @@ interface TestInterfaceProps {
 
   initialAnswers?: Record<string, string>;
 
-  // Optional backend URL
   apiBaseUrl?: string;
 
-  // Optional duration from parent/backend
   durationMinutes?: number;
 }
 
@@ -112,11 +112,14 @@ export default function TestInterface({
   apiBaseUrl = "http://localhost:5000",
   durationMinutes,
 }: TestInterfaceProps) {
+  const navigate = useNavigate();
+
   // ====================================================
   // STATE
   // ====================================================
 
-  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [currentQuestion, setCurrentQuestion] =
+    useState(0);
 
   const [answers, setAnswers] =
     useState<AnswerMap>(initialAnswers);
@@ -143,9 +146,6 @@ export default function TestInterface({
   const [submitted, setSubmitted] =
     useState<boolean>(initialSubmitted);
 
-  const [isEditing, setIsEditing] =
-    useState(false);
-
   const [showSubmitModal, setShowSubmitModal] =
     useState(false);
 
@@ -162,15 +162,21 @@ export default function TestInterface({
     useState<any>(null);
 
   const [score, setScore] = useState(0);
-  const [correctCount, setCorrectCount] = useState(0);
-  const [wrongCount, setWrongCount] = useState(0);
+  const [correctCount, setCorrectCount] =
+    useState(0);
+  const [wrongCount, setWrongCount] =
+    useState(0);
+
   const [unattemptedCount, setUnattemptedCount] =
     useState(0);
+
   const [attemptedCount, setAttemptedCount] =
     useState(0);
 
   const hasSubmittedRef = useRef(false);
-  const timerInitializedRef = useRef(false);
+
+  const timerInitializedRef =
+    useRef(false);
 
   // ====================================================
   // DAILY TEST KEY
@@ -296,7 +302,6 @@ export default function TestInterface({
         return false;
       }
 
-      // Direct text match
       if (selected === correct) {
         return true;
       }
@@ -308,7 +313,6 @@ export default function TestInterface({
         "d",
       ];
 
-      // A/B/C/D
       const correctLetterIndex =
         letters.indexOf(correct);
 
@@ -329,7 +333,6 @@ export default function TestInterface({
         }
       }
 
-      // 1/2/3/4
       const numericIndex =
         ["1", "2", "3", "4"].indexOf(
           correct
@@ -352,7 +355,6 @@ export default function TestInterface({
         }
       }
 
-      // OPTION A / OPTION B / etc.
       const optionMatch =
         correct.match(
           /(?:option\s*)?([abcd])/
@@ -403,8 +405,21 @@ export default function TestInterface({
         )
       : "";
 
+  // ====================================================
+  // IMPORTANT
+  // ====================================================
+  // MongoDB questionNumber / subjectQuestionNumber /
+  // globalQuestionNumber are NOT used here.
+  //
+  // UI numbering is ALWAYS based on array order:
+  //
+  // questions[0] => Q1
+  // questions[1] => Q2
+  // questions[2] => Q3
+  // ...
+  // ====================================================
+
   const currentDisplayQuestionNumber =
-    currentQ?.questionNumber ??
     currentQuestion + 1;
 
   // ====================================================
@@ -730,7 +745,7 @@ export default function TestInterface({
       (option: string) => {
         if (
           !currentQuestionId ||
-          (submitted && !isEditing)
+          submitted
         ) {
           return;
         }
@@ -746,7 +761,6 @@ export default function TestInterface({
       [
         currentQuestionId,
         submitted,
-        isEditing,
       ]
     );
 
@@ -758,7 +772,7 @@ export default function TestInterface({
     useCallback(() => {
       if (
         !currentQuestionId ||
-        (submitted && !isEditing)
+        submitted
       ) {
         return;
       }
@@ -777,7 +791,6 @@ export default function TestInterface({
     }, [
       currentQuestionId,
       submitted,
-      isEditing,
     ]);
 
   // ====================================================
@@ -788,7 +801,7 @@ export default function TestInterface({
     useCallback(() => {
       if (
         !currentQuestionId ||
-        (submitted && !isEditing)
+        submitted
       ) {
         return;
       }
@@ -805,7 +818,6 @@ export default function TestInterface({
     }, [
       currentQuestionId,
       submitted,
-      isEditing,
     ]);
 
   // ====================================================
@@ -936,10 +948,9 @@ export default function TestInterface({
         totalQuestions -
         unattempted;
 
-      // +4 / -1 / 0
       const marks =
         correct * 4 -
-        wrong * 1;
+        wrong;
 
       const totalPossibleMarks =
         totalQuestions * 4;
@@ -1060,7 +1071,6 @@ export default function TestInterface({
             ? ` - ${chapterName}`
             : ""),
 
-        // IMPORTANT
         testCategory: "daily",
 
         subject,
@@ -1180,9 +1190,7 @@ export default function TestInterface({
               errorData?.message ||
               errorData?.error ||
               errorMessage;
-          } catch {
-            // Ignore
-          }
+          } catch {}
 
           throw new Error(
             errorMessage
@@ -1194,9 +1202,7 @@ export default function TestInterface({
         try {
           serverResult =
             await response.json();
-        } catch {
-          // Empty response allowed
-        }
+        } catch {}
 
         setScore(
           result.marks
@@ -1218,11 +1224,36 @@ export default function TestInterface({
           result.attempted
         );
 
-        setResultSummary({
+        const finalResult = {
           ...result,
           ...payload,
           serverResult,
-        });
+        };
+
+        setResultSummary(
+          finalResult
+        );
+
+        sessionStorage.setItem(
+          `${testKey}_result`,
+          JSON.stringify(
+            finalResult
+          )
+        );
+
+        sessionStorage.setItem(
+          `${testKey}_questions`,
+          JSON.stringify(
+            questions
+          )
+        );
+
+        sessionStorage.setItem(
+          `${testKey}_final_answers`,
+          JSON.stringify(
+            answers
+          )
+        );
 
         sessionStorage.removeItem(
           answerStorageKey
@@ -1237,7 +1268,6 @@ export default function TestInterface({
         );
 
         setSubmitted(true);
-        setIsEditing(false);
         setAutoSubmitted(false);
       } catch (error: any) {
         console.error(
@@ -1274,6 +1304,9 @@ export default function TestInterface({
       answerStorageKey,
       reviewStorageKey,
       timerStorageKey,
+      testKey,
+      questions,
+      answers,
     ]
   );
 
@@ -1490,10 +1523,7 @@ export default function TestInterface({
   // RESULT SCREEN
   // ====================================================
 
-  if (
-    submitted &&
-    !isEditing
-  ) {
+  if (submitted) {
     const totalPossible =
       questions.length * 4;
 
@@ -1613,27 +1643,44 @@ export default function TestInterface({
               <span>Grade</span>
               <strong>
                 {resultSummary?.grade ||
-                  (percentage >= 85
-                    ? "A"
-                    : percentage >= 60
-                    ? "B"
-                    : percentage >= 35
-                    ? "C"
-                    : "F")}
+                  "F"}
               </strong>
             </div>
           </div>
 
           <div className="daily-result-actions">
+
             <button
               onClick={() => {
-                setIsEditing(true);
-                setSubmitted(false);
+                navigate(
+                  "/student/daily-test-result",
+                  {
+                    state: {
+                      subject,
+                      className,
+                      chapterName,
+                      studentId,
+                      studentName,
+                      questions,
+                      answers,
+                      markedForReview,
+                      resultSummary,
+                      score,
+                      correctCount,
+                      wrongCount,
+                      unattemptedCount,
+                      attemptedCount,
+                      themeColor,
+                    },
+                  }
+                );
               }}
               className="daily-review-btn"
             >
-              <RotateCcw size={17} />
-              Review Full Solutions
+              <CheckCircle2
+                size={17}
+              />
+              View Result
             </button>
 
             <button
@@ -1669,10 +1716,6 @@ export default function TestInterface({
         } as React.CSSProperties
       }
     >
-      {/* ==================================================
-          HEADER
-      ================================================== */}
-
       <header className="exam-header">
         <div className="exam-header-left">
           <button
@@ -1757,23 +1800,15 @@ export default function TestInterface({
         </div>
       </header>
 
-      {/* ==================================================
-          BODY
-      ================================================== */}
-
       <div className="exam-body">
-        {/* ==================================================
-            QUESTION PANEL
-        ================================================== */}
 
         <main className="question-panel">
+
           <div className="question-topbar">
             <div>
               <div className="question-progress-label">
                 QUESTION{" "}
-                {
-                  currentDisplayQuestionNumber
-                }{" "}
+                {currentDisplayQuestionNumber}{" "}
                 OF{" "}
                 {questions.length}
               </div>
@@ -1817,9 +1852,8 @@ export default function TestInterface({
             </div>
           </div>
 
-          {/* QUESTION */}
-
           <section className="question-content">
+
             <div
               className="question-number"
               style={{
@@ -1830,12 +1864,11 @@ export default function TestInterface({
               }}
             >
               Q
-              {
-                currentDisplayQuestionNumber
-              }
+              {currentDisplayQuestionNumber}
             </div>
 
             <div className="question-main">
+
               <h1>
                 {getQuestionText(
                   currentQ
@@ -1845,10 +1878,9 @@ export default function TestInterface({
               <div className="question-hint">
                 Select your answer
               </div>
+
             </div>
           </section>
-
-          {/* IMAGE */}
 
           {(currentQ?.questionImage ||
             currentQ?.imageUrl) && (
@@ -1864,13 +1896,12 @@ export default function TestInterface({
             </div>
           )}
 
-          {/* TABLE */}
-
           {currentQ?.tableHeaders &&
             currentQ.tableHeaders
               .length > 0 && (
               <div className="question-table-wrapper">
                 <table className="question-table">
+
                   <thead>
                     <tr>
                       {currentQ.tableHeaders.map(
@@ -1929,18 +1960,19 @@ export default function TestInterface({
                       )
                     )}
                   </tbody>
+
                 </table>
               </div>
             )}
 
-          {/* OPTIONS */}
-
           <div className="options-list">
+
             {currentQ?.options?.map(
               (
                 option,
                 index
               ) => {
+
                 const optionText =
                   getOptionText(
                     option
@@ -1957,123 +1989,74 @@ export default function TestInterface({
                     65 + index
                   );
 
-                const correctOption =
-                  isAnswerCorrect(
-                    currentQ,
-                    optionText
-                  );
-
-                const showResult =
-                  submitted &&
-                  !isEditing;
-
-                let stateClass =
-                  "";
-
-                if (
-                  showResult &&
-                  correctOption
-                ) {
-                  stateClass =
-                    "correct-option";
-                } else if (
-                  showResult &&
-                  isSelected &&
-                  !correctOption
-                ) {
-                  stateClass =
-                    "wrong-option";
-                } else if (
-                  isSelected
-                ) {
-                  stateClass =
-                    "selected";
-                }
-
                 return (
                   <button
                     key={`${currentQuestionId}-${index}`}
                     type="button"
-                    className={`answer-option ${stateClass}`}
+                    className={`answer-option ${
+                      isSelected
+                        ? "selected"
+                        : ""
+                    }`}
                     onClick={() =>
                       handleSelectOption(
                         optionText
                       )
                     }
                   >
+
                     <span className="option-letter">
-                      {showResult &&
-                      correctOption ? (
-                        <Check size={16} />
-                      ) : showResult &&
-                        isSelected &&
-                        !correctOption ? (
-                        <X size={16} />
-                      ) : isSelected ? (
+
+                      {isSelected ? (
                         <Check size={16} />
                       ) : (
                         optionLetter
                       )}
+
                     </span>
 
                     <span className="option-text">
                       {optionText}
                     </span>
 
-                    {showResult &&
-                      correctOption && (
-                        <span className="option-result correct">
-                          Correct Choice
-                        </span>
-                      )}
-
-                    {showResult &&
-                      isSelected &&
-                      !correctOption && (
-                        <span className="option-result wrong">
-                          Your Choice
-                        </span>
-                      )}
                   </button>
                 );
               }
             )}
+
           </div>
 
-          {/* ACTIONS */}
+          <div className="question-actions">
 
-          {!submitted && (
-            <div className="question-actions">
-              <button
-                className="text-action danger-text"
-                onClick={
-                  handleClearAnswer
-                }
-              >
-                <RotateCcw size={15} />
-                Clear Response
-              </button>
+            <button
+              className="text-action danger-text"
+              onClick={
+                handleClearAnswer
+              }
+            >
+              <RotateCcw size={15} />
+              Clear Response
+            </button>
 
-              <button
-                className="text-action review-action"
-                onClick={
-                  handleReviewAndNext
-                }
-              >
-                <Flag size={15} />
+            <button
+              className="text-action review-action"
+              onClick={
+                handleReviewAndNext
+              }
+            >
+              <Flag size={15} />
 
-                {markedForReview[
-                  currentQuestionId
-                ]
-                  ? "Marked • Next"
-                  : "Mark & Next"}
-              </button>
-            </div>
-          )}
+              {markedForReview[
+                currentQuestionId
+              ]
+                ? "Marked • Next"
+                : "Mark & Next"}
+            </button>
 
-          {/* NAVIGATION */}
+          </div>
 
           <div className="question-navigation">
+
             <button
               className="nav-btn secondary"
               disabled={
@@ -2124,16 +2107,16 @@ export default function TestInterface({
                 <Send size={17} />
               </button>
             )}
-          </div>
-        </main>
 
-        {/* ==================================================
-            SIDEBAR
-        ================================================== */}
+          </div>
+
+        </main>
 
         {showPalette && (
           <aside className="exam-sidebar">
+
             <div className="student-card">
+
               <div
                 className="student-avatar"
                 style={{
@@ -2161,11 +2144,11 @@ export default function TestInterface({
                 size={17}
                 className="verified-icon"
               />
+
             </div>
 
-            {/* STATS */}
-
             <div className="exam-stats">
+
               <div className="stat-card answered">
                 <strong>
                   {answeredCount}
@@ -2192,11 +2175,11 @@ export default function TestInterface({
                   Remaining
                 </span>
               </div>
+
             </div>
 
-            {/* PALETTE HEADER */}
-
             <div className="palette-header">
+
               <div>
                 <h4>
                   Question Palette
@@ -2210,16 +2193,17 @@ export default function TestInterface({
               <LayoutGrid
                 size={18}
               />
+
             </div>
 
-            {/* PALETTE */}
-
             <div className="question-palette">
+
               {questions.map(
                 (
                   question,
                   index
                 ) => {
+
                   const id =
                     getQuestionId(
                       question,
@@ -2281,21 +2265,19 @@ export default function TestInterface({
                         )
                       }
                       title={`Question ${
-                        question.questionNumber ??
                         index + 1
                       }`}
                     >
-                      {question.questionNumber ??
-                        index + 1}
+                      {index + 1}
                     </button>
                   );
                 }
               )}
+
             </div>
 
-            {/* LEGEND */}
-
             <div className="palette-legend">
+
               <div>
                 <span className="legend-dot answered-dot" />
                 Answered
@@ -2310,9 +2292,8 @@ export default function TestInterface({
                 <span className="legend-dot unanswered-dot" />
                 Not Answered
               </div>
-            </div>
 
-            {/* SUBMIT */}
+            </div>
 
             <button
               className="sidebar-submit"
@@ -2322,6 +2303,7 @@ export default function TestInterface({
                 )
               }
             >
+
               <div>
                 <Send size={17} />
               </div>
@@ -2339,14 +2321,13 @@ export default function TestInterface({
               <ArrowRight
                 size={17}
               />
+
             </button>
+
           </aside>
         )}
-      </div>
 
-      {/* ==================================================
-          MOBILE PALETTE
-      ================================================== */}
+      </div>
 
       <button
         className="mobile-palette-toggle"
@@ -2379,12 +2360,14 @@ export default function TestInterface({
             )
           }
         >
+
           <div
             className="submit-modal"
             onClick={event =>
               event.stopPropagation()
             }
           >
+
             <button
               className="modal-close"
               onClick={() =>
@@ -2426,10 +2409,12 @@ export default function TestInterface({
             </p>
 
             <div className="submit-summary">
+
               <div>
                 <span>
                   Total
                 </span>
+
                 <strong>
                   {questions.length}
                 </strong>
@@ -2439,6 +2424,7 @@ export default function TestInterface({
                 <span>
                   Answered
                 </span>
+
                 <strong>
                   {answeredCount}
                 </strong>
@@ -2448,6 +2434,7 @@ export default function TestInterface({
                 <span>
                   Review
                 </span>
+
                 <strong>
                   {reviewCount}
                 </strong>
@@ -2457,15 +2444,18 @@ export default function TestInterface({
                 <span>
                   Unanswered
                 </span>
+
                 <strong>
                   {unansweredCount}
                 </strong>
               </div>
+
             </div>
 
             {unansweredCount >
               0 && (
               <div className="submit-warning">
+
                 <AlertTriangle
                   size={17}
                 />
@@ -2482,22 +2472,26 @@ export default function TestInterface({
                   {unansweredCount >
                   1
                     ? "s"
-                    : ""}
-                  .
+                    : ""}.
                 </span>
+
               </div>
             )}
 
             {submitError && (
               <div className="submit-error">
+
                 <AlertTriangle
                   size={17}
                 />
+
                 {submitError}
+
               </div>
             )}
 
             <div className="modal-actions">
+
               <button
                 className="modal-cancel"
                 disabled={
@@ -2525,6 +2519,7 @@ export default function TestInterface({
                     themeColor,
                 }}
               >
+
                 {isSubmitting ? (
                   <>
                     <Loader2
@@ -2541,9 +2536,13 @@ export default function TestInterface({
                     Confirm Submit
                   </>
                 )}
+
               </button>
+
             </div>
+
           </div>
+
         </div>
       )}
 
@@ -2555,7 +2554,9 @@ export default function TestInterface({
         !submitted &&
         isSubmitting && (
           <div className="auto-submit-overlay">
+
             <div className="auto-submit-card">
+
               <div className="auto-submit-icon">
                 <Clock3
                   size={30}
@@ -2576,9 +2577,12 @@ export default function TestInterface({
                 className="spin"
                 size={24}
               />
+
             </div>
+
           </div>
         )}
+
     </div>
   );
 }

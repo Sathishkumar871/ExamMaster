@@ -63,17 +63,21 @@ interface Question {
   subject?: string;
   chapter?: string;
   chapterName?: string;
+
   questionNumber?: number;
 
-  // Image support
   imageUrl?: string;
   questionImage?: string | QuestionImage;
   image?: string | QuestionImage;
   images?: QuestionImage[] | string[];
 
-  // Optional question type
   questionType?: string;
   type?: string;
+
+  // Optional ordering fields
+  order?: number;
+  index?: number;
+  sequence?: number;
 }
 
 interface MockTestInterfaceProps {
@@ -81,14 +85,10 @@ interface MockTestInterfaceProps {
   className: string;
   chapterName: string;
   questions: Question[];
-
   studentId: string;
   studentName: string;
-
   themeColor?: string;
-
   onBack: () => void;
-
   apiBaseUrl: string;
 }
 
@@ -133,21 +133,89 @@ export default function MockTestInterface({
   const navigate = useNavigate();
 
   // ====================================================
+  // IMPORTANT:
+  // NORMALIZE QUESTIONS FOR DISPLAY
+  //
+  // MongoDB order is NOT trusted.
+  // We create our own display order.
+  //
+  // Display:
+  // 1, 2, 3, 4, 5...
+  //
+  // Original MongoDB questionNumber is NOT used
+  // for visible numbering.
+  // ====================================================
+
+  const displayQuestions = useMemo(() => {
+    const copiedQuestions = [...(questions || [])];
+
+    /**
+     * We only use an explicit ordering field when available.
+     * Otherwise preserve the array order received from backend.
+     *
+     * IMPORTANT:
+     * questionNumber is deliberately NOT used here.
+     *
+     * This prevents:
+     * MongoDB: 89, 1, 45, 3
+     *
+     * from displaying:
+     * 89, 1, 45, 3
+     *
+     * Instead UI will display:
+     * 1, 2, 3, 4
+     */
+
+    const hasExplicitOrder = copiedQuestions.some(
+      (question) =>
+        typeof question.order === "number" ||
+        typeof question.sequence === "number" ||
+        typeof question.index === "number"
+    );
+
+    if (hasExplicitOrder) {
+      copiedQuestions.sort((a, b) => {
+        const getOrder = (question: Question) => {
+          if (typeof question.order === "number") {
+            return question.order;
+          }
+
+          if (typeof question.sequence === "number") {
+            return question.sequence;
+          }
+
+          if (typeof question.index === "number") {
+            return question.index;
+          }
+
+          return Number.MAX_SAFE_INTEGER;
+        };
+
+        return getOrder(a) - getOrder(b);
+      });
+    }
+
+    return copiedQuestions;
+  }, [questions]);
+
+  // ====================================================
   // STATE
   // ====================================================
 
   const [currentQuestion, setCurrentQuestion] = useState(0);
 
-  const [answers, setAnswers] = useState<AnswerMap>({});
+  const [answers, setAnswers] =
+    useState<AnswerMap>({});
 
   const [markedForReview, setMarkedForReview] =
     useState<ReviewMap>({});
 
-  const [timeLeft, setTimeLeft] = useState<number>(
-    questions.length > 0
-      ? questions.length * 60
-      : 45 * 60
-  );
+  const [timeLeft, setTimeLeft] =
+    useState<number>(
+      displayQuestions.length > 0
+        ? displayQuestions.length * 60
+        : 45 * 60
+    );
 
   const [isSubmitting, setIsSubmitting] =
     useState(false);
@@ -235,7 +303,9 @@ export default function MockTestInterface({
 
   const getQuestionText = useCallback(
     (question?: Question) => {
-      if (!question) return "";
+      if (!question) {
+        return "";
+      }
 
       return (
         question.question ||
@@ -279,7 +349,9 @@ export default function MockTestInterface({
 
   const getImageUrl = useCallback(
     (value: any): string => {
-      if (!value) return "";
+      if (!value) {
+        return "";
+      }
 
       if (typeof value === "string") {
         return value;
@@ -305,7 +377,9 @@ export default function MockTestInterface({
 
   const getQuestionImages = useCallback(
     (question?: Question): string[] => {
-      if (!question) return [];
+      if (!question) {
+        return [];
+      }
 
       const images: string[] = [];
 
@@ -356,7 +430,10 @@ export default function MockTestInterface({
 
   const getOptionImage = useCallback(
     (option: any): string => {
-      if (!option || typeof option !== "object") {
+      if (
+        !option ||
+        typeof option !== "object"
+      ) {
         return "";
       }
 
@@ -397,7 +474,9 @@ export default function MockTestInterface({
       }
 
       const selected =
-        normalizeAnswer(selectedAnswer);
+        normalizeAnswer(
+          selectedAnswer
+        );
 
       const correct =
         normalizeAnswer(
@@ -430,7 +509,9 @@ export default function MockTestInterface({
             correctLetterIndex
           ];
 
-        if (correctOption !== undefined) {
+        if (
+          correctOption !== undefined
+        ) {
           const correctText =
             normalizeAnswer(
               getOptionText(
@@ -463,7 +544,9 @@ export default function MockTestInterface({
             numericIndex
           ];
 
-        if (correctOption !== undefined) {
+        if (
+          correctOption !== undefined
+        ) {
           const correctText =
             normalizeAnswer(
               getOptionText(
@@ -495,7 +578,9 @@ export default function MockTestInterface({
           const option =
             question.options?.[index];
 
-          if (option !== undefined) {
+          if (
+            option !== undefined
+          ) {
             return (
               selected ===
               normalizeAnswer(
@@ -519,7 +604,7 @@ export default function MockTestInterface({
   // ====================================================
 
   const currentQ =
-    questions[currentQuestion];
+    displayQuestions[currentQuestion];
 
   const currentQuestionId =
     currentQ
@@ -529,8 +614,13 @@ export default function MockTestInterface({
         )
       : "";
 
+  /**
+   * IMPORTANT:
+   * Visible number is ALWAYS index + 1.
+   *
+   * MongoDB questionNumber is ignored.
+   */
   const currentDisplayQuestionNumber =
-    currentQ?.questionNumber ??
     currentQuestion + 1;
 
   // ====================================================
@@ -538,7 +628,7 @@ export default function MockTestInterface({
   // ====================================================
 
   const answeredCount = useMemo(() => {
-    return questions.reduce(
+    return displayQuestions.reduce(
       (count, question, index) => {
         const id =
           getQuestionId(
@@ -553,13 +643,13 @@ export default function MockTestInterface({
       0
     );
   }, [
-    questions,
+    displayQuestions,
     answers,
     getQuestionId,
   ]);
 
   const reviewCount = useMemo(() => {
-    return questions.reduce(
+    return displayQuestions.reduce(
       (count, question, index) => {
         const id =
           getQuestionId(
@@ -574,13 +664,13 @@ export default function MockTestInterface({
       0
     );
   }, [
-    questions,
+    displayQuestions,
     markedForReview,
     getQuestionId,
   ]);
 
   const unansweredCount =
-    questions.length -
+    displayQuestions.length -
     answeredCount;
 
   // ====================================================
@@ -611,8 +701,7 @@ export default function MockTestInterface({
 
           if (
             parsed &&
-            typeof parsed ===
-              "object"
+            typeof parsed === "object"
           ) {
             setAnswers(parsed);
           }
@@ -630,12 +719,9 @@ export default function MockTestInterface({
 
           if (
             parsed &&
-            typeof parsed ===
-              "object"
+            typeof parsed === "object"
           ) {
-            setMarkedForReview(
-              parsed
-            );
+            setMarkedForReview(parsed);
           }
         } catch {
           console.warn(
@@ -755,7 +841,7 @@ export default function MockTestInterface({
     if (
       submitted ||
       isSubmitting ||
-      questions.length === 0
+      displayQuestions.length === 0
     ) {
       return;
     }
@@ -780,7 +866,7 @@ export default function MockTestInterface({
   }, [
     submitted,
     isSubmitting,
-    questions.length,
+    displayQuestions.length,
     timeLeft,
   ]);
 
@@ -924,11 +1010,11 @@ export default function MockTestInterface({
     setCurrentQuestion(
       (previous) =>
         Math.min(
-          questions.length - 1,
+          displayQuestions.length - 1,
           previous + 1
         )
     );
-  }, [questions.length]);
+  }, [displayQuestions.length]);
 
   // ====================================================
   // PREVIOUS
@@ -965,7 +1051,7 @@ export default function MockTestInterface({
 
       if (
         currentQuestion <
-        questions.length - 1
+        displayQuestions.length - 1
       ) {
         setCurrentQuestion(
           (previous) =>
@@ -975,7 +1061,7 @@ export default function MockTestInterface({
     }, [
       currentQuestionId,
       currentQuestion,
-      questions.length,
+      displayQuestions.length,
     ]);
 
   // ====================================================
@@ -991,7 +1077,7 @@ export default function MockTestInterface({
       const reviewList: ReviewItem[] =
         [];
 
-      questions.forEach(
+      displayQuestions.forEach(
         (question, index) => {
           const id =
             getQuestionId(
@@ -1038,7 +1124,7 @@ export default function MockTestInterface({
       );
 
       const totalQuestions =
-        questions.length;
+        displayQuestions.length;
 
       const attempted =
         totalQuestions -
@@ -1079,7 +1165,7 @@ export default function MockTestInterface({
         reviewList,
       };
     }, [
-      questions,
+      displayQuestions,
       answers,
       getQuestionId,
       getQuestionText,
@@ -1132,7 +1218,6 @@ export default function MockTestInterface({
 
           studentId,
           studentName,
-
           examId,
 
           examName:
@@ -1165,10 +1250,11 @@ export default function MockTestInterface({
           timeTaken: Math.max(
             0,
             Math.round(
-              (questions.length *
-                60 -
-                timeLeft) /
-                60
+              (
+                displayQuestions.length *
+                  60 -
+                timeLeft
+              ) / 60
             )
           ),
 
@@ -1179,7 +1265,7 @@ export default function MockTestInterface({
             new Date().toISOString(),
         };
 
-        // Save current result
+        // Current result
         sessionStorage.setItem(
           resultStorageKey,
           JSON.stringify(
@@ -1187,7 +1273,7 @@ export default function MockTestInterface({
           )
         );
 
-        // Save history list
+        // History
         try {
           const oldHistory =
             localStorage.getItem(
@@ -1213,12 +1299,12 @@ export default function MockTestInterface({
             }
           }
 
-          // Avoid duplicate exam ID
-          history = history.filter(
-            (item) =>
-              item?.examId !==
-              examId
-          );
+          history =
+            history.filter(
+              (item) =>
+                item?.examId !==
+                examId
+            );
 
           history.unshift(
             historyItem
@@ -1244,7 +1330,7 @@ export default function MockTestInterface({
         subject,
         chapterName,
         className,
-        questions.length,
+        displayQuestions.length,
         timeLeft,
         resultStorageKey,
       ]
@@ -1278,7 +1364,7 @@ export default function MockTestInterface({
         }
 
         // ==============================================
-        // CALCULATE RESULT FIRST
+        // CALCULATE RESULT
         // ==============================================
 
         const result =
@@ -1295,7 +1381,6 @@ export default function MockTestInterface({
 
         const resultPayload = {
           studentId,
-
           studentName,
 
           examId,
@@ -1348,10 +1433,11 @@ export default function MockTestInterface({
           timeTaken: Math.max(
             0,
             Math.round(
-              (questions.length *
-                60 -
-                timeLeft) /
-                60
+              (
+                displayQuestions.length *
+                  60 -
+                timeLeft
+              ) / 60
             )
           ),
 
@@ -1366,7 +1452,7 @@ export default function MockTestInterface({
         };
 
         // ==============================================
-        // SAVE RESULT LOCALLY FIRST
+        // LOCAL SAVE
         // ==============================================
 
         saveLocalResult(
@@ -1374,15 +1460,10 @@ export default function MockTestInterface({
           isAutoSubmit
         );
 
-        // ==============================================
-        // IMPORTANT:
-        // RESULT IS ALREADY CALCULATED
-        // ==============================================
-
         setResultSummary(result);
 
         // ==============================================
-        // TRY BACKEND SAVE
+        // BACKEND SAVE
         // ==============================================
 
         try {
@@ -1395,18 +1476,19 @@ export default function MockTestInterface({
             );
 
           const cleanApiBase =
-            apiBaseUrl
-              .replace(
-                /\/+$/,
-                ""
-              );
+            apiBaseUrl.replace(
+              /\/+$/,
+              ""
+            );
 
-         const submitUrl = `${cleanApiBase}/results/submit`;
+          const submitUrl =
+            `${cleanApiBase}/results/submit`;
 
-        console.log(
-      "Submitting result:",
-     submitUrl
-      );
+          console.log(
+            "Submitting result:",
+            submitUrl
+          );
+
           const response =
             await fetch(
               submitUrl,
@@ -1425,9 +1507,10 @@ export default function MockTestInterface({
                     : {}),
                 },
 
-                body: JSON.stringify(
-                  resultPayload
-                ),
+                body:
+                  JSON.stringify(
+                    resultPayload
+                  ),
               }
             );
 
@@ -1451,12 +1534,6 @@ export default function MockTestInterface({
               "Backend result save failed:",
               errorMessage
             );
-
-            /*
-             * IMPORTANT:
-             * Backend route fail ayina
-             * frontend result screen stop avvakudadhu.
-             */
           } else {
             console.log(
               "Result saved successfully."
@@ -1486,15 +1563,12 @@ export default function MockTestInterface({
         );
 
         // ==============================================
-        // SHOW RESULT SCREEN
+        // SHOW RESULT
         // ==============================================
 
         setSubmitted(true);
-
         setAutoSubmitted(false);
-
         setIsSubmitting(false);
-
         setShowSubmitModal(false);
       },
       [
@@ -1506,7 +1580,7 @@ export default function MockTestInterface({
         studentId,
         studentName,
         examId,
-        questions.length,
+        displayQuestions.length,
         timeLeft,
         apiBaseUrl,
         saveLocalResult,
@@ -1526,7 +1600,7 @@ export default function MockTestInterface({
       !submitted &&
       !isSubmitting &&
       !hasSubmittedRef.current &&
-      questions.length > 0
+      displayQuestions.length > 0
     ) {
       submitExamData(true);
     }
@@ -1534,7 +1608,7 @@ export default function MockTestInterface({
     timeLeft,
     submitted,
     isSubmitting,
-    questions.length,
+    displayQuestions.length,
     submitExamData,
   ]);
 
@@ -1661,21 +1735,21 @@ export default function MockTestInterface({
     ]);
 
   // ====================================================
-  // GO TO RESULT HISTORY
+  // HISTORY
   // ====================================================
 
   const handleGoToHistory =
     useCallback(() => {
       navigate(
-        "/exam-history"
+        "/results"
       );
     }, [navigate]);
 
   // ====================================================
-  // EMPTY QUESTIONS
+  // EMPTY
   // ====================================================
 
-  if (!questions.length) {
+  if (!displayQuestions.length) {
     return (
       <div className="exam-page exam-empty">
         <div className="exam-empty-card">
@@ -1697,7 +1771,6 @@ export default function MockTestInterface({
             className="premium-btn primary"
           >
             <ArrowLeft size={18} />
-
             Back to Dashboard
           </button>
         </div>
@@ -1717,19 +1790,13 @@ export default function MockTestInterface({
       <div className="exam-page result-page">
         <div className="result-card">
 
-          {/* SUCCESS ICON */}
-
           <div className="result-success-icon">
             <CheckCircle2 size={42} />
           </div>
 
-          {/* BADGE */}
-
           <div className="result-badge">
             TEST SUBMITTED
           </div>
-
-          {/* TITLE */}
 
           <h1>
             Test Submitted Successfully
@@ -1741,20 +1808,19 @@ export default function MockTestInterface({
             successfully.
           </p>
 
-          {/* SCORE */}
-
           <div className="result-score-main">
-            <span>Your Score</span>
+            <span>
+              Your Score
+            </span>
 
             <strong>
               {resultSummary.correct}
+
               <small>
                 /{resultSummary.totalQuestions}
               </small>
             </strong>
           </div>
-
-          {/* RESULT GRID */}
 
           <div className="result-mini-grid">
 
@@ -1827,8 +1893,6 @@ export default function MockTestInterface({
 
           </div>
 
-          {/* DETAILED SUMMARY */}
-
           <div className="result-detail-summary">
 
             <div>
@@ -1861,8 +1925,7 @@ export default function MockTestInterface({
               </span>
 
               <strong>
-                {resultSummary.attempted >
-                0
+                {resultSummary.attempted > 0
                   ? Math.round(
                       (resultSummary.correct /
                         resultSummary.attempted) *
@@ -1875,8 +1938,6 @@ export default function MockTestInterface({
 
           </div>
 
-          {/* SECURE INFO */}
-
           <div className="result-info">
             <ShieldCheck size={18} />
 
@@ -1886,8 +1947,6 @@ export default function MockTestInterface({
             </span>
           </div>
 
-          {/* GO HISTORY BUTTON */}
-
           <button
             onClick={
               handleGoToHistory
@@ -1895,7 +1954,6 @@ export default function MockTestInterface({
             className="premium-btn primary result-back-btn"
           >
             Go to Result History
-
             <ArrowRight size={18} />
           </button>
 
@@ -1971,6 +2029,7 @@ export default function MockTestInterface({
             </span>
 
           </div>
+
         </div>
 
         <div className="exam-header-right">
@@ -2012,6 +2071,7 @@ export default function MockTestInterface({
           </button>
 
         </div>
+
       </header>
 
       {/* ==================================================
@@ -2020,135 +2080,116 @@ export default function MockTestInterface({
 
       <div className="exam-body">
 
-        {/* ==================================================
-            QUESTION PANEL
-        ================================================== */}
+  {/* ==================================================
+    QUESTION PANEL
+================================================== */}
 
-        <main className="question-panel">
+<main className="question-panel">
 
-          {/* TOP BAR */}
+  {/* TOP BAR */}
 
-          <div className="question-topbar">
+  <div className="question-topbar">
 
-            <div>
+    {/* LEFT SIDE */}
 
-              <div className="question-progress-label">
-                QUESTION{" "}
-                {
-                  currentDisplayQuestionNumber
-                }{" "}
-                OF{" "}
-                {questions.length}
-              </div>
+    <div className="question-topbar-left">
 
-              <div className="question-progress">
-                <div
-                  style={{
-                    width: `${
-                      ((currentQuestion +
-                        1) /
-                        questions.length) *
-                      100
-                    }%`,
-                  }}
-                />
-              </div>
+      <div className="question-progress-label">
+        QUESTION{" "}
+        {currentDisplayQuestionNumber}{" "}
+        OF{" "}
+        {displayQuestions.length}
+      </div>
 
-            </div>
+      <div className="question-subject-badge">
+        {currentQ?.subject || subject}
+      </div>
 
-            <div className="question-top-actions">
+      <div className="question-progress">
+        <div
+          style={{
+            width: `${
+              ((currentQuestion + 1) /
+                displayQuestions.length) *
+              100
+            }%`,
+          }}
+        />
+      </div>
 
-              <button
-                className={`small-action ${
-                  markedForReview[
-                    currentQuestionId
-                  ]
-                    ? "active"
-                    : ""
-                }`}
-                onClick={
-                  handleToggleReview
-                }
-              >
-                <Flag size={15} />
+    </div>
 
-                {markedForReview[
-                  currentQuestionId
-                ]
-                  ? "Review Marked"
-                  : "Mark Review"}
-              </button>
+    {/* RIGHT SIDE */}
 
-            </div>
+    <div className="question-top-actions">
 
-          </div>
+      <button
+        className={`small-action ${
+          markedForReview[currentQuestionId]
+            ? "active"
+            : ""
+        }`}
+        onClick={handleToggleReview}
+      >
+        <Flag size={15} />
 
-          {/* ==================================================
-              QUESTION
-          ================================================== */}
+        {markedForReview[currentQuestionId]
+          ? "Review Marked"
+          : "Mark Review"}
+      </button>
 
-          <section className="question-content">
+    </div>
 
-            <div className="question-number">
-              Q
-              {
+  </div>
+
+  {/* ==================================================
+      QUESTION
+  ================================================== */}
+
+  <section className="question-content">
+
+    <div className="question-number">
+      Q{currentDisplayQuestionNumber}
+    </div>
+
+    <div className="question-main">
+
+      <h1>
+        {getQuestionText(currentQ)}
+      </h1>
+
+      {getQuestionImages(currentQ).map(
+        (imageUrl, index) => (
+          <div
+            className="question-image-wrapper"
+            key={`${currentQuestionId}-image-${index}`}
+          >
+            <img
+              src={imageUrl}
+              alt={`Question ${
                 currentDisplayQuestionNumber
-              }
-            </div>
+              } figure ${index + 1}`}
+              className="question-image"
+              loading="lazy"
+              onError={(event) => {
+                const img =
+                  event.currentTarget;
 
-            <div className="question-main">
+                img.style.display = "none";
+              }}
+            />
+          </div>
+        )
+      )}
 
-              <h1>
-                {getQuestionText(
-                  currentQ
-                )}
-              </h1>
+      <div className="question-hint">
+        Select your option
+      </div>
 
-              {/* ==========================================
-                  QUESTION IMAGES
-              ========================================== */}
+    </div>
 
-              {getQuestionImages(
-                currentQ
-              ).map(
-                (
-                  imageUrl,
-                  index
-                ) => (
-                  <div
-                    className="question-image-wrapper"
-                    key={`${currentQuestionId}-image-${index}`}
-                  >
-                    <img
-                      src={imageUrl}
-                      alt={`Question ${
-                        currentDisplayQuestionNumber
-                      } figure ${
-                        index + 1
-                      }`}
-                      className="question-image"
-                      loading="lazy"
-                      onError={(
-                        event
-                      ) => {
-                        const img =
-                          event.currentTarget;
+  </section>              
 
-                        img.style.display =
-                          "none";
-                      }}
-                    />
-                  </div>
-                )
-              )}
-
-              <div className="question-hint">
-                Select your option
-              </div>
-
-            </div>
-
-          </section>
 
           {/* ==================================================
               OPTIONS
@@ -2200,11 +2241,13 @@ export default function MockTestInterface({
                   >
 
                     <span className="option-letter">
+
                       {isSelected ? (
                         <Check size={16} />
                       ) : (
                         optionLetter
                       )}
+
                     </span>
 
                     <span className="option-text">
@@ -2252,7 +2295,6 @@ export default function MockTestInterface({
               }
             >
               <RotateCcw size={15} />
-
               Clear Response
             </button>
 
@@ -2290,7 +2332,6 @@ export default function MockTestInterface({
               }
             >
               <ChevronLeft size={19} />
-
               Previous
             </button>
 
@@ -2298,18 +2339,16 @@ export default function MockTestInterface({
               <span>
                 ← →
               </span>
-
               Navigate
 
               <span>
                 1–4
               </span>
-
               Answer
             </div>
 
             {currentQuestion <
-            questions.length - 1 ? (
+            displayQuestions.length - 1 ? (
               <button
                 className="nav-btn primary"
                 onClick={
@@ -2317,7 +2356,6 @@ export default function MockTestInterface({
                 }
               >
                 Next Question
-
                 <ChevronRight
                   size={19}
                 />
@@ -2332,7 +2370,6 @@ export default function MockTestInterface({
                 }
               >
                 Submit Test
-
                 <Send size={17} />
               </button>
             )}
@@ -2383,7 +2420,6 @@ export default function MockTestInterface({
             <div className="exam-stats">
 
               <div className="stat-card answered">
-
                 <strong>
                   {answeredCount}
                 </strong>
@@ -2391,11 +2427,9 @@ export default function MockTestInterface({
                 <span>
                   Answered
                 </span>
-
               </div>
 
               <div className="stat-card review">
-
                 <strong>
                   {reviewCount}
                 </strong>
@@ -2403,11 +2437,9 @@ export default function MockTestInterface({
                 <span>
                   Review
                 </span>
-
               </div>
 
               <div className="stat-card unanswered">
-
                 <strong>
                   {unansweredCount}
                 </strong>
@@ -2415,7 +2447,6 @@ export default function MockTestInterface({
                 <span>
                   Remaining
                 </span>
-
               </div>
 
             </div>
@@ -2425,7 +2456,6 @@ export default function MockTestInterface({
             <div className="palette-header">
 
               <div>
-
                 <h4>
                   Question Palette
                 </h4>
@@ -2433,18 +2463,20 @@ export default function MockTestInterface({
                 <span>
                   Jump to any question
                 </span>
-
               </div>
 
               <LayoutGrid size={18} />
 
             </div>
 
-            {/* PALETTE */}
+            {/* ==================================================
+                QUESTION PALETTE
+                ALWAYS 1 2 3 4 5...
+            ================================================== */}
 
             <div className="question-palette">
 
-              {questions.map(
+              {displayQuestions.map(
                 (
                   question,
                   index
@@ -2463,9 +2495,7 @@ export default function MockTestInterface({
 
                   const isMarked =
                     Boolean(
-                      markedForReview[
-                        id
-                      ]
+                      markedForReview[id]
                     );
 
                   const isCurrent =
@@ -2511,14 +2541,10 @@ export default function MockTestInterface({
                         )
                       }
                       title={`Question ${
-                        question.questionNumber ??
                         index + 1
                       }`}
                     >
-                      {
-                        question.questionNumber ??
-                        index + 1
-                      }
+                      {index + 1}
                     </button>
                   );
                 }
@@ -2557,11 +2583,13 @@ export default function MockTestInterface({
                 )
               }
             >
+
               <div>
                 <Send size={17} />
               </div>
 
               <span>
+
                 <strong>
                   Submit Exam
                 </strong>
@@ -2569,11 +2597,13 @@ export default function MockTestInterface({
                 <small>
                   Review before submitting
                 </small>
+
               </span>
 
               <ArrowRight
                 size={17}
               />
+
             </button>
 
           </aside>
@@ -2598,7 +2628,7 @@ export default function MockTestInterface({
 
         <span>
           {answeredCount}/
-          {questions.length}
+          {displayQuestions.length}
         </span>
       </button>
 
@@ -2664,7 +2694,7 @@ export default function MockTestInterface({
                 </span>
 
                 <strong>
-                  {questions.length}
+                  {displayQuestions.length}
                 </strong>
               </div>
 
@@ -2720,8 +2750,7 @@ export default function MockTestInterface({
                   {unansweredCount >
                   1
                     ? "s"
-                    : ""}
-                  .
+                    : ""}.
                 </span>
 
               </div>

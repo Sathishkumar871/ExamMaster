@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import MathKeyboard from "../components/MathKeyboard";
 import {
   Plus,
   Trash2,
@@ -158,6 +159,7 @@ export default function QuestionBank() {
   const [pdfClassName, setPdfClassName] = useState("2nd PUC");
   const [pdfExamType, setPdfExamType] = useState("JEE");
   const [pdfTestCategory, setPdfTestCategory] = useState("mock");
+  const [pdfSubject, setPdfSubject] = useState("Physics");
   const [parsing, setParsing] = useState(false);
 
   const [formData, setFormData] = useState<Question>(
@@ -1700,7 +1702,10 @@ const updateQuestionImage = (value: string) => {
         "testCategory",
         pdfTestCategory
       );
-
+       data.append(
+         "subject",
+      pdfSubject
+           );
       const response = await fetch(
         `${API_BASE_URL}/questions/parse-pdf`,
         {
@@ -1751,6 +1756,62 @@ const updateQuestionImage = (value: string) => {
     } finally {
       setParsing(false);
     }
+  };
+
+  // ============================================================
+  // NEW / DUPLICATE QUESTION
+  // ============================================================
+
+  const getNextQuestionNumber = () => {
+    if (!questions.length) return 1;
+    return Math.max(...questions.map(q => Number(q.questionNumber) || 0)) + 1;
+  };
+
+  const startNewQuestion = () => {
+    const nextNumber = getNextQuestionNumber();
+    const lastQuestion = questions[questions.length - 1] || null;
+
+    setEditingId(null);
+    setFormData(
+      createEmptyQuestion(
+        lastQuestion,
+        nextNumber,
+        lastQuestion?.subject || "Physics"
+      )
+    );
+    setFormOptionColors(["", "", "", ""]);
+    setSelectedImageFile(null);
+    setImagePreviewUrl("");
+    setShowAddForm(true);
+
+    window.setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }, 0);
+  };
+
+  const duplicateQuestion = (q: Question) => {
+    const copy: Question = {
+      ...q,
+      _id: undefined,
+      questionNumber: getNextQuestionNumber(),
+      isPublished: false,
+      questionImage: q.questionImage || "",
+      options: q.options?.length === 4 ? [...q.options] : ["", "", "", ""],
+      tableData: normalizeTable(q.tableData),
+    };
+
+    setEditingId(null);
+    setFormData(copy);
+    setFormOptionColors(
+      (q as any).optionColors || ["", "", "", ""]
+    );
+    setSelectedImageFile(null);
+    setImagePreviewUrl(q.questionImage || "");
+    setShowAddForm(true);
+
+    window.setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }, 0);
   };
 
   // ============================================================
@@ -1828,9 +1889,7 @@ const updateQuestionImage = (value: string) => {
     searchTerm,
   ]);
 
-  // ============================================================
-  // TABLE RENDER
-  // ============================================================
+  
 // ============================================================
 // TABLE RENDER
 // ============================================================
@@ -2051,6 +2110,7 @@ const renderTable = (
                         {/* HEADER INPUT */}
 
                         <input
+              data-math-input="true"
                           value={header}
                           onChange={(e) =>
                             isInline
@@ -2074,6 +2134,7 @@ const renderTable = (
                           <Palette size={13} />
 
                           <input
+              data-math-input="true"
                             type="color"
                             value={
                               columnColors[
@@ -2268,6 +2329,7 @@ const renderTable = (
                             <Palette size={13} />
 
                             <input
+              data-math-input="true"
                               type="color"
                               value={
                                 rowColor ||
@@ -2357,6 +2419,7 @@ const renderTable = (
                               <div className="qb-cell-edit">
 
                                 <input
+              data-math-input="true"
                                   value={
                                     row[
                                       colIndex
@@ -2469,6 +2532,7 @@ const renderOptions = (
               </span>
 
               <input
+              data-math-input="true"
                 value={option}
 
                 onChange={(e) => {
@@ -2502,6 +2566,7 @@ const renderOptions = (
                 <Palette size={14} />
 
                 <input
+              data-math-input="true"
                   type="color"
 
                   value={
@@ -2612,6 +2677,7 @@ const renderInlineEditor = () => {
           </label>
 
           <input
+              data-math-input="true"
             type="number"
 
             value={
@@ -2684,6 +2750,7 @@ const renderInlineEditor = () => {
           </label>
 
           <input
+              data-math-input="true"
             value={
               inlineQuestion.chapter || ""
             }
@@ -2756,6 +2823,7 @@ const renderInlineEditor = () => {
         </label>
 
         <textarea
+              data-math-input="true"
           rows={4}
 
           value={
@@ -2788,6 +2856,7 @@ const renderInlineEditor = () => {
           <ImageIcon size={17} />
 
           <input
+              data-math-input="true"
             value={
               inlineQuestion.questionImage ||
               ""
@@ -2901,6 +2970,12 @@ const renderInlineEditor = () => {
 
 
       {/* ======================================================
+          MATH / SCIENCE KEYBOARD
+      ====================================================== */}
+
+      <MathKeyboard />
+
+      {/* ======================================================
           FOOTER
       ====================================================== */}
 
@@ -2996,13 +3071,11 @@ const renderInlineEditor = () => {
           <button
             className="qb-btn primary"
             onClick={() => {
-
               if (showAddForm) {
                 resetForm();
               } else {
-                setShowAddForm(true);
+                startNewQuestion();
               }
-
             }}
           >
             {showAddForm ? (
@@ -3280,6 +3353,7 @@ const renderInlineEditor = () => {
           <Search size={18} />
 
           <input
+              data-math-input="true"
             placeholder="Search questions, chapters, test titles..."
             value={
               searchTerm
@@ -3348,6 +3422,7 @@ const renderInlineEditor = () => {
               </label>
 
               <input
+              data-math-input="true"
                 type="number"
                 value={
                   formData.questionNumber
@@ -3494,6 +3569,7 @@ const renderInlineEditor = () => {
               </label>
 
               <input
+              data-math-input="true"
                 value={
                   formData.chapter
                 }
@@ -3514,6 +3590,7 @@ const renderInlineEditor = () => {
               </label>
 
               <input
+              data-math-input="true"
                 value={
                   formData.testTitle
                 }
@@ -3537,6 +3614,7 @@ const renderInlineEditor = () => {
             </label>
 
             <textarea
+              data-math-input="true"
               rows={5}
               value={
                 formData.question
@@ -3569,6 +3647,7 @@ const renderInlineEditor = () => {
     <ImageIcon size={17} />
 
     <input
+              data-math-input="true"
       type="file"
       accept="image/*"
       onChange={(e) => {
@@ -3593,6 +3672,7 @@ const renderInlineEditor = () => {
     <ImageIcon size={17} />
 
     <input
+              data-math-input="true"
       type="text"
       value={formData.questionImage || ""}
       onChange={(e) => {
@@ -3718,6 +3798,10 @@ const renderInlineEditor = () => {
               formData.tableData,
               true
             )}
+
+          {/* MATH / SCIENCE KEYBOARD */}
+
+          <MathKeyboard />
 
           {/* FOOTER */}
 
@@ -3916,6 +4000,17 @@ const renderInlineEditor = () => {
                           size={15}
                         />
                         Inline Edit
+                      </button>
+
+                      <button
+                        className="card-edit-form"
+                        onClick={() =>
+                          duplicateQuestion(q)
+                        }
+                        title="Duplicate question"
+                      >
+                        <Copy size={15} />
+                        Duplicate
                       </button>
 
                       <button
@@ -4304,6 +4399,7 @@ const renderInlineEditor = () => {
                 </span>
 
                 <input
+              data-math-input="true"
                   type="file"
                   accept=".pdf,application/pdf"
                   onChange={(e) =>
