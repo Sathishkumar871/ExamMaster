@@ -149,51 +149,82 @@ export default function MockTestInterface({
   const displayQuestions = useMemo(() => {
     const copiedQuestions = [...(questions || [])];
 
-    /**
-     * We only use an explicit ordering field when available.
-     * Otherwise preserve the array order received from backend.
-     *
-     * IMPORTANT:
-     * questionNumber is deliberately NOT used here.
-     *
-     * This prevents:
-     * MongoDB: 89, 1, 45, 3
-     *
-     * from displaying:
-     * 89, 1, 45, 3
-     *
-     * Instead UI will display:
-     * 1, 2, 3, 4
-     */
+    // ====================================================
+    // SUBJECT PRIORITY
+    // Physics → Chemistry → Botany → Zoology
+    // ====================================================
 
-    const hasExplicitOrder = copiedQuestions.some(
-      (question) =>
-        typeof question.order === "number" ||
-        typeof question.sequence === "number" ||
-        typeof question.index === "number"
-    );
+    const getSubjectRank = (value?: string) => {
+      const subjectName = String(value || "")
+        .trim()
+        .toLowerCase();
 
-    if (hasExplicitOrder) {
-      copiedQuestions.sort((a, b) => {
-        const getOrder = (question: Question) => {
-          if (typeof question.order === "number") {
-            return question.order;
-          }
+      if (subjectName.includes("physics")) return 1;
+      if (subjectName.includes("chemistry")) return 2;
+      if (subjectName.includes("botany")) return 3;
+      if (subjectName.includes("zoology")) return 4;
 
-          if (typeof question.sequence === "number") {
-            return question.sequence;
-          }
+      // Any unknown subject comes after the four main subjects.
+      return 999;
+    };
 
-          if (typeof question.index === "number") {
-            return question.index;
-          }
+    // ====================================================
+    // QUESTION ORDER INSIDE SUBJECT
+    // ====================================================
 
-          return Number.MAX_SAFE_INTEGER;
-        };
+    const getQuestionOrder = (question: Question) => {
+      if (typeof question.order === "number") {
+        return question.order;
+      }
 
-        return getOrder(a) - getOrder(b);
-      });
-    }
+      if (typeof question.sequence === "number") {
+        return question.sequence;
+      }
+
+      if (typeof question.index === "number") {
+        return question.index;
+      }
+
+      return Number.MAX_SAFE_INTEGER;
+    };
+
+    // ====================================================
+    // FINAL SORT
+    // 1. Subject priority
+    // 2. Explicit question order inside subject
+    // 3. questionNumber as final fallback
+    // ====================================================
+
+    copiedQuestions.sort((a, b) => {
+      const subjectA = getSubjectRank(a.subject);
+      const subjectB = getSubjectRank(b.subject);
+
+      // Physics → Chemistry → Botany → Zoology
+      if (subjectA !== subjectB) {
+        return subjectA - subjectB;
+      }
+
+      const orderA = getQuestionOrder(a);
+      const orderB = getQuestionOrder(b);
+
+      // Keep the existing ordering within the same subject.
+      if (orderA !== orderB) {
+        return orderA - orderB;
+      }
+
+      // Final fallback only when no explicit order is present.
+      const numberA =
+        typeof a.questionNumber === "number"
+          ? a.questionNumber
+          : Number.MAX_SAFE_INTEGER;
+
+      const numberB =
+        typeof b.questionNumber === "number"
+          ? b.questionNumber
+          : Number.MAX_SAFE_INTEGER;
+
+      return numberA - numberB;
+    });
 
     return copiedQuestions;
   }, [questions]);

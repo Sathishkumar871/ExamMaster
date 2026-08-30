@@ -53,13 +53,16 @@
     180ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+
 /* ============================================================
    PAGE
    ============================================================ */
 
 .question-bank-page {
   min-height: 100vh;
+
   padding: 30px;
+
   background:
     radial-gradient(
       circle at 10% 0%,
@@ -74,6 +77,7 @@
     var(--qb-bg);
 
   color: var(--qb-text);
+
   font-family:
     Inter,
     ui-sans-serif,
@@ -82,7 +86,24 @@
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
+
+  scrollbar-width: thin;
+  scrollbar-color: #c7d2fe transparent;
 }
+
+.question-bank-page::-webkit-scrollbar {
+  width: 8px;
+}
+
+.question-bank-page::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.question-bank-page::-webkit-scrollbar-thumb {
+  border-radius: 20px;
+  background: #c7d2fe;
+}
+
 
 /* ============================================================
    HERO
@@ -95,6 +116,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   gap: 24px;
 
   padding: 28px 30px;
@@ -121,7 +143,9 @@
 
 .qb-hero::before {
   content: "";
+
   position: absolute;
+
   width: 240px;
   height: 240px;
 
@@ -142,6 +166,7 @@
 
   display: flex;
   align-items: center;
+
   gap: 18px;
 }
 
@@ -190,7 +215,9 @@
 
   color: #ffffff;
 
-  font-size: clamp(24px, 3vw, 34px);
+  font-size:
+    clamp(24px, 3vw, 34px);
+
   font-weight: 850;
 
   letter-spacing: -0.04em;
@@ -203,6 +230,7 @@
 
   font-size: 14px;
 }
+
 
 /* ============================================================
    HEADER BUTTONS
@@ -217,6 +245,7 @@
   justify-content: flex-end;
 
   flex-wrap: wrap;
+
   gap: 9px;
 }
 
@@ -226,6 +255,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
   gap: 8px;
 
   padding: 0 15px;
@@ -295,6 +325,7 @@
     );
 }
 
+
 /* ============================================================
    STATS
    ============================================================ */
@@ -312,15 +343,16 @@
 
 .qb-stat-card {
   position: relative;
+  overflow: hidden;
 
   padding: 18px 20px;
 
-  overflow: hidden;
-
   border: 1px solid var(--qb-border);
+
   border-radius: var(--qb-radius);
 
-  background: rgba(255, 255, 255, 0.92);
+  background:
+    rgba(255, 255, 255, 0.92);
 
   box-shadow: var(--qb-shadow-sm);
 
@@ -348,6 +380,7 @@
 
 .qb-stat-card:hover {
   transform: translateY(-3px);
+
   box-shadow: var(--qb-shadow);
 }
 
@@ -362,6 +395,7 @@
   font-weight: 750;
 
   text-transform: uppercase;
+
   letter-spacing: 0.08em;
 }
 
@@ -376,6 +410,7 @@
 
   color: var(--qb-navy);
 }
+
 
 /* ============================================================
    TABS
@@ -394,16 +429,20 @@
   overflow-x: auto;
 
   border: 1px solid var(--qb-border);
+
   border-radius: 15px;
 
   background: #ffffff;
 
   box-shadow: var(--qb-shadow-sm);
+
+  scrollbar-width: thin;
 }
 
 .qb-tabs button {
   display: inline-flex;
   align-items: center;
+
   gap: 8px;
 
   white-space: nowrap;
@@ -411,6 +450,7 @@
   padding: 10px 14px;
 
   border: none;
+
   border-radius: 10px;
 
   color: var(--qb-text-2);
@@ -427,7 +467,9 @@
 
 .qb-tabs button:hover {
   color: var(--qb-primary);
-  background: var(--qb-primary-soft);
+
+  background:
+    var(--qb-primary-soft);
 }
 
 .qb-tabs button.active {
@@ -458,12 +500,15 @@
 
   font-size: 10px;
 
-  background: rgba(148, 163, 184, 0.14);
+  background:
+    rgba(148, 163, 184, 0.14);
 }
 
 .qb-tabs button.active span {
-  background: rgba(255, 255, 255, 0.18);
+  background:
+    rgba(255, 255, 255, 0.18);
 }
+
 
 /* ============================================================
    FILTER CARD
@@ -488,6 +533,7 @@
   margin-bottom: 22px;
 
   border: 1px solid var(--qb-border);
+
   border-radius: var(--qb-radius);
 
   background: #ffffff;
@@ -499,6 +545,7 @@
 .qb-field label {
   display: flex;
   align-items: center;
+
   gap: 5px;
 
   margin-bottom: 7px;
@@ -509,6 +556,7 @@
   font-weight: 800;
 
   text-transform: uppercase;
+
   letter-spacing: 0.055em;
 }
 
@@ -521,6 +569,7 @@
   box-sizing: border-box;
 
   border: 1px solid #dbe1ea;
+
   border-radius: 10px;
 
   outline: none;
@@ -567,16 +616,166 @@
     0 0 0 3px rgba(99, 102, 241, 0.10);
 }
 
+
+/* ============================================================
+   PREMIUM REFRESH BUTTON
+   ============================================================ */
+
+.qb-refresh {
+  width: 44px;
+  height: 42px;
+
+  position: relative;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border: 1px solid #dbe2ee;
+
+  border-radius: 12px;
+
+  color: #475569;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffffff 0%,
+      #f8faff 100%
+    );
+
+  box-shadow:
+    0 3px 10px rgba(15, 23, 42, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+
+  cursor: pointer;
+
+  transition:
+    transform 180ms cubic-bezier(0.4, 0, 0.2, 1),
+    color 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.qb-refresh svg {
+  width: 18px;
+  height: 18px;
+
+  stroke-width: 2.2;
+
+  transition:
+    transform 500ms cubic-bezier(0.4, 0, 0.2, 1),
+    color 180ms ease;
+}
+
+.qb-refresh:hover {
+  color: #4f46e5;
+
+  border-color: #c7d2fe;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffffff,
+      #eef2ff
+    );
+
+  box-shadow:
+    0 7px 18px rgba(79, 70, 229, 0.14),
+    0 0 0 3px rgba(99, 102, 241, 0.06);
+
+  transform: translateY(-2px);
+}
+
+.qb-refresh:hover svg {
+  transform: rotate(180deg);
+}
+
+.qb-refresh:active {
+  transform: translateY(0) scale(0.94);
+
+  box-shadow:
+    0 2px 7px rgba(15, 23, 42, 0.08);
+}
+
+.qb-refresh:focus-visible {
+  outline: none;
+
+  border-color: #818cf8;
+
+  box-shadow:
+    0 0 0 4px rgba(99, 102, 241, 0.14);
+}
+
+.qb-refresh.refreshing {
+  color: #4f46e5;
+
+  border-color: #c7d2fe;
+
+  background:
+    linear-gradient(
+      145deg,
+      #f8faff,
+      #eef2ff
+    );
+
+  cursor: wait;
+
+  box-shadow:
+    0 6px 18px rgba(79, 70, 229, 0.12);
+}
+
+.qb-refresh.refreshing svg {
+  animation:
+    qb-refresh-spin 0.8s linear infinite;
+}
+
+@keyframes qb-refresh-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.qb-refresh:disabled {
+  opacity: 0.55;
+
+  cursor: not-allowed;
+
+  transform: none;
+
+  box-shadow: none;
+}
+
+.qb-refresh:disabled svg {
+  transform: none;
+
+  animation: none;
+}
+
+
+/* ============================================================
+   SEARCH
+   ============================================================ */
+
 .qb-search {
   height: 42px;
 
   display: flex;
   align-items: center;
+
   gap: 9px;
 
   padding: 0 12px;
 
   border: 1px solid #dbe1ea;
+
   border-radius: 10px;
 
   color: #94a3b8;
@@ -600,39 +799,12 @@
   background: transparent;
 
   font: inherit;
+
   font-size: 13px;
 
   color: var(--qb-text);
 }
 
-.qb-refresh {
-  width: 44px;
-  height: 42px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border: 1px solid #dbe1ea;
-  border-radius: 10px;
-
-  color: #475569;
-  background: #ffffff;
-
-  cursor: pointer;
-
-  transition: var(--qb-transition);
-}
-
-.qb-refresh:hover {
-  color: var(--qb-primary);
-
-  border-color: #c7d2fe;
-
-  background: var(--qb-primary-soft);
-
-  transform: rotate(25deg);
-}
 
 /* ============================================================
    FORM
@@ -644,6 +816,7 @@
   padding: 25px;
 
   border: 1px solid #dfe4ec;
+
   border-radius: 22px;
 
   background: #ffffff;
@@ -717,6 +890,7 @@
   grid-column: 1 / -1;
 }
 
+
 /* ============================================================
    ICON BUTTON
    ============================================================ */
@@ -732,9 +906,11 @@
   flex-shrink: 0;
 
   border: 1px solid #e2e8f0;
+
   border-radius: 10px;
 
   color: #64748b;
+
   background: #ffffff;
 
   cursor: pointer;
@@ -750,6 +926,7 @@
   background: var(--qb-red-soft);
 }
 
+
 /* ============================================================
    IMAGE INPUT
    ============================================================ */
@@ -759,11 +936,13 @@
 
   display: flex;
   align-items: center;
+
   gap: 9px;
 
   padding: 0 12px;
 
   border: 1px solid #dbe1ea;
+
   border-radius: 10px;
 
   color: #7c3aed;
@@ -795,6 +974,7 @@
   padding: 10px;
 
   border: 1px solid #e2e8f0;
+
   border-radius: 15px;
 
   background: #f8fafc;
@@ -803,7 +983,8 @@
 .qb-image-preview img {
   display: block;
 
-  max-width: min(650px, 100%);
+  max-width:
+    min(650px, 100%);
 
   max-height: 320px;
 
@@ -818,16 +999,19 @@
   padding: 6px 10px;
 
   border: 1px solid #fecaca;
+
   border-radius: 8px;
 
   color: #dc2626;
-  background: #fff;
+
+  background: #ffffff;
 
   font-size: 11px;
   font-weight: 700;
 
   cursor: pointer;
 }
+
 
 /* ============================================================
    SECTION TITLE
@@ -848,6 +1032,7 @@
 .qb-section-title > span {
   display: flex;
   align-items: center;
+
   gap: 7px;
 
   color: var(--qb-navy);
@@ -856,20 +1041,24 @@
   font-weight: 850;
 
   text-transform: uppercase;
+
   letter-spacing: 0.06em;
 }
 
 .qb-small-primary {
   display: inline-flex;
   align-items: center;
+
   gap: 6px;
 
   padding: 7px 11px;
 
   border: 1px solid #c7d2fe;
+
   border-radius: 8px;
 
   color: #4338ca;
+
   background: #eef2ff;
 
   font-size: 11px;
@@ -882,8 +1071,10 @@
 
 .qb-small-primary:hover {
   color: #ffffff;
+
   background: #4f46e5;
 }
+
 
 /* ============================================================
    OPTIONS
@@ -903,11 +1094,13 @@
 
   display: flex;
   align-items: center;
+
   gap: 9px;
 
   padding: 5px 9px 5px 6px;
 
   border: 1px solid #e2e8f0;
+
   border-radius: 11px;
 
   background: #ffffff;
@@ -983,6 +1176,7 @@
     );
 }
 
+
 /* ============================================================
    PREMIUM TABLE SYSTEM
    ============================================================ */
@@ -990,11 +1184,14 @@
 .qb-table-wrapper {
   width: 100%;
 
+  position: relative;
+
   margin-top: 12px;
 
   overflow: hidden;
 
   border: 1px solid #dbe2ea;
+
   border-radius: 16px;
 
   background: #ffffff;
@@ -1002,6 +1199,52 @@
   box-shadow:
     0 7px 24px rgba(15, 23, 42, 0.06);
 }
+
+.qb-table-scroll {
+  width: 100%;
+
+  overflow-x: auto;
+  overflow-y: visible;
+
+  position: relative;
+
+  border: 1px solid rgba(120, 130, 150, 0.22);
+
+  border-radius: 14px;
+
+  background: #ffffff;
+
+  overscroll-behavior-x: contain;
+
+  scrollbar-width: thin;
+
+  scrollbar-color:
+    #b8c1d1
+    #eef1f6;
+}
+
+.qb-table-scroll::-webkit-scrollbar {
+  height: 8px;
+}
+
+.qb-table-scroll::-webkit-scrollbar-thumb {
+  background: #b8c1d1;
+
+  border-radius: 20px;
+}
+
+.qb-table-scroll::-webkit-scrollbar-thumb:hover {
+  background: #818cf8;
+}
+
+.qb-table-scroll::-webkit-scrollbar-track {
+  background: #eef1f6;
+}
+
+
+/* ============================================================
+   TABLE TOOLBAR
+   ============================================================ */
 
 .qb-table-toolbar {
   min-height: 50px;
@@ -1027,14 +1270,16 @@
 .qb-table-title {
   display: flex;
   align-items: center;
+
   gap: 8px;
 
-  color: #1e293b;
+  color: #172033;
 
   font-size: 12px;
   font-weight: 850;
 
   text-transform: uppercase;
+
   letter-spacing: 0.05em;
 }
 
@@ -1042,10 +1287,21 @@
   color: #4f46e5;
 }
 
+.qb-table-title small {
+  margin-left: 5px;
+
+  color: #64748b;
+
+  font-size: 11px;
+
+  font-weight: 500;
+}
+
 .qb-table-actions {
   display: flex;
   align-items: center;
-  gap: 6px;
+
+  gap: 7px;
 
   flex-wrap: wrap;
 }
@@ -1053,105 +1309,98 @@
 .qb-table-actions button {
   display: inline-flex;
   align-items: center;
+
   gap: 5px;
 
-  min-height: 31px;
+  min-height: 34px;
 
-  padding: 0 9px;
+  padding: 0 10px;
 
-  border: 1px solid #dbe3ed;
+  border: 1px solid #d8dee9;
+
   border-radius: 8px;
 
-  color: #475569;
   background: #ffffff;
 
-  font-size: 10px;
-  font-weight: 750;
+  color: #334155;
+
+  font-size: 12px;
+  font-weight: 600;
 
   cursor: pointer;
 
-  transition: var(--qb-transition);
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease;
 }
 
 .qb-table-actions button:hover {
-  color: #4338ca;
+  border-color: #4f7cff;
 
-  border-color: #c7d2fe;
-
-  background: #eef2ff;
+  background: #f5f8ff;
 
   transform: translateY(-1px);
+}
+
+.qb-table-actions .danger-light {
+  color: #dc2626;
+
+  background: #fff7f7;
+
+  border-color: #fecaca;
 }
 
 .qb-table-actions .danger-light:hover {
   color: #dc2626;
 
-  border-color: #fecaca;
+  background: #fff1f2;
 
-  background: #fef2f2;
+  border-color: #fca5a5;
 }
 
-/* ------------------------------------------------------------
-   TABLE SCROLL
-   ------------------------------------------------------------ */
 
-.qb-table-scroll {
-  width: 100%;
-
-  overflow-x: auto;
-
-  overscroll-behavior-x: contain;
-
-  scrollbar-width: thin;
-  scrollbar-color: #c7d2fe transparent;
-}
-
-.qb-table-scroll::-webkit-scrollbar {
-  height: 7px;
-}
-
-.qb-table-scroll::-webkit-scrollbar-track {
-  background: #f8fafc;
-}
-
-.qb-table-scroll::-webkit-scrollbar-thumb {
-  border-radius: 20px;
-
-  background: #c7d2fe;
-}
-
-.qb-table-scroll::-webkit-scrollbar-thumb:hover {
-  background: #818cf8;
-}
-
-/* ------------------------------------------------------------
+/* ============================================================
    TABLE
-   ------------------------------------------------------------ */
+   ============================================================ */
 
 .qb-question-table {
-  width: 100%;
-
-  min-width: 650px;
-
   border-collapse: separate;
+
   border-spacing: 0;
+
+  position: relative;
+
+  width: max-content;
+
+  min-width: 100%;
 
   table-layout: auto;
 
   font-size: 12px;
 }
 
+.qb-question-table th,
+.qb-question-table td {
+  box-sizing: border-box;
+
+  border-right: 1px solid #e3e7ee;
+
+  border-bottom: 1px solid #e3e7ee;
+}
+
 .qb-question-table th {
   position: relative;
 
-  min-width: 130px;
+  min-width: 80px;
 
-  padding: 0;
+  height: 58px;
+
+  padding: 7px 8px;
 
   color: #ffffff;
 
-  border-right: 1px solid rgba(255,255,255,0.12);
-  border-bottom: 1px solid #3730a3;
+  border-bottom-color: #3730a3;
 
   background:
     linear-gradient(
@@ -1160,103 +1409,57 @@
       #4f46e5
     );
 
+  vertical-align: middle;
+
   text-align: left;
 
   font-weight: 800;
-}
 
-.qb-question-table th:first-child {
-  border-top-left-radius: 2px;
+  user-select: none;
 }
 
 .qb-question-table th:last-child {
   border-right: none;
 }
 
-.qb-table-header-edit {
-  display: flex;
-  align-items: center;
+.qb-question-table th::after {
+  content: "";
 
-  gap: 4px;
+  position: absolute;
 
-  padding: 7px;
-}
+  top: 0;
+  right: 0;
 
-.qb-table-header-edit input {
-  min-width: 90px;
+  width: 5px;
+  height: 100%;
 
-  flex: 1;
-
-  height: 31px;
-
-  padding: 0 8px;
-
-  border: 1px solid rgba(255,255,255,0.22);
-  border-radius: 7px;
-
-  outline: none;
-
-  color: #ffffff;
+  cursor: col-resize;
 
   background:
-    rgba(255,255,255,0.11);
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.18)
+    );
 
-  font-size: 11px;
-  font-weight: 750;
+  opacity: 0;
+
+  transition:
+    opacity var(--qb-transition);
 }
 
-.qb-table-header-edit input::placeholder {
-  color: #c7d2fe;
+.qb-question-table th:hover::after {
+  opacity: 1;
 }
-
-.qb-table-header-edit input:focus {
-  border-color: rgba(255,255,255,0.65);
-
-  background:
-    rgba(255,255,255,0.18);
-}
-
-.qb-table-header-edit button {
-  width: 25px;
-  height: 25px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  flex-shrink: 0;
-
-  border: none;
-  border-radius: 6px;
-
-  color: #ddd6fe;
-
-  background: rgba(255,255,255,0.10);
-
-  cursor: pointer;
-
-  transition: var(--qb-transition);
-}
-
-.qb-table-header-edit button:hover {
-  color: #ffffff;
-
-  background: rgba(239,68,68,0.75);
-}
-
-/* ------------------------------------------------------------
-   TABLE BODY
-   ------------------------------------------------------------ */
 
 .qb-question-table td {
   position: relative;
 
-  min-width: 130px;
+  min-width: 80px;
 
-  padding: 8px 9px;
+  height: 52px;
 
-  border-right: 1px solid #edf1f5;
-  border-bottom: 1px solid #edf1f5;
+  padding: 6px 8px;
 
   color: #334155;
 
@@ -1288,102 +1491,17 @@
     inset 0 -1px 0 #dbe4ff;
 }
 
-.qb-cell-edit {
-  position: relative;
-
-  display: flex;
-  align-items: center;
-}
-
-.qb-cell-edit input {
-  width: 100%;
-
-  min-width: 100px;
-
-  height: 34px;
-
-  padding: 0 8px;
-
-  border: 1px solid transparent;
-  border-radius: 7px;
-
-  outline: none;
-
-  color: #334155;
-
-  background: transparent;
-
-  font-size: 12px;
-
-  transition: var(--qb-transition);
-}
-
-.qb-cell-edit input:hover {
-  border-color: #cbd5e1;
-
-  background: #ffffff;
-}
-
-.qb-cell-edit input:focus {
-  border-color: #818cf8;
-
-  background: #ffffff;
-
-  box-shadow:
-    0 0 0 3px rgba(99,102,241,0.10);
-}
-
-/* ============================================================
-   DRAG-LIKE TABLE INTERACTION
-   ============================================================ */
-
-/*
-  Native draggable/resizable visual language.
-  This makes table cells feel like editable spreadsheet blocks.
-*/
-
-.qb-question-table th,
-.qb-question-table td {
-  user-select: none;
-}
-
-.qb-question-table th::after {
-  content: "";
-
-  position: absolute;
-
-  top: 0;
-  right: 0;
-
-  width: 5px;
-  height: 100%;
-
-  cursor: col-resize;
-
-  background:
-    linear-gradient(
-      90deg,
-      transparent,
-      rgba(255,255,255,0.18)
-    );
-
-  opacity: 0;
-
-  transition: opacity var(--qb-transition);
-}
-
-.qb-question-table th:hover::after {
-  opacity: 1;
-}
-
 .qb-question-table tbody tr {
   transition:
-    transform 120ms ease,
-    box-shadow 120ms ease;
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
 }
 
 .qb-question-table tbody tr:hover {
   cursor: grab;
+
+  box-shadow:
+    inset 0 0 0 1px rgba(79, 124, 255, 0.12);
 }
 
 .qb-question-table tbody tr:active {
@@ -1392,14 +1510,405 @@
   transform: scale(0.998);
 
   box-shadow:
-    0 5px 20px rgba(79,70,229,0.10);
+    0 5px 20px rgba(79, 70, 229, 0.10);
 }
 
-/* Row number-like hover indicator */
 
-.qb-question-table tbody tr:hover::before {
+/* ============================================================
+   TABLE HEADER EDIT
+   ============================================================ */
+
+.qb-table-header-edit {
+  width: 100%;
+
+  height: 100%;
+
+  min-height: 40px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 6px;
+
+  position: relative;
+}
+
+.qb-table-header-edit input {
+  flex: 1;
+
+  min-width: 0;
+
+  height: 34px;
+
+  padding: 6px 8px;
+
+  border: 1px solid rgba(255, 255, 255, 0.22);
+
+  border-radius: 7px;
+
+  outline: none;
+
+  color: #ffffff;
+
+  background:
+    rgba(255, 255, 255, 0.11);
+
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.qb-table-header-edit input::placeholder {
+  color: #c7d2fe;
+}
+
+.qb-table-header-edit input:focus {
+  border-color:
+    rgba(255, 255, 255, 0.65);
+
+  background:
+    rgba(255, 255, 255, 0.18);
+}
+
+.qb-table-header-edit button {
+  width: 28px;
+  height: 28px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 0;
+
+  border-radius: 7px;
+
+  background: #fff1f2;
+
+  color: #dc2626;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.qb-table-header-edit button:hover {
+  background: #fee2e2;
+
+  transform: scale(1.05);
+}
+
+
+/* ============================================================
+   HEADER VIEW MODE
+   ============================================================ */
+
+.qb-table-header-view {
+  width: 100%;
+
+  padding: 8px;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  color: #ffffff;
+
+  text-align: left;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+
+/* ============================================================
+   COLUMN COLOR PICKER
+   ============================================================ */
+
+.qb-color-picker {
+  width: 28px;
+  height: 28px;
+
+  flex-shrink: 0;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  position: relative;
+
+  border: 1px solid #d8dee9;
+
+  border-radius: 7px;
+
+  background: #ffffff;
+
+  cursor: pointer;
+
+  color: #64748b;
+
+  overflow: hidden;
+}
+
+.qb-color-picker:hover {
+  border-color: #4f7cff;
+
+  color: #2563eb;
+}
+
+.qb-color-picker input[type="color"] {
+  position: absolute;
+
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  opacity: 0;
+
+  cursor: pointer;
+}
+
+
+/* ============================================================
+   COLUMN RESIZE HANDLE
+   ============================================================ */
+
+.qb-column-resize-handle {
+  position: absolute;
+
+  top: 0;
+  right: -4px;
+
+  width: 9px;
+  height: 100%;
+
+  z-index: 20;
+
+  cursor: col-resize;
+
+  background: transparent;
+}
+
+.qb-column-resize-handle::after {
   content: "";
+
+  position: absolute;
+
+  top: 12%;
+  right: 3px;
+
+  width: 2px;
+  height: 76%;
+
+  border-radius: 10px;
+
+  background: transparent;
+
+  transition:
+    background 0.2s ease,
+    width 0.2s ease;
 }
+
+.qb-column-resize-handle:hover::after {
+  width: 3px;
+
+  background: #4f7cff;
+}
+
+
+/* ============================================================
+   ROW DRAG CELL
+   ============================================================ */
+
+.qb-drag-head,
+.qb-drag-cell {
+  width: 52px !important;
+
+  min-width: 52px !important;
+
+  max-width: 52px !important;
+
+  text-align: center;
+
+  background: #f5f7fb;
+}
+
+.qb-drag-head {
+  height: 58px;
+}
+
+.qb-drag-cell {
+  position: relative;
+
+  padding: 4px !important;
+}
+
+.qb-row-controls {
+  width: 100%;
+  height: 100%;
+
+  min-height: 44px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 4px;
+}
+
+
+/* ============================================================
+   DRAG HANDLE
+   ============================================================ */
+
+.drag-handle {
+  flex-shrink: 0;
+
+  cursor: grab;
+
+  color: #64748b;
+
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.drag-handle:hover {
+  color: #2563eb;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+
+  transform: scale(1.08);
+}
+
+
+/* ============================================================
+   ROW RESIZE HANDLE
+   ============================================================ */
+
+.qb-row-resize-handle {
+  position: absolute;
+
+  left: 4px;
+  right: 4px;
+
+  bottom: -4px;
+
+  height: 9px;
+
+  z-index: 30;
+
+  cursor: row-resize;
+
+  background: transparent;
+}
+
+.qb-row-resize-handle::after {
+  content: "";
+
+  position: absolute;
+
+  left: 15%;
+  right: 15%;
+
+  bottom: 3px;
+
+  height: 2px;
+
+  border-radius: 10px;
+
+  background: transparent;
+
+  transition:
+    background 0.2s ease,
+    height 0.2s ease;
+}
+
+.qb-row-resize-handle:hover::after {
+  height: 3px;
+
+  background: #4f7cff;
+}
+
+
+/* ============================================================
+   TABLE CELLS
+   ============================================================ */
+
+.qb-cell-edit {
+  width: 100%;
+
+  height: 100%;
+
+  min-height: 40px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 6px;
+
+  position: relative;
+}
+
+.qb-cell-edit input {
+  width: 100%;
+
+  min-width: 0;
+
+  height: 36px;
+
+  padding: 6px 8px;
+
+  border: 1px solid transparent;
+
+  border-radius: 7px;
+
+  background:
+    rgba(255, 255, 255, 0.72);
+
+  color: #172033;
+
+  outline: none;
+
+  font-size: 13px;
+
+  transition: var(--qb-transition);
+}
+
+.qb-cell-edit input:hover {
+  border-color: #d8dee9;
+}
+
+.qb-cell-edit input:focus {
+  border-color: #4f7cff;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 0 0 3px rgba(79, 124, 255, 0.1);
+}
+
+.qb-cell-position {
+  position: absolute;
+
+  right: 6px;
+  bottom: 3px;
+
+  font-size: 9px;
+  font-weight: 600;
+
+  color: #94a3b8;
+
+  pointer-events: none;
+}
+
 
 /* ============================================================
    ROW DELETE
@@ -1407,6 +1916,7 @@
 
 .qb-row-delete-cell {
   width: 40px !important;
+
   min-width: 40px !important;
 
   padding: 5px !important;
@@ -1425,6 +1935,7 @@
   justify-content: center;
 
   border: 1px solid transparent;
+
   border-radius: 7px;
 
   color: #94a3b8;
@@ -1443,6 +1954,7 @@
 
   background: #fef2f2;
 }
+
 
 /* ============================================================
    DISPLAY TABLE
@@ -1480,6 +1992,7 @@
   min-width: 100px;
 }
 
+
 /* ============================================================
    FORM FOOTER
    ============================================================ */
@@ -1507,6 +2020,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
   gap: 7px;
 
   padding: 0 15px;
@@ -1550,14 +2064,14 @@
     );
 
   box-shadow:
-    0 8px 18px rgba(79,70,229,0.22);
+    0 8px 18px rgba(79, 70, 229, 0.22);
 }
 
 .qb-save-btn:hover {
   transform: translateY(-2px);
 
   box-shadow:
-    0 12px 25px rgba(79,70,229,0.28);
+    0 12px 25px rgba(79, 70, 229, 0.28);
 }
 
 .qb-save-btn:disabled {
@@ -1567,6 +2081,7 @@
 
   transform: none;
 }
+
 
 /* ============================================================
    RESULTS HEADER
@@ -1583,6 +2098,7 @@
 .qb-results-header h2 {
   display: flex;
   align-items: center;
+
   gap: 10px;
 
   margin: 3px 0 0;
@@ -1612,6 +2128,7 @@
   font-size: 11px;
 }
 
+
 /* ============================================================
    QUESTION CARD
    ============================================================ */
@@ -1628,6 +2145,7 @@
   overflow: hidden;
 
   border: 1px solid #e2e8f0;
+
   border-radius: 18px;
 
   background: #ffffff;
@@ -1691,7 +2209,7 @@
   font-weight: 850;
 
   box-shadow:
-    0 5px 15px rgba(79,70,229,0.18);
+    0 5px 15px rgba(79, 70, 229, 0.18);
 }
 
 .qb-card-meta {
@@ -1710,71 +2228,96 @@
 
   display: inline-flex;
   align-items: center;
+
   gap: 4px;
 
   padding: 0 8px;
 
   border: 1px solid transparent;
+
   border-radius: 7px;
 
   font-size: 9px;
   font-weight: 800;
 
   text-transform: uppercase;
+
   letter-spacing: 0.04em;
 }
 
 .tag.class {
   color: #0369a1;
+
   background: #e0f2fe;
+
   border-color: #bae6fd;
 }
 
 .tag.exam {
   color: #7c2d12;
+
   background: #ffedd5;
+
   border-color: #fed7aa;
 }
 
 .tag.subject {
   color: #166534;
+
   background: #dcfce7;
+
   border-color: #bbf7d0;
 }
 
 .tag.category {
   color: #6b21a8;
+
   background: #f3e8ff;
+
   border-color: #e9d5ff;
 }
 
 .tag.status.published {
   color: #047857;
+
   background: #ecfdf5;
+
   border-color: #a7f3d0;
 }
 
 .tag.status.draft {
   color: #b45309;
+
   background: #fffbeb;
+
   border-color: #fde68a;
 }
 
 .tag.table {
   color: #4338ca;
+
   background: #eef2ff;
+
   border-color: #c7d2fe;
 }
 
 .tag.image {
   color: #0e7490;
+
   background: #ecfeff;
+
   border-color: #a5f3fc;
 }
+
+
+/* ============================================================
+   CARD ACTIONS
+   ============================================================ */
 
 .qb-card-actions {
   display: flex;
   align-items: center;
+
   gap: 6px;
 }
 
@@ -1784,6 +2327,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
   gap: 5px;
 
   padding: 0 9px;
@@ -1833,7 +2377,7 @@
 
   color: #dc2626;
 
-  background: #fff;
+  background: #ffffff;
 }
 
 .card-delete:hover {
@@ -1860,6 +2404,7 @@
   background: #eef2ff;
 }
 
+
 /* ============================================================
    QUESTION BODY
    ============================================================ */
@@ -1874,6 +2419,7 @@
   color: #1e293b;
 
   font-size: 15px;
+
   line-height: 1.7;
 
   font-weight: 650;
@@ -1896,6 +2442,7 @@
   font-weight: 700;
 }
 
+
 /* ============================================================
    CARD IMAGE
    ============================================================ */
@@ -1911,6 +2458,7 @@
   padding: 15px;
 
   border: 1px solid #e2e8f0;
+
   border-radius: 14px;
 
   background:
@@ -1923,6 +2471,7 @@
 
 .qb-card-image img {
   max-width: 100%;
+
   max-height: 420px;
 
   display: block;
@@ -1931,6 +2480,7 @@
 
   border-radius: 9px;
 }
+
 
 /* ============================================================
    DISPLAY OPTIONS
@@ -1958,6 +2508,7 @@
   padding: 7px 10px;
 
   border: 1px solid #e2e8f0;
+
   border-radius: 11px;
 
   color: #475569;
@@ -1965,6 +2516,7 @@
   background: #ffffff;
 
   font-size: 12px;
+
   line-height: 1.45;
 
   transition: var(--qb-transition);
@@ -2028,6 +2580,7 @@
     );
 }
 
+
 /* ============================================================
    EXTRA INFO
    ============================================================ */
@@ -2041,6 +2594,7 @@
   gap: 9px;
 
   margin-top: 18px;
+
   padding-top: 16px;
 
   border-top: 1px solid #edf0f5;
@@ -2052,6 +2606,7 @@
   padding: 11px;
 
   border: 1px solid #e8edf3;
+
   border-radius: 10px;
 
   background: #fafbff;
@@ -2068,6 +2623,7 @@
   font-weight: 800;
 
   text-transform: uppercase;
+
   letter-spacing: 0.05em;
 }
 
@@ -2081,8 +2637,10 @@
   font-size: 11px;
 
   white-space: nowrap;
+
   text-overflow: ellipsis;
 }
+
 
 /* ============================================================
    INLINE EDITOR
@@ -2092,12 +2650,13 @@
   overflow: hidden;
 
   border: 1px solid #c7d2fe;
+
   border-radius: 20px;
 
   background: #ffffff;
 
   box-shadow:
-    0 20px 60px rgba(79,70,229,0.14);
+    0 20px 60px rgba(79, 70, 229, 0.14);
 }
 
 .qb-inline-editor .qb-editor-header {
@@ -2119,6 +2678,7 @@
 .qb-inline-editor > .qb-image-preview,
 .qb-inline-editor > .qb-table-wrapper {
   margin-left: 20px;
+
   margin-right: 20px;
 }
 
@@ -2128,9 +2688,12 @@
 
 .qb-inline-editor .qb-inline-footer {
   margin-left: 20px;
+
   margin-right: 20px;
+
   margin-bottom: 20px;
 }
+
 
 /* ============================================================
    EMPTY STATE
@@ -2148,6 +2711,7 @@
   padding: 35px;
 
   border: 1px dashed #cbd5e1;
+
   border-radius: 20px;
 
   color: #94a3b8;
@@ -2155,8 +2719,8 @@
   background:
     linear-gradient(
       135deg,
-      rgba(255,255,255,0.85),
-      rgba(248,250,252,0.85)
+      rgba(255, 255, 255, 0.85),
+      rgba(248, 250, 252, 0.85)
     );
 }
 
@@ -2175,6 +2739,7 @@
 
   font-size: 12px;
 }
+
 
 /* ============================================================
    PDF MODAL
@@ -2200,21 +2765,24 @@
 }
 
 .qb-pdf-modal {
-  width: min(510px, 100%);
+  width:
+    min(510px, 100%);
 
-  max-height: calc(100vh - 40px);
+  max-height:
+    calc(100vh - 40px);
 
   overflow-y: auto;
 
   padding: 22px;
 
-  border: 1px solid rgba(255,255,255,0.45);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+
   border-radius: 22px;
 
   background: #ffffff;
 
   box-shadow:
-    0 35px 100px rgba(0,0,0,0.30);
+    0 35px 100px rgba(0, 0, 0, 0.30);
 }
 
 .qb-modal-header {
@@ -2224,6 +2792,7 @@
 .qb-modal-header h2 {
   font-size: 20px;
 }
+
 
 /* ============================================================
    PDF UPLOAD BOX
@@ -2247,6 +2816,7 @@
   padding: 20px;
 
   border: 1.5px dashed #a5b4fc;
+
   border-radius: 16px;
 
   color: #6366f1;
@@ -2307,6 +2877,7 @@
   overflow: hidden;
 
   margin-top: 6px;
+
   padding: 7px 10px;
 
   border-radius: 8px;
@@ -2319,8 +2890,10 @@
   font-weight: 750;
 
   text-overflow: ellipsis;
+
   white-space: nowrap;
 }
+
 
 /* ============================================================
    SPINNER
@@ -2337,27 +2910,21 @@
   }
 }
 
+
 /* ============================================================
-   SCROLLBAR
+   ACCESSIBILITY
    ============================================================ */
 
-.question-bank-page {
-  scrollbar-width: thin;
-  scrollbar-color: #c7d2fe transparent;
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline:
+    3px solid rgba(99, 102, 241, 0.20);
+
+  outline-offset: 2px;
 }
 
-.question-bank-page::-webkit-scrollbar {
-  width: 8px;
-}
-
-.question-bank-page::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.question-bank-page::-webkit-scrollbar-thumb {
-  border-radius: 20px;
-  background: #c7d2fe;
-}
 
 /* ============================================================
    RESPONSIVE — LARGE TABLET
@@ -2371,6 +2938,7 @@
 
   .qb-hero {
     align-items: flex-start;
+
     flex-direction: column;
   }
 
@@ -2409,6 +2977,7 @@
   }
 }
 
+
 /* ============================================================
    TABLET
    ============================================================ */
@@ -2435,13 +3004,15 @@
 
   .qb-card-top {
     align-items: flex-start;
+
     flex-wrap: wrap;
   }
 
   .qb-card-meta {
     order: 2;
 
-    width: calc(100% - 56px);
+    width:
+      calc(100% - 56px);
   }
 
   .qb-card-actions {
@@ -2449,8 +3020,7 @@
   }
 
   .qb-display-options {
-    grid-template-columns:
-      1fr;
+    grid-template-columns: 1fr;
   }
 
   .qb-extra-info {
@@ -2458,6 +3028,7 @@
       repeat(2, minmax(0, 1fr));
   }
 }
+
 
 /* ============================================================
    MOBILE
@@ -2471,7 +3042,7 @@
     background:
       radial-gradient(
         circle at 50% 0%,
-        rgba(99,102,241,0.08),
+        rgba(99, 102, 241, 0.08),
         transparent 25%
       ),
       #f5f7fb;
@@ -2557,8 +3128,31 @@
     grid-column: 1 / -1;
   }
 
+  /* Premium mobile refresh */
+
   .qb-refresh {
     width: 100%;
+
+    height: 42px;
+
+    border-radius: 11px;
+
+    gap: 8px;
+  }
+
+  .qb-refresh::after {
+    content: "Refresh";
+
+    font-size: 11px;
+
+    font-weight: 800;
+
+    letter-spacing: 0.02em;
+  }
+
+  .qb-refresh svg {
+    width: 17px;
+    height: 17px;
   }
 
   .qb-add-form {
@@ -2568,8 +3162,7 @@
   }
 
   .qb-editor-grid {
-    grid-template-columns:
-      1fr;
+    grid-template-columns: 1fr;
   }
 
   .qb-field.full {
@@ -2577,8 +3170,7 @@
   }
 
   .qb-inline-options {
-    grid-template-columns:
-      1fr;
+    grid-template-columns: 1fr;
   }
 
   .qb-form-footer {
@@ -2617,7 +3209,8 @@
 
   .qb-card-actions .card-delete,
   .qb-card-actions .card-expand {
-    flex: 0 0 34px;
+    flex:
+      0 0 34px;
   }
 
   .qb-question-body {
@@ -2637,15 +3230,22 @@
 
   .qb-table-toolbar {
     align-items: flex-start;
+
     flex-direction: column;
   }
 
   .qb-table-actions {
     width: 100%;
+
+    overflow-x: auto;
+
+    flex-wrap: nowrap;
   }
 
   .qb-table-actions button {
     flex: 1;
+
+    white-space: nowrap;
   }
 
   .qb-inline-editor > .qb-field,
@@ -2654,6 +3254,7 @@
   .qb-inline-editor > .qb-image-preview,
   .qb-inline-editor > .qb-table-wrapper {
     margin-left: 14px;
+
     margin-right: 14px;
   }
 
@@ -2674,7 +3275,24 @@
   .qb-modal-footer button {
     width: 100%;
   }
+
+  .qb-table-header-edit {
+    gap: 4px;
+  }
+
+  .qb-table-header-edit input {
+    font-size: 12px;
+  }
+
+  .qb-question-table th {
+    height: 54px;
+  }
+
+  .qb-question-table td {
+    min-width: 80px;
+  }
 }
+
 
 /* ============================================================
    VERY SMALL DEVICES
@@ -2683,13 +3301,11 @@
 @media (max-width: 400px) {
 
   .qb-stats {
-    grid-template-columns:
-      1fr;
+    grid-template-columns: 1fr;
   }
 
   .qb-filter-card {
-    grid-template-columns:
-      1fr;
+    grid-template-columns: 1fr;
   }
 
   .qb-search {
@@ -2697,33 +3313,23 @@
   }
 
   .qb-header-actions {
-    grid-template-columns:
-      1fr;
+    grid-template-columns: 1fr;
   }
 
   .qb-extra-info {
-    grid-template-columns:
-      1fr;
+    grid-template-columns: 1fr;
   }
 
   .qb-card-actions .card-edit,
   .qb-card-actions .card-edit-form {
     font-size: 9px;
   }
+
+  .qb-refresh {
+    width: 100%;
+  }
 }
 
-/* ============================================================
-   ACCESSIBILITY
-   ============================================================ */
-
-button:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible {
-  outline: 3px solid rgba(99,102,241,0.20);
-
-  outline-offset: 2px;
-}
 
 /* ============================================================
    REDUCE MOTION
@@ -2737,598 +3343,9 @@ textarea:focus-visible {
     scroll-behavior: auto !important;
 
     animation-duration: 0.01ms !important;
+
     animation-iteration-count: 1 !important;
 
     transition-duration: 0.01ms !important;
   }
-}
-/* ============================================================
-   TABLE DRAG + RESIZE SYSTEM
-   ============================================================ */
-
-.qb-table-wrapper {
-  width: 100%;
-  position: relative;
-}
-
-.qb-table-scroll {
-  width: 100%;
-  overflow-x: auto;
-  overflow-y: visible;
-  position: relative;
-  border: 1px solid rgba(120, 130, 150, 0.22);
-  border-radius: 14px;
-  background: #ffffff;
-}
-
-/* Smooth horizontal scrolling */
-.qb-table-scroll::-webkit-scrollbar {
-  height: 8px;
-}
-
-.qb-table-scroll::-webkit-scrollbar-thumb {
-  background: #b8c1d1;
-  border-radius: 20px;
-}
-
-.qb-table-scroll::-webkit-scrollbar-track {
-  background: #eef1f6;
-}
-
-
-/* ============================================================
-   TABLE
-   ============================================================ */
-
-.qb-question-table {
-  border-collapse: separate;
-  border-spacing: 0;
-  position: relative;
-  width: max-content;
-  min-width: 100%;
-}
-
-.qb-question-table th,
-.qb-question-table td {
-  border-right: 1px solid #e3e7ee;
-  border-bottom: 1px solid #e3e7ee;
-  box-sizing: border-box;
-}
-
-.qb-question-table th {
-  position: relative;
-  min-width: 80px;
-  height: 58px;
-  padding: 7px 8px;
-  background: #f7f9fc;
-  vertical-align: middle;
-  user-select: none;
-}
-
-.qb-question-table td {
-  min-width: 80px;
-  height: 52px;
-  padding: 6px 8px;
-  vertical-align: middle;
-}
-
-
-/* ============================================================
-   DRAG HANDLE
-   ============================================================ */
-
-.drag-handle {
-  flex-shrink: 0;
-  cursor: grab;
-  color: #64748b;
-  transition:
-    color 0.2s ease,
-    transform 0.2s ease;
-}
-
-.drag-handle:hover {
-  color: #2563eb;
-}
-
-.drag-handle:active {
-  cursor: grabbing;
-  transform: scale(1.08);
-}
-
-
-/* ============================================================
-   COLUMN HEADER
-   ============================================================ */
-
-.qb-table-header-edit {
-  width: 100%;
-  height: 100%;
-  min-height: 40px;
-
-  display: flex;
-  align-items: center;
-  gap: 6px;
-
-  position: relative;
-}
-
-.qb-table-header-edit > input {
-  flex: 1;
-  min-width: 0;
-
-  height: 34px;
-  padding: 6px 8px;
-
-  border: 1px solid #d8dee9;
-  border-radius: 7px;
-
-  background: #ffffff;
-  color: #172033;
-
-  font-size: 13px;
-  font-weight: 600;
-
-  outline: none;
-}
-
-.qb-table-header-edit > input:focus {
-  border-color: #4f7cff;
-  box-shadow: 0 0 0 3px rgba(79, 124, 255, 0.12);
-}
-
-
-/* ============================================================
-   COLUMN DELETE BUTTON
-   ============================================================ */
-
-.qb-table-header-edit > button {
-  width: 28px;
-  height: 28px;
-
-  flex-shrink: 0;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border: 0;
-  border-radius: 7px;
-
-  background: #fff1f2;
-  color: #dc2626;
-
-  cursor: pointer;
-
-  transition:
-    background 0.2s ease,
-    transform 0.2s ease;
-}
-
-.qb-table-header-edit > button:hover {
-  background: #fee2e2;
-  transform: scale(1.05);
-}
-
-
-/* ============================================================
-   COLUMN COLOR PICKER
-   ============================================================ */
-
-.qb-color-picker {
-  width: 28px;
-  height: 28px;
-
-  flex-shrink: 0;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  position: relative;
-
-  border: 1px solid #d8dee9;
-  border-radius: 7px;
-
-  background: #ffffff;
-
-  cursor: pointer;
-
-  color: #64748b;
-
-  overflow: hidden;
-}
-
-.qb-color-picker:hover {
-  border-color: #4f7cff;
-  color: #2563eb;
-}
-
-.qb-color-picker input[type="color"] {
-  position: absolute;
-
-  inset: 0;
-
-  width: 100%;
-  height: 100%;
-
-  opacity: 0;
-
-  cursor: pointer;
-}
-
-
-/* ============================================================
-   COLUMN RESIZE HANDLE
-   ============================================================ */
-
-.qb-column-resize-handle {
-  position: absolute;
-
-  top: 0;
-  right: -4px;
-
-  width: 9px;
-  height: 100%;
-
-  z-index: 20;
-
-  cursor: col-resize;
-
-  background: transparent;
-}
-
-.qb-column-resize-handle::after {
-  content: "";
-
-  position: absolute;
-
-  top: 12%;
-  right: 3px;
-
-  width: 2px;
-  height: 76%;
-
-  border-radius: 10px;
-
-  background: transparent;
-
-  transition:
-    background 0.2s ease,
-    width 0.2s ease;
-}
-
-.qb-column-resize-handle:hover::after {
-  width: 3px;
-  background: #4f7cff;
-}
-
-
-/* ============================================================
-   ROW DRAG CELL
-   ============================================================ */
-
-.qb-drag-head,
-.qb-drag-cell {
-  width: 52px;
-  min-width: 52px;
-  max-width: 52px;
-
-  text-align: center;
-
-  background: #f5f7fb;
-}
-
-.qb-drag-head {
-  height: 58px;
-}
-
-.qb-drag-cell {
-  position: relative;
-  padding: 4px !important;
-}
-
-.qb-row-controls {
-  width: 100%;
-  height: 100%;
-
-  min-height: 44px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  gap: 4px;
-}
-
-
-/* ============================================================
-   ROW RESIZE HANDLE
-   ============================================================ */
-
-.qb-row-resize-handle {
-  position: absolute;
-
-  left: 4px;
-  right: 4px;
-  bottom: -4px;
-
-  height: 9px;
-
-  z-index: 30;
-
-  cursor: row-resize;
-
-  background: transparent;
-}
-
-.qb-row-resize-handle::after {
-  content: "";
-
-  position: absolute;
-
-  left: 15%;
-  right: 15%;
-  bottom: 3px;
-
-  height: 2px;
-
-  border-radius: 10px;
-
-  background: transparent;
-
-  transition:
-    background 0.2s ease,
-    height 0.2s ease;
-}
-
-.qb-row-resize-handle:hover::after {
-  height: 3px;
-  background: #4f7cff;
-}
-
-
-/* ============================================================
-   TABLE CELLS
-   ============================================================ */
-
-.qb-cell-edit {
-  width: 100%;
-  height: 100%;
-
-  min-height: 40px;
-
-  display: flex;
-  align-items: center;
-
-  gap: 6px;
-
-  position: relative;
-}
-
-.qb-cell-edit input {
-  width: 100%;
-  min-width: 0;
-
-  height: 36px;
-
-  padding: 6px 8px;
-
-  border: 1px solid transparent;
-  border-radius: 7px;
-
-  background: rgba(255, 255, 255, 0.72);
-
-  color: #172033;
-
-  outline: none;
-
-  font-size: 13px;
-}
-
-.qb-cell-edit input:hover {
-  border-color: #d8dee9;
-}
-
-.qb-cell-edit input:focus {
-  border-color: #4f7cff;
-  background: #ffffff;
-
-  box-shadow:
-    0 0 0 3px rgba(79, 124, 255, 0.1);
-}
-
-
-/* ============================================================
-   CELL POSITION
-   ============================================================ */
-
-.qb-cell-position {
-  position: absolute;
-
-  right: 6px;
-  bottom: 3px;
-
-  font-size: 9px;
-  font-weight: 600;
-
-  color: #94a3b8;
-
-  pointer-events: none;
-}
-
-
-/* ============================================================
-   HEADER VIEW MODE
-   ============================================================ */
-
-.qb-table-header-view {
-  width: 100%;
-
-  padding: 8px;
-
-  font-size: 13px;
-  font-weight: 700;
-
-  color: #172033;
-
-  text-align: left;
-
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-
-/* ============================================================
-   TABLE ROW HOVER
-   ============================================================ */
-
-.qb-question-table tbody tr {
-  transition:
-    box-shadow 0.15s ease,
-    transform 0.15s ease;
-}
-
-.qb-question-table tbody tr:hover {
-  box-shadow:
-    inset 0 0 0 1px rgba(79, 124, 255, 0.12);
-}
-
-
-/* ============================================================
-   DRAGGING STATE SUPPORT
-   ============================================================ */
-
-.qb-question-table th[draggable="true"] {
-  cursor: grab;
-}
-
-.qb-question-table th[draggable="true"]:active {
-  cursor: grabbing;
-}
-
-.qb-question-table tr[draggable="true"] {
-  cursor: default;
-}
-
-
-/* ============================================================
-   TABLE TOOLBAR
-   ============================================================ */
-
-.qb-table-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  gap: 12px;
-
-  margin-bottom: 10px;
-}
-
-.qb-table-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  color: #172033;
-
-  font-weight: 700;
-}
-
-.qb-table-title small {
-  margin-left: 5px;
-
-  color: #64748b;
-
-  font-size: 11px;
-  font-weight: 500;
-}
-
-.qb-table-actions {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-}
-
-.qb-table-actions button {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-
-  height: 34px;
-
-  padding: 0 10px;
-
-  border: 1px solid #d8dee9;
-  border-radius: 8px;
-
-  background: #ffffff;
-  color: #334155;
-
-  font-size: 12px;
-  font-weight: 600;
-
-  cursor: pointer;
-
-  transition:
-    border-color 0.2s ease,
-    background 0.2s ease,
-    transform 0.2s ease;
-}
-
-.qb-table-actions button:hover {
-  border-color: #4f7cff;
-  background: #f5f8ff;
-  transform: translateY(-1px);
-}
-
-.qb-table-actions .danger-light {
-  color: #dc2626;
-  background: #fff7f7;
-  border-color: #fecaca;
-}
-
-.qb-table-actions .danger-light:hover {
-  background: #fff1f2;
-  border-color: #fca5a5;
-}
-
-
-/* ============================================================
-   MOBILE
-   ============================================================ */
-
-@media (max-width: 768px) {
-
-  .qb-table-toolbar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .qb-table-actions {
-    width: 100%;
-    overflow-x: auto;
-  }
-
-  .qb-table-actions button {
-    white-space: nowrap;
-  }
-
-  .qb-table-header-edit {
-    gap: 4px;
-  }
-
-  .qb-table-header-edit > input {
-    font-size: 12px;
-  }
-
-  .qb-question-table th {
-    height: 54px;
-  }
-
-  .qb-question-table td {
-    min-width: 80px;
-  }
-
 }

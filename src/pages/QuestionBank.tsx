@@ -26,7 +26,6 @@ import "./QuestionBank.css";
 // ============================================================
 // TYPES
 // ============================================================
-
 interface TableData {
   headers: string[];
   rows: string[][];
@@ -36,14 +35,17 @@ interface TableData {
 
 interface Question {
   _id?: string;
+
   questionNumber: number;
   question: string;
   questionImage?: string;
+
   options: string[];
   correctAnswer: string;
 
   subject: string;
   chapter: string;
+
   examType: string;
   testCategory: string;
   className: string;
@@ -55,13 +57,15 @@ interface Question {
   negativeMarks: number;
   durationMinutes: number;
 
+
+  publishAt?: string | null;
+
   isPublished: boolean;
 
   tableData?: TableData | null;
   tableHeaders?: string[];
   tableRows?: string[][];
 }
-
 // ============================================================
 // API
 // ============================================================
@@ -161,6 +165,12 @@ export default function QuestionBank() {
   const [pdfTestCategory, setPdfTestCategory] = useState("mock");
   const [pdfSubject, setPdfSubject] = useState("Physics");
   const [parsing, setParsing] = useState(false);
+  const [selectedTestId, setSelectedTestId] = useState("");
+  
+const [pdfPublishDate, setPdfPublishDate] = useState("");
+const [pdfPublishTime, setPdfPublishTime] = useState("");
+const [showTestManagement, setShowTestManagement] =
+  useState(false);
 
   const [formData, setFormData] = useState<Question>(
     createEmptyQuestion()
@@ -1555,158 +1565,818 @@ const updateQuestionImage = (value: string) => {
     }
   };
 
-  // ============================================================
-  // PUBLISH ALL
-  // ============================================================
+  
+// ============================================================
+// PUBLISH ONE TEST
+// ============================================================
 
-  const handlePublishAll = async () => {
+const handlePublishTest = async (
+  testId: string
+) => {
+  if (!testId) {
+    alert("Test ID is required.");
+    return;
+  }
+
+  const testQuestions = questions.filter(
+    (q) => q.testId === testId
+  );
+
+  if (testQuestions.length === 0) {
+    alert(
+      "No questions found for this Test ID."
+    );
+    return;
+  }
+
+  const firstQuestion = testQuestions[0];
+
+  // ==========================================================
+  // FUTURE MOCK TEST CHECK
+  // ==========================================================
+
+  if (
+    firstQuestion.testCategory === "mock" &&
+    (firstQuestion as any).publishAt
+  ) {
+    const publishAt = new Date(
+      (firstQuestion as any).publishAt
+    );
+
     if (
-      !window.confirm(
-        "Are you sure you want to publish ALL questions?"
-      )
+      !Number.isNaN(
+        publishAt.getTime()
+      ) &&
+      publishAt.getTime() > Date.now()
     ) {
+      alert(
+        `This Mock Test is scheduled for ${publishAt.toLocaleString()} and cannot be published yet.`
+      );
+      return;
+    }
+  }
+
+  // ==========================================================
+  // CONFIRM
+  // ==========================================================
+
+  const confirmed = window.confirm(
+    `Publish all ${testQuestions.length} questions of Test ID "${testId}"?`
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  // ==========================================================
+  // API
+  // ==========================================================
+
+  try {
+    const token = getToken();
+
+    const response = await fetch(
+      `${API_BASE_URL}/questions/publish-all`,
+      {
+        method: "PUT",
+
+        headers: {
+          "Content-Type":
+            "application/json",
+
+          ...(token
+            ? {
+                Authorization:
+                  `Bearer ${token}`,
+              }
+            : {}),
+        },
+
+        body: JSON.stringify({
+          testId,
+        }),
+      }
+    );
+
+    const result =
+      await response.json();
+
+    if (!response.ok) {
+      alert(
+        result.message ||
+          "Failed to publish test."
+      );
       return;
     }
 
-    try {
-      const token = getToken();
+    alert(
+      result.message ||
+        "Test published successfully!"
+    );
 
-      const response = await fetch(
-        `${API_BASE_URL}/questions/publish-all`,
-        {
-          method: "PUT",
+    await fetchQuestions();
+  } catch (error) {
+    console.error(
+      "PUBLISH TEST ERROR:",
+      error
+    );
 
-          headers: {
-            ...(token
-              ? {
-                  Authorization: `Bearer ${token}`,
-                }
-              : {}),
-          },
-        }
+    alert(
+      "Unable to publish test."
+    );
+  }
+};
+
+
+// ============================================================
+// PUBLISH ALL TESTS
+// ============================================================
+
+const handlePublishAll = async () => {
+  // ==========================================================
+  // GET UNIQUE TEST IDS
+  // ==========================================================
+
+  const testIds = Array.from(
+    new Set(
+      filteredQuestions
+        .map((q) => q.testId)
+        .filter(Boolean)
+    )
+  );
+
+  if (testIds.length === 0) {
+    alert(
+      "No tests available to publish."
+    );
+    return;
+  }
+
+  // ==========================================================
+  // FIND PUBLISHABLE TESTS
+  // ==========================================================
+
+  const publishableTestIds: string[] = [];
+  const scheduledTestIds: string[] = [];
+  const alreadyPublishedIds: string[] = [];
+
+  testIds.forEach((testId) => {
+    const testQuestions =
+      filteredQuestions.filter(
+        (q) => q.testId === testId
       );
 
-      const result = await response.json();
-
-      if (response.ok) {
-        alert(
-          result.message ||
-            "All questions published successfully!"
-        );
-
-        await fetchQuestions();
-      } else {
-        alert(
-          result.message ||
-            "Failed to publish questions"
-        );
-      }
-    } catch (error) {
-      console.error(
-        "PUBLISH ERROR:",
-        error
-      );
-    }
-  };
-
-  // ============================================================
-  // DELETE ALL
-  // ============================================================
-
-  const handleDeleteAll = async () => {
-    if (
-      !window.confirm(
-        "WARNING: This will delete ALL questions permanently!"
-      )
-    ) {
+    if (testQuestions.length === 0) {
       return;
     }
 
-    try {
-      const token = getToken();
+    const firstQuestion =
+      testQuestions[0];
 
-      const response = await fetch(
-        `${API_BASE_URL}/questions/delete-all`,
-        {
-          method: "DELETE",
+    // --------------------------------------------------------
+    // ALREADY PUBLISHED
+    // --------------------------------------------------------
 
-          headers: {
-            ...(token
-              ? {
-                  Authorization: `Bearer ${token}`,
-                }
-              : {}),
-          },
-        }
+    const allPublished =
+      testQuestions.every(
+        (q) => q.isPublished
       );
 
-      const result = await response.json();
+    if (allPublished) {
+      alreadyPublishedIds.push(
+        testId
+      );
+      return;
+    }
 
-      if (response.ok) {
-        alert(
-          result.message ||
-            "All questions deleted successfully!"
+    // --------------------------------------------------------
+    // FUTURE MOCK TEST
+    // --------------------------------------------------------
+
+    if (
+      firstQuestion.testCategory ===
+        "mock" &&
+      (firstQuestion as any).publishAt
+    ) {
+      const publishAt = new Date(
+        (firstQuestion as any).publishAt
+      );
+
+      if (
+        !Number.isNaN(
+          publishAt.getTime()
+        ) &&
+        publishAt.getTime() >
+          Date.now()
+      ) {
+        scheduledTestIds.push(
+          testId
         );
+        return;
+      }
+    }
 
-        setQuestions([]);
-      } else {
-        alert(
-          result.message ||
-            "Failed to delete questions"
+    // --------------------------------------------------------
+    // READY TO PUBLISH
+    // --------------------------------------------------------
+
+    publishableTestIds.push(
+      testId
+    );
+  });
+
+  // ==========================================================
+  // NOTHING TO PUBLISH
+  // ==========================================================
+
+  if (
+    publishableTestIds.length === 0
+  ) {
+    let message =
+      "No tests are ready to publish.";
+
+    if (
+      scheduledTestIds.length > 0
+    ) {
+      message +=
+        `\n\nScheduled Mock Tests skipped:\n${scheduledTestIds.join(
+          "\n"
+        )}`;
+    }
+
+    if (
+      alreadyPublishedIds.length > 0
+    ) {
+      message +=
+        `\n\nAlready Published:\n${alreadyPublishedIds.join(
+          "\n"
+        )}`;
+    }
+
+    alert(message);
+    return;
+  }
+
+  // ==========================================================
+  // CONFIRM
+  // ==========================================================
+
+  let confirmMessage =
+    `Publish ${publishableTestIds.length} test(s)?\n\n`;
+
+  confirmMessage +=
+    publishableTestIds.join("\n");
+
+  if (
+    scheduledTestIds.length > 0
+  ) {
+    confirmMessage +=
+      `\n\nScheduled Mock Tests will be skipped:\n${scheduledTestIds.join(
+        "\n"
+      )}`;
+  }
+
+  const confirmed =
+    window.confirm(
+      confirmMessage
+    );
+
+  if (!confirmed) {
+    return;
+  }
+
+  // ==========================================================
+  // PUBLISH TESTS ONE BY ONE
+  // ==========================================================
+
+  try {
+    const token = getToken();
+
+    let successCount = 0;
+    const failedTests: string[] = [];
+
+    for (
+      const testId of publishableTestIds
+    ) {
+      try {
+        const response =
+          await fetch(
+            `${API_BASE_URL}/questions/publish-all`,
+            {
+              method: "PUT",
+
+              headers: {
+                "Content-Type":
+                  "application/json",
+
+                ...(token
+                  ? {
+                      Authorization:
+                        `Bearer ${token}`,
+                    }
+                  : {}),
+              },
+
+              body: JSON.stringify({
+                testId,
+              }),
+            }
+          );
+
+        if (response.ok) {
+          successCount++;
+        } else {
+          failedTests.push(
+            testId
+          );
+        }
+      } catch {
+        failedTests.push(
+          testId
         );
       }
-    } catch (error) {
-      console.error(
-        "DELETE ALL ERROR:",
-        error
+    }
+
+    // ========================================================
+    // FINAL MESSAGE
+    // ========================================================
+
+    let message =
+      `Successfully published ${successCount} test(s).`;
+
+    if (
+      scheduledTestIds.length > 0
+    ) {
+      message +=
+        `\n\nScheduled Mock Tests skipped: ${scheduledTestIds.length}.`;
+    }
+
+    if (
+      alreadyPublishedIds.length > 0
+    ) {
+      message +=
+        `\nAlready Published: ${alreadyPublishedIds.length}.`;
+    }
+
+    if (
+      failedTests.length > 0
+    ) {
+      message +=
+        `\nFailed: ${failedTests.join(
+          ", "
+        )}`;
+    }
+
+    alert(message);
+
+    await fetchQuestions();
+  } catch (error) {
+    console.error(
+      "PUBLISH ALL ERROR:",
+      error
+    );
+
+    alert(
+      "Unable to publish tests."
+    );
+  }
+};
+
+
+
+// ============================================================
+// DELETE ONE TEST
+// ============================================================
+
+const handleDeleteTest = async (
+  testId: string
+) => {
+  // ======================================================
+  // TEST ID REQUIRED
+  // ======================================================
+
+  if (!testId) {
+    alert(
+      "Please select a Test ID to delete."
+    );
+    return;
+  }
+
+  // ======================================================
+  // FIND QUESTIONS FOR THIS TEST
+  // ======================================================
+
+  const testQuestions = questions.filter(
+    (q) => q.testId === testId
+  );
+
+  if (testQuestions.length === 0) {
+    alert(
+      "No questions found for this Test ID."
+    );
+    return;
+  }
+
+  // ======================================================
+  // TEST INFO
+  // ======================================================
+
+  const firstQuestion =
+    testQuestions[0];
+
+  const testTitle =
+    firstQuestion.testTitle ||
+    "Untitled Test";
+
+  const testCategory =
+    firstQuestion.testCategory ||
+    "";
+
+  const subject =
+    firstQuestion.subject ||
+    "";
+
+  // ======================================================
+  // CONFIRM
+  // ======================================================
+
+  const confirmed = window.confirm(
+    `WARNING!\n\n` +
+      `Delete this complete test permanently?\n\n` +
+      `Test: ${testTitle}\n` +
+      `Test ID: ${testId}\n` +
+      `Category: ${testCategory}\n` +
+      `Subject: ${subject}\n` +
+      `Questions: ${testQuestions.length}\n\n` +
+      `This action cannot be undone.`
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  // ======================================================
+  // DELETE API
+  // ======================================================
+
+  try {
+    const token = getToken();
+
+    const response = await fetch(
+      `${API_BASE_URL}/questions/delete-all`,
+      {
+        method: "DELETE",
+
+        headers: {
+          "Content-Type":
+            "application/json",
+
+          ...(token
+            ? {
+                Authorization:
+                  `Bearer ${token}`,
+              }
+            : {}),
+        },
+
+        body: JSON.stringify({
+          testId,
+        }),
+      }
+    );
+
+    const result =
+      await response.json();
+
+    // ====================================================
+    // SUCCESS
+    // ====================================================
+
+    if (response.ok) {
+      alert(
+        result.message ||
+          `Test "${testId}" deleted successfully!`
+      );
+
+      setQuestions((prev) =>
+        prev.filter(
+          (q) => q.testId !== testId
+        )
+      );
+
+      // Close any open inline editor
+      if (inlineQuestion?.testId === testId) {
+        cancelInlineEdit();
+      }
+
+      // Remove expanded state
+      setExpandedId(null);
+    } else {
+      alert(
+        result.message ||
+          "Failed to delete test questions."
       );
     }
-  };
+  } catch (error) {
+    console.error(
+      "DELETE TEST ERROR:",
+      error
+    );
+
+    alert(
+      "Unable to delete test questions."
+    );
+  }
+};
+
+
+// ============================================================
+// DELETE ALL VISIBLE TESTS
+// ============================================================
+
+const handleDeleteAll = async () => {
+  // ======================================================
+  // GET UNIQUE TEST IDS
+  // ======================================================
+
+  const testIds = Array.from(
+    new Set(
+      filteredQuestions
+        .map(
+          (q) => q.testId
+        )
+        .filter(Boolean)
+    )
+  );
+
+  if (testIds.length === 0) {
+    alert(
+      "No tests available to delete."
+    );
+    return;
+  }
+
+  // ======================================================
+  // CONFIRM
+  // ======================================================
+
+  const confirmed = window.confirm(
+    `WARNING!\n\n` +
+      `This will permanently delete ALL ${testIds.length} visible test(s).\n\n` +
+      `Every question belonging to these tests will be deleted.\n\n` +
+      `This action cannot be undone.\n\n` +
+      `Continue?`
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  // ======================================================
+  // DELETE TESTS ONE BY ONE
+  // ======================================================
+
+  try {
+    const token = getToken();
+
+    let successCount = 0;
+    let deletedQuestions = 0;
+
+    const failedTests: string[] = [];
+
+    for (
+      const testId of testIds
+    ) {
+      try {
+        const response =
+          await fetch(
+            `${API_BASE_URL}/questions/delete-all`,
+            {
+              method: "DELETE",
+
+              headers: {
+                "Content-Type":
+                  "application/json",
+
+                ...(token
+                  ? {
+                      Authorization:
+                        `Bearer ${token}`,
+                    }
+                  : {}),
+              },
+
+              body: JSON.stringify({
+                testId,
+              }),
+            }
+          );
+
+        const result =
+          await response.json();
+
+        if (response.ok) {
+          successCount++;
+
+          deletedQuestions +=
+            Number(
+              result.deletedCount || 0
+            );
+        } else {
+          failedTests.push(
+            testId
+          );
+        }
+      } catch (error) {
+        console.error(
+          `DELETE ERROR FOR ${testId}:`,
+          error
+        );
+
+        failedTests.push(
+          testId
+        );
+      }
+    }
+
+    // ======================================================
+    // REFRESH DATA
+    // ======================================================
+
+    await fetchQuestions();
+
+    // ======================================================
+    // FINAL MESSAGE
+    // ======================================================
+
+    let message =
+      `Successfully deleted ${successCount} test(s).`;
+
+    if (
+      deletedQuestions > 0
+    ) {
+      message +=
+        `\nQuestions deleted: ${deletedQuestions}.`;
+    }
+
+    if (
+      failedTests.length > 0
+    ) {
+      message +=
+        `\n\nFailed tests:\n${failedTests.join(
+          "\n"
+        )}`;
+    }
+
+    alert(message);
+
+    // Reset editor state if needed
+    setExpandedId(null);
+    cancelInlineEdit();
+
+  } catch (error) {
+    console.error(
+      "DELETE ALL ERROR:",
+      error
+    );
+
+    alert(
+      "Unable to delete tests."
+    );
+  }
+};
+
 
   // ============================================================
   // PDF
   // ============================================================
+    
+const handlePdfSubmit = async (
+  e: React.FormEvent
+) => {
+  e.preventDefault();
 
-  const handlePdfSubmit = async (
-    e: React.FormEvent
-  ) => {
-    e.preventDefault();
+  if (!pdfFile) {
+    alert(
+      "Please select a PDF file first!"
+    );
+    return;
+  }
 
-    if (!pdfFile) {
-      alert("Please select a PDF file first!");
+  if (!pdfSubject) {
+    alert(
+      "Please select a subject first!"
+    );
+    return;
+  }
 
-      return;
+  // ======================================================
+  // MOCK TEST SCHEDULE VALIDATION
+  // ======================================================
+
+  if (
+    pdfTestCategory === "mock" &&
+    (!pdfPublishDate ||
+      !pdfPublishTime)
+  ) {
+    alert(
+      "Please select Mock Test publish date and time."
+    );
+    return;
+  }
+
+  setParsing(true);
+
+  try {
+    const token = getToken();
+
+    const data = new FormData();
+
+    // ======================================================
+    // PDF FILE
+    // ======================================================
+
+    data.append(
+      "pdfFile",
+      pdfFile
+    );
+
+    // ======================================================
+    // CLASS
+    // ======================================================
+
+    data.append(
+      "academicYear",
+      pdfClassName
+    );
+
+    data.append(
+      "className",
+      pdfClassName
+    );
+
+    // ======================================================
+    // EXAM TYPE
+    // ======================================================
+
+    data.append(
+      "examType",
+      pdfExamType
+    );
+
+    // ======================================================
+    // TEST CATEGORY
+    // ======================================================
+
+    data.append(
+      "testCategory",
+      pdfTestCategory
+    );
+
+    // ======================================================
+    // SUBJECT
+    // ======================================================
+
+    data.append(
+      "subject",
+      pdfSubject
+    );
+
+    // ======================================================
+    // MOCK TEST PUBLISH DATE / TIME
+    // ======================================================
+
+    if (
+      pdfTestCategory === "mock"
+    ) {
+      data.append(
+        "publishDate",
+        pdfPublishDate
+      );
+
+      data.append(
+        "publishTime",
+        pdfPublishTime
+      );
+    } else {
+      // Daily / Subject
+      data.append(
+        "publishDate",
+        ""
+      );
+
+      data.append(
+        "publishTime",
+        ""
+      );
     }
 
-    setParsing(true);
+    // ======================================================
+    // API REQUEST
+    // ======================================================
 
-    try {
-      const token = getToken();
-
-      const data = new FormData();
-
-      data.append("pdfFile", pdfFile);
-      data.append(
-        "academicYear",
-        pdfClassName
-      );
-      data.append(
-        "className",
-        pdfClassName
-      );
-      data.append(
-        "examType",
-        pdfExamType
-      );
-      data.append(
-        "testCategory",
-        pdfTestCategory
-      );
-       data.append(
-         "subject",
-      pdfSubject
-           );
-      const response = await fetch(
+    const response =
+      await fetch(
         `${API_BASE_URL}/questions/parse-pdf`,
         {
           method: "POST",
@@ -1714,7 +2384,8 @@ const updateQuestionImage = (value: string) => {
           headers: {
             ...(token
               ? {
-                  Authorization: `Bearer ${token}`,
+                  Authorization:
+                    `Bearer ${token}`,
                 }
               : {}),
           },
@@ -1723,40 +2394,52 @@ const updateQuestionImage = (value: string) => {
         }
       );
 
-      const result = await response.json();
+    const result =
+      await response.json();
 
-      if (response.ok) {
-        const count =
-          result.parsedQuestions ??
-          result.count ??
-          result.questions?.length ??
-          0;
+    // ======================================================
+    // SUCCESS
+    // ======================================================
 
-        alert(
-          `PDF processed successfully!\n\nQuestions Parsed: ${count}`
-        );
-
-        setShowPdfModal(false);
-        setPdfFile(null);
-
-        await fetchQuestions();
-      } else {
-        alert(
-          result.message ||
-            result.error ||
-            "Failed to parse PDF"
-        );
-      }
-    } catch (error) {
-      console.error("PDF ERROR:", error);
+    if (response.ok) {
+      const count =
+        result.parsedQuestions ??
+        result.count ??
+        result.questions?.length ??
+        0;
 
       alert(
-        "PDF upload failed. Check backend server."
+        `PDF processed successfully!\n\nQuestions Parsed: ${count}`
       );
-    } finally {
-      setParsing(false);
+
+      setShowPdfModal(false);
+      setPdfFile(null);
+      setPdfSubject("");
+      setPdfPublishDate("");
+      setPdfPublishTime("");
+
+      await fetchQuestions();
+    } else {
+      alert(
+        result.message ||
+          result.error ||
+          "Failed to parse PDF"
+      );
     }
-  };
+  } catch (error) {
+    console.error(
+      "PDF ERROR:",
+      error
+    );
+
+    alert(
+      "PDF upload failed. Check backend server."
+    );
+  } finally {
+    setParsing(false);
+  }
+};
+
 
   // ============================================================
   // NEW / DUPLICATE QUESTION
@@ -1837,59 +2520,118 @@ const updateQuestionImage = (value: string) => {
   // ============================================================
   // FILTER
   // ============================================================
+   // ============================================================
+// FILTER + SEARCH
+// ============================================================
 
-  const filteredQuestions = useMemo(() => {
-    const search =
-      searchTerm.toLowerCase().trim();
+const filteredQuestions = useMemo(() => {
+  const search = searchTerm.toLowerCase().trim();
 
-    return questions.filter((q) => {
-      const matchesTab =
-        activeTab === "ALL" ||
-        q.testCategory === activeTab;
+  return questions.filter((q) => {
+    // --------------------------------------------------------
+    // TABS
+    // --------------------------------------------------------
+    const matchesTab =
+      activeTab === "ALL" ||
+      q.testCategory === activeTab;
 
-      const matchesExam =
-        selectedExam === "ALL" ||
-        q.examType === selectedExam;
+    // --------------------------------------------------------
+    // EXAM
+    // --------------------------------------------------------
+    const matchesExam =
+      selectedExam === "ALL" ||
+      q.examType === selectedExam;
 
-      const matchesSubject =
-        selectedSubject === "ALL" ||
-        q.subject === selectedSubject;
+    // --------------------------------------------------------
+    // SUBJECT
+    // --------------------------------------------------------
+    const matchesSubject =
+      selectedSubject === "ALL" ||
+      q.subject === selectedSubject;
 
-      const matchesClass =
-        selectedClassName === "ALL" ||
-        q.className ===
-          selectedClassName;
+    // --------------------------------------------------------
+    // CLASS
+    // --------------------------------------------------------
+    const matchesClass =
+      selectedClassName === "ALL" ||
+      q.className === selectedClassName;
 
-      const matchesSearch =
-        !search ||
-        q.question
-          ?.toLowerCase()
-          .includes(search) ||
-        q.chapter
-          ?.toLowerCase()
-          .includes(search) ||
-        q.testTitle
-          ?.toLowerCase()
-          .includes(search);
+    // --------------------------------------------------------
+    // SEARCH
+    // --------------------------------------------------------
 
+    if (!search) {
       return (
         matchesTab &&
         matchesExam &&
         matchesSubject &&
-        matchesClass &&
-        matchesSearch
+        matchesClass
       );
-    });
-  }, [
-    questions,
-    activeTab,
-    selectedExam,
-    selectedSubject,
-    selectedClassName,
-    searchTerm,
-  ]);
+    }
 
-  
+    // Question Number
+    const questionNumber =
+      String(q.questionNumber ?? "").toLowerCase();
+
+    // Question text
+    const questionText =
+      String(q.question ?? "").toLowerCase();
+
+    // Chapter
+    const chapter =
+      String(q.chapter ?? "").toLowerCase();
+
+    // Test title
+    const testTitle =
+      String(q.testTitle ?? "").toLowerCase();
+
+    // Test ID
+    const testId =
+      String(q.testId ?? "").toLowerCase();
+
+    // Subject
+    const subject =
+      String(q.subject ?? "").toLowerCase();
+
+    // Exam
+    const examType =
+      String(q.examType ?? "").toLowerCase();
+
+    // Class
+    const className =
+      String(q.className ?? "").toLowerCase();
+
+    // Category
+    const testCategory =
+      String(q.testCategory ?? "").toLowerCase();
+
+    const matchesSearch =
+      questionNumber.includes(search) ||
+      questionText.includes(search) ||
+      chapter.includes(search) ||
+      testTitle.includes(search) ||
+      testId.includes(search) ||
+      subject.includes(search) ||
+      examType.includes(search) ||
+      className.includes(search) ||
+      testCategory.includes(search);
+
+    return (
+      matchesTab &&
+      matchesExam &&
+      matchesSubject &&
+      matchesClass &&
+      matchesSearch
+    );
+  });
+}, [
+  questions,
+  activeTab,
+  selectedExam,
+  selectedSubject,
+  selectedClassName,
+  searchTerm,
+]);
 // ============================================================
 // TABLE RENDER
 // ============================================================
@@ -3854,7 +4596,261 @@ const renderInlineEditor = () => {
           </h2>
         </div>
 
+      </div>     {/* ============================================================
+    TEST MANAGEMENT BUTTON
+============================================================ */}
+
+<div
+  style={{
+    marginBottom: "16px",
+  }}
+>
+  <button
+    type="button"
+    className="qb-btn primary"
+    onClick={() =>
+      setShowTestManagement(
+        (prev) => !prev
+      )
+    }
+  >
+    <FileText size={17} />
+
+    Test Management
+
+    <ChevronDown
+      size={17}
+      style={{
+        marginLeft: "4px",
+        transform:
+          showTestManagement
+            ? "rotate(180deg)"
+            : "rotate(0deg)",
+        transition:
+          "transform 0.25s ease",
+      }}
+    />
+  </button>
+</div>
+
+
+{/* ============================================================
+    TEST MANAGEMENT PANEL
+============================================================ */}
+
+{showTestManagement && (
+  <div
+    style={{
+      marginBottom: "20px",
+      padding: "16px",
+      borderRadius: "14px",
+      border: "1px solid #e2e8f0",
+      background: "#f8fafc",
+      animation:
+        "qbTestPanelOpen 0.25s ease",
+    }}
+  >
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: "14px",
+      }}
+    >
+      <div>
+        <strong
+          style={{
+            display: "block",
+            fontSize: "17px",
+          }}
+        >
+          Test Management
+        </strong>
+
+        <span
+          style={{
+            fontSize: "12px",
+            color: "#64748b",
+          }}
+        >
+          Manage tests by Test ID
+        </span>
       </div>
+    </div>
+
+    {Array.from(
+      new Map(
+        filteredQuestions.map((q) => [
+          q.testId,
+          q,
+        ])
+      ).values()
+    ).map((test) => {
+      const testQuestions =
+        filteredQuestions.filter(
+          (q) =>
+            q.testId ===
+            test.testId
+        );
+
+      const allPublished =
+        testQuestions.every(
+          (q) =>
+            q.isPublished
+        );
+
+      const publishAt =
+        test.publishAt;
+
+      return (
+        <div
+          key={test.testId}
+          style={{
+            padding: "14px",
+            marginBottom: "10px",
+            borderRadius: "12px",
+            background: "#ffffff",
+            border:
+              "1px solid #e2e8f0",
+            display: "flex",
+            justifyContent:
+              "space-between",
+            alignItems: "center",
+            gap: "14px",
+            flexWrap: "wrap",
+          }}
+        >
+          {/* TEST INFO */}
+
+          <div
+            style={{
+              flex: 1,
+              minWidth: "260px",
+            }}
+          >
+            <strong
+              style={{
+                display: "block",
+                fontSize: "15px",
+                marginBottom: "5px",
+              }}
+            >
+              {test.testTitle ||
+                "Untitled Test"}
+            </strong>
+
+            <div
+              style={{
+                fontSize: "13px",
+                color: "#475569",
+              }}
+            >
+              Test ID:{" "}
+              <strong>
+                {test.testId}
+              </strong>
+            </div>
+
+            <div
+              style={{
+                fontSize: "13px",
+                color: "#64748b",
+                marginTop: "3px",
+              }}
+            >
+              {test.testCategory}
+              {" • "}
+              {test.subject}
+              {" • "}
+              {test.className}
+              {" • "}
+              {testQuestions.length} Questions
+            </div>
+
+            {test.testCategory ===
+              "mock" &&
+              publishAt && (
+                <div
+                  style={{
+                    marginTop: "6px",
+                    fontSize: "12px",
+                    fontWeight: 600,
+                  }}
+                >
+                  Publish Time:{" "}
+                  {new Date(
+                    publishAt
+                  ).toLocaleString()}
+                </div>
+              )}
+
+            <div
+              style={{
+                marginTop: "5px",
+                fontSize: "12px",
+                fontWeight: 600,
+              }}
+            >
+              Status:{" "}
+              {allPublished
+                ? "Published"
+                : "Draft"}
+            </div>
+          </div>
+
+          {/* TEST ACTIONS */}
+
+          <div
+            style={{
+              display: "flex",
+              gap: "8px",
+              flexWrap: "wrap",
+            }}
+          >
+            <button
+              type="button"
+              className="qb-btn green"
+              disabled={
+                allPublished
+              }
+              onClick={() =>
+                handlePublishTest(
+                  test.testId
+                )
+              }
+            >
+              <CheckCircle2
+                size={16}
+              />
+
+              {allPublished
+                ? "Published"
+                : "Publish Test"}
+            </button>
+
+            <button
+              type="button"
+              className="qb-btn danger"
+              onClick={() =>
+                handleDeleteTest(
+                  test.testId
+                )
+              }
+            >
+              <Trash2
+                size={16}
+              />
+
+              Delete Test
+            </button>
+          </div>
+        </div>
+      );
+    })}
+  </div>
+)}
+
 
       {/* LOADING */}
 
@@ -4261,218 +5257,392 @@ const renderInlineEditor = () => {
         </div>
       )}
 
-      {/* PDF MODAL */}
+      {/* ============================================================
+    PDF MODAL
+============================================================ */}
 
-      {showPdfModal && (
-        <div className="qb-modal-backdrop">
+{showPdfModal && (
+  <div className="qb-modal-backdrop">
 
-          <div className="qb-pdf-modal">
+    <div className="qb-pdf-modal">
 
-            <div className="qb-modal-header">
+      {/* ========================================================
+          MODAL HEADER
+      ======================================================== */}
 
-              <div>
-                <span>
-                  PDF IMPORT
-                </span>
+      <div className="qb-modal-header">
 
-                <h2>
-                  Upload Question Paper
-                </h2>
-              </div>
+        <div>
+          <span>
+            PDF IMPORT
+          </span>
 
-              <button
-                className="qb-icon-btn"
-                onClick={() => {
-                  setShowPdfModal(
-                    false
-                  );
+          <h2>
+            Upload Question Paper
+          </h2>
+        </div>
 
-                  setPdfFile(null);
-                }}
-              >
-                <X size={19} />
-              </button>
+        <button
+          type="button"
+          className="qb-icon-btn"
+          onClick={() => {
+            setShowPdfModal(false);
+            setPdfFile(null);
+            setPdfSubject("");
+            setPdfExamType("JEE");
+          }}
+        >
+          <X size={19} />
+        </button>
 
-            </div>
+      </div>
 
-            <form
-              onSubmit={
-                handlePdfSubmit
-              }
-            >
 
-              <div className="qb-field">
+      {/* ========================================================
+          FORM
+      ======================================================== */}
 
-                <label>
-                  Class Name
-                </label>
+      <form onSubmit={handlePdfSubmit}>
 
-                <select
-                  value={
-                    pdfClassName
-                  }
-                  onChange={(e) =>
-                    setPdfClassName(
-                      e.target.value
-                    )
-                  }
-                >
-                  <option>
-                    1st PUC
-                  </option>
+        {/* ======================================================
+            CLASS NAME
+        ====================================================== */}
 
-                  <option>
-                    2nd PUC
-                  </option>
-                </select>
+        <div className="qb-field">
 
-              </div>
+          <label>
+            Class Name
+          </label>
 
-              <div className="qb-field">
+          <select
+            value={pdfClassName}
+            onChange={(e) =>
+              setPdfClassName(e.target.value)
+            }
+          >
 
-                <label>
-                  Exam Type
-                </label>
+            <option value="1st PUC">
+              1st PUC
+            </option>
 
-                <select
-                  value={
-                    pdfExamType
-                  }
-                  onChange={(e) =>
-                    setPdfExamType(
-                      e.target.value
-                    )
-                  }
-                >
-                  <option value="JEE">
-                    JEE Mains
-                  </option>
+            <option value="2nd PUC">
+              2nd PUC
+            </option>
 
-                  <option value="NEET">
-                    NEET UG
-                  </option>
-                </select>
-
-              </div>
-
-              <div className="qb-field">
-
-                <label>
-                  Test Type
-                </label>
-
-                <select
-                  value={
-                    pdfTestCategory
-                  }
-                  onChange={(e) =>
-                    setPdfTestCategory(
-                      e.target.value
-                    )
-                  }
-                >
-                  <option value="mock">
-                    Mock Test
-                  </option>
-
-                  <option value="daily">
-                    Daily Test
-                  </option>
-
-                  <option value="subject">
-                    Subject Test
-                  </option>
-                </select>
-
-              </div>
-
-              <div className="qb-upload-box">
-
-                <Upload size={28} />
-
-                <strong>
-                  Select PDF
-                </strong>
-
-                <span>
-                  Question paper PDF
-                </span>
-
-                <input
-              data-math-input="true"
-                  type="file"
-                  accept=".pdf,application/pdf"
-                  onChange={(e) =>
-                    setPdfFile(
-                      e.target.files?.[0] ||
-                        null
-                    )
-                  }
-                />
-
-                {pdfFile && (
-                  <div className="selected-file">
-                    {
-                      pdfFile.name
-                    }
-                  </div>
-                )}
-
-              </div>
-
-              <div className="qb-modal-footer">
-
-                <button
-                  type="button"
-                  className="qb-cancel-btn"
-                  disabled={
-                    parsing
-                  }
-                  onClick={() => {
-                    setShowPdfModal(
-                      false
-                    );
-
-                    setPdfFile(null);
-                  }}
-                >
-                  Cancel
-                </button>
-
-                <button
-                  type="submit"
-                  className="qb-save-btn"
-                  disabled={
-                    parsing
-                  }
-                >
-                  {parsing ? (
-                    <>
-                      <RefreshCw
-                        size={16}
-                        className="spin"
-                      />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <Upload
-                        size={16}
-                      />
-                      Extract & Save
-                    </>
-                  )}
-                </button>
-
-              </div>
-
-            </form>
-
-          </div>
+          </select>
 
         </div>
-      )}
+
+
+        {/* ======================================================
+            TEST TYPE
+        ====================================================== */}
+
+        <div className="qb-field">
+
+          <label>
+            Test Type
+          </label>
+
+          <select
+            value={pdfTestCategory}
+            onChange={(e) => {
+
+              const value =
+                e.target.value as
+                  | "mock"
+                  | "daily"
+                  | "subject";
+
+              setPdfTestCategory(value);
+
+              /*
+               * SUBJECT TEST
+               * Exam Type becomes Not Applicable
+               */
+              if (value === "subject") {
+                setPdfExamType("");
+              }
+
+              /*
+               * MOCK / DAILY TEST
+               * Exam Type becomes available
+               */
+              else {
+                setPdfExamType(
+                  pdfExamType || "JEE"
+                );
+              }
+
+            }}
+          >
+
+            <option value="mock">
+              Mock Test
+            </option>
+
+            <option value="daily">
+              Daily Test
+            </option>
+
+            <option value="subject">
+              Subject Test
+            </option>
+
+          </select>
+
+        </div>
+
+
+        {/* ======================================================
+            EXAM TYPE
+        ====================================================== */}
+
+        <div className="qb-field">
+
+          <label>
+            Exam Type
+          </label>
+
+          <select
+            value={pdfExamType}
+            disabled={
+              pdfTestCategory === "subject"
+            }
+            onChange={(e) =>
+              setPdfExamType(
+                e.target.value as
+                  | "JEE"
+                  | "NEET"
+                  | ""
+              )
+            }
+          >
+
+            {pdfTestCategory === "subject" ? (
+
+              <option value="">
+                Not Applicable
+              </option>
+
+            ) : (
+
+              <>
+                <option value="JEE">
+                  JEE Mains
+                </option>
+
+                <option value="NEET">
+                  NEET UG
+                </option>
+              </>
+
+            )}
+
+          </select>
+
+        </div>
+
+
+        {/* ======================================================
+            SUBJECT
+        ====================================================== */}
+
+        <div className="qb-field">
+
+  <label>
+    Subject
+  </label>
+
+  <select
+    value={pdfSubject}
+    onChange={(e) =>
+      setPdfSubject(
+        e.target.value
+      )
+    }
+  >
+
+    <option value="">
+      Select Subject
+    </option>
+
+    <option value="Physics">
+      Physics
+    </option>
+
+    <option value="Chemistry">
+      Chemistry
+    </option>
+
+    <option value="Botany">
+      Botany
+    </option>
+
+    <option value="Zoology">
+      Zoology
+    </option>
+
+    <option value="Mathematics">
+      Mathematics
+    </option>
+
+  </select>
+
+</div>
+
+
+{/* ======================================================
+    MOCK TEST SCHEDULE
+====================================================== */}
+
+{pdfTestCategory === "mock" && (
+  <>
+    <div className="qb-field">
+
+      <label>
+        Publish Date
+      </label>
+
+      <input
+        type="date"
+        value={pdfPublishDate}
+        onChange={(e) =>
+          setPdfPublishDate(
+            e.target.value
+          )
+        }
+        required
+      />
 
     </div>
-  );
-}
+
+    <div className="qb-field">
+
+      <label>
+        Publish Time
+      </label>
+
+      <input
+        type="time"
+        value={pdfPublishTime}
+        onChange={(e) =>
+          setPdfPublishTime(
+            e.target.value
+          )
+        }
+        required
+      />
+
+    </div>
+  </>
+)}
+
+
+{/* ======================================================
+    PDF UPLOAD
+====================================================== */}
+
+
+        <div className="qb-upload-box">
+
+          <Upload size={28} />
+
+          <strong>
+            Select PDF
+          </strong>
+
+          <span>
+            Question paper PDF
+          </span>
+
+          <input
+            data-math-input="true"
+            type="file"
+            accept=".pdf,application/pdf"
+            onChange={(e) =>
+              setPdfFile(
+                e.target.files?.[0] || null
+              )
+            }
+          />
+
+          {pdfFile && (
+            <div className="selected-file">
+              {pdfFile.name}
+            </div>
+          )}
+
+        </div>
+
+
+        {/* ======================================================
+            FOOTER
+        ====================================================== */}
+
+        <div className="qb-modal-footer">
+
+          {/* CANCEL */}
+
+          <button
+            type="button"
+            className="qb-cancel-btn"
+            disabled={parsing}
+            onClick={() => {
+              setShowPdfModal(false);
+              setPdfFile(null);
+              setPdfSubject("");
+              setPdfExamType("JEE");
+            }}
+          >
+            Cancel
+          </button>
+
+
+          {/* EXTRACT & SAVE */}
+
+          <button
+            type="submit"
+            className="qb-save-btn"
+            disabled={
+              parsing || !pdfFile
+            }
+          >
+
+            {parsing ? (
+
+              <>
+                <RefreshCw
+                  size={16}
+                  className="spin"
+                />
+
+                Processing...
+              </>
+
+            ) : (
+
+              <>
+                <Upload
+                  size={16}
+                />
+
+                Extract & Save
+              </>
+
+            )}
+
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  </div>
+)}
+
+</div>
+);
+  }
