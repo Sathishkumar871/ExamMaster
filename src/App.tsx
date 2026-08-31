@@ -24,7 +24,9 @@ const ExamHistory = lazy(() => import("./pages/ExamHistory"));
 const Leaderboard = lazy(() => import("./pages/Leaderboard"));
 const AnswerReview = lazy(() => import("./pages/AnswerReview"));
 const AcademicHelp = lazy(() => import("./pages/student/AcademicHelp"));
+const StudyPlanner = lazy(() => import("./pages/student/StudyPlanner"));
 const MockTests = lazy(() => import("./pages/MockTests"));
+const AIExamStrategy = lazy(() => import("./pages/student/AIExamStrategy"));
 const JEEMockTest = lazy(() => import("./pages/JEEMockTest"));
 const DailyTest = lazy(() => import("./pages/DailyTest"));
 const StudentComplaints = lazy(() => import("./pages/StudentComplaints"));
@@ -466,7 +468,22 @@ function App() {
               </ProtectedRoute>
             }
           />
-
+                    <Route
+                 path="/study-planner"
+                 element={
+               <ProtectedRoute>
+               <StudyPlanner />
+           </ProtectedRoute>
+             }
+                 />
+               <Route 
+               path="/exam-strategy" 
+             element={ 
+              <ProtectedRoute> 
+             <AIExamStrategy /> 
+            </ProtectedRoute> 
+            } 
+            />
           {/* =====================================================
               DAILY TEST
           ====================================================== */}
