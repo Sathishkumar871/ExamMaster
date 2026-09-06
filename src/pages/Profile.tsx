@@ -1,4 +1,9 @@
-import { useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { useNavigate } from "react-router-dom";
 import {
   User,
@@ -18,11 +23,19 @@ import {
 } from "lucide-react";
 import "./Profile.css";
 
+// ============================================================
+// API
+// ============================================================
+
 const API_BASE_URL =
   window.location.hostname === "localhost" ||
   window.location.hostname === "127.0.0.1"
     ? "http://localhost:5000"
     : "https://exammaster-backend-up1y.onrender.com";
+
+// ============================================================
+// TYPES
+// ============================================================
 
 interface Note {
   id: string;
@@ -31,139 +44,309 @@ interface Note {
   date: string;
 }
 
+interface StudentStorageData {
+  name?: string;
+  fullName?: string;
+  email?: string;
+  phone?: string;
+  mobile?: string;
+  studentId?: string;
+  id?: string;
+  _id?: string;
+
+  role?: string;
+  userRole?: string;
+  userType?: string;
+  type?: string;
+}
+
+interface MessageState {
+  type: "success" | "error" | "";
+  text: string;
+}
+
+// ============================================================
+// STORAGE HELPERS
+// ============================================================
+
+function readStudentFromStorage(): StudentStorageData | null {
+  try {
+    const userStr =
+      localStorage.getItem("user") ||
+      localStorage.getItem("student");
+
+    if (!userStr) {
+      return null;
+    }
+
+    const parsed: unknown = JSON.parse(userStr);
+
+    if (
+      !parsed ||
+      typeof parsed !== "object" ||
+      Array.isArray(parsed)
+    ) {
+      return null;
+    }
+
+    return parsed as StudentStorageData;
+  } catch (error) {
+    console.error(
+      "Unable to parse student data:",
+      error
+    );
+
+    return null;
+  }
+}
+
+function getStoredRole(
+  student: StudentStorageData | null
+): string {
+  return String(
+    student?.role ||
+      student?.userRole ||
+      student?.userType ||
+      student?.type ||
+      ""
+  )
+    .trim()
+    .toLowerCase();
+}
+
+function isStudentSession(
+  student: StudentStorageData | null
+): boolean {
+  const studentToken =
+    localStorage.getItem("studentToken");
+
+  const role = getStoredRole(student);
+
+  if (!student && !studentToken) {
+    return false;
+  }
+
+  if (role === "student") {
+    return true;
+  }
+
+  if (studentToken) {
+    return true;
+  }
+
+  return false;
+}
+
+// ============================================================
+// COMPONENT
+// ============================================================
+
 export default function Profile() {
   const navigate = useNavigate();
 
-  // ============================================================
+  // ==========================================================
+  // INITIAL SESSION
+  // ==========================================================
+
+  const initialStudent = useMemo(
+    () => readStudentFromStorage(),
+    []
+  );
+
+  const initialAccess = useMemo(
+    () => isStudentSession(initialStudent),
+    [initialStudent]
+  );
+
+  // ==========================================================
   // PROFILE STATES
-  // ============================================================
+  // ==========================================================
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [studentId, setStudentId] = useState("");
+  const [name, setName] = useState(
+    initialStudent?.name ||
+      initialStudent?.fullName ||
+      ""
+  );
 
-  // ============================================================
-  // PASSWORD STATES
-  // ============================================================
+  const [email, setEmail] = useState(
+    initialStudent?.email || ""
+  );
 
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [phone, setPhone] = useState(
+    initialStudent?.phone ||
+      initialStudent?.mobile ||
+      ""
+  );
 
-  // ============================================================
-  // DELETE ACCOUNT STATES
-  // ============================================================
+  const [studentId, setStudentId] = useState(
+    initialStudent?.studentId ||
+      initialStudent?.id ||
+      initialStudent?._id ||
+      ""
+  );
 
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deletePassword, setDeletePassword] = useState("");
-  const [deleteError, setDeleteError] = useState("");
+  // ==========================================================
+  // PASSWORD
+  // ==========================================================
 
-  // ============================================================
-  // NOTES STATES
-  // ============================================================
+  const [currentPassword, setCurrentPassword] =
+    useState("");
+
+  const [newPassword, setNewPassword] =
+    useState("");
+
+  const [confirmPassword, setConfirmPassword] =
+    useState("");
+
+  // ==========================================================
+  // DELETE ACCOUNT
+  // ==========================================================
+
+  const [showDeleteModal, setShowDeleteModal] =
+    useState(false);
+
+  const [deletePassword, setDeletePassword] =
+    useState("");
+
+  const [deleteError, setDeleteError] =
+    useState("");
+
+  const [deletingAccount, setDeletingAccount] =
+    useState(false);
+
+  // ==========================================================
+  // NOTES
+  // ==========================================================
 
   const [notes, setNotes] = useState<Note[]>([]);
-  const [showNotesModal, setShowNotesModal] = useState(false);
 
-  const [noteTitle, setNoteTitle] = useState("");
-  const [noteContent, setNoteContent] = useState("");
+  const [showNotesModal, setShowNotesModal] =
+    useState(false);
 
-  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [noteTitle, setNoteTitle] =
+    useState("");
 
-  // ============================================================
-  // UI STATES
-  // ============================================================
+  const [noteContent, setNoteContent] =
+    useState("");
 
-  const [loading, setLoading] = useState(true);
-  const [updatingProfile, setUpdatingProfile] = useState(false);
-  const [updatingPassword, setUpdatingPassword] = useState(false);
-  const [deletingAccount, setDeletingAccount] = useState(false);
+  const [editingNoteId, setEditingNoteId] =
+    useState<string | null>(null);
 
-  const [message, setMessage] = useState({
-    type: "",
-    text: "",
-  });
+  // ==========================================================
+  // UI
+  // ==========================================================
 
-  const [pwdMessage, setPwdMessage] = useState({
-    type: "",
-    text: "",
-  });
+  const [updatingProfile, setUpdatingProfile] =
+    useState(false);
 
-  // ============================================================
-  // LOAD PROFILE + NOTES
-  // ============================================================
+  const [updatingPassword, setUpdatingPassword] =
+    useState(false);
+
+  const [message, setMessage] =
+    useState<MessageState>({
+      type: "",
+      text: "",
+    });
+
+  const [pwdMessage, setPwdMessage] =
+    useState<MessageState>({
+      type: "",
+      text: "",
+    });
+
+  // ==========================================================
+  // LOAD NOTES
+  // ==========================================================
 
   useEffect(() => {
-    fetchProfileData();
-
-    const savedNotes = localStorage.getItem("studentStudyNotes");
-
-    if (savedNotes) {
-      try {
-        const parsedNotes = JSON.parse(savedNotes);
-
-        if (Array.isArray(parsedNotes)) {
-          setNotes(parsedNotes);
-        }
-      } catch (error) {
-        console.error("Error loading study notes:", error);
-      }
+    if (!initialAccess) {
+      return;
     }
+
+    const savedNotes =
+      localStorage.getItem(
+        "studentStudyNotes"
+      );
+
+    if (!savedNotes) {
+      return;
+    }
+
+    try {
+      const parsedNotes: unknown =
+        JSON.parse(savedNotes);
+
+      if (Array.isArray(parsedNotes)) {
+        setNotes(parsedNotes as Note[]);
+      }
+    } catch (error) {
+      console.error(
+        "Error loading study notes:",
+        error
+      );
+    }
+  }, [initialAccess]);
+
+  // ==========================================================
+  // ACCESS REDIRECT
+  // ==========================================================
+
+  useEffect(() => {
+    if (initialAccess) {
+      return;
+    }
+
+    const hasAnySession =
+      Boolean(
+        localStorage.getItem("user") ||
+          localStorage.getItem("student") ||
+          localStorage.getItem("studentToken")
+      );
+
+    navigate(
+      hasAnySession
+        ? "/dashboard"
+        : "/login",
+      { replace: true }
+    );
+  }, [initialAccess, navigate]);
+
+  // ==========================================================
+  // TOKEN
+  // ==========================================================
+
+  const getToken = useCallback(() => {
+    return (
+      localStorage.getItem("studentToken") ||
+      localStorage.getItem("token") ||
+      ""
+    );
   }, []);
 
-  // ============================================================
-  // FETCH PROFILE FROM LOCAL STORAGE
-  // ============================================================
-
-  const fetchProfileData = () => {
-    try {
-      const studentStr =
-        localStorage.getItem("user") ||
-        localStorage.getItem("student");
-
-      if (studentStr) {
-        const student = JSON.parse(studentStr);
-
-        setName(
-          student.name ||
-            student.fullName ||
-            ""
-        );
-
-        setEmail(student.email || "");
-
-        setPhone(
-          student.phone ||
-            student.mobile ||
-            ""
-        );
-
-        setStudentId(
-          student.studentId ||
-            student.id ||
-            student._id ||
-            ""
-        );
-      }
-    } catch (err) {
-      console.error(
-        "Error reading user data from local storage",
-        err
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ============================================================
+  // ==========================================================
   // UPDATE PROFILE
-  // ============================================================
+  // ==========================================================
 
   const handleUpdateProfile = async (
-    e: React.FormEvent
+    event: React.FormEvent<HTMLFormElement>
   ) => {
-    e.preventDefault();
+    event.preventDefault();
+
+    if (!initialAccess) {
+      navigate("/dashboard", {
+        replace: true,
+      });
+      return;
+    }
+
+    const token = getToken();
+
+    if (!token) {
+      navigate("/login", {
+        replace: true,
+      });
+      return;
+    }
 
     setUpdatingProfile(true);
 
@@ -172,30 +355,20 @@ export default function Profile() {
       text: "",
     });
 
-    const token =
-      localStorage.getItem("studentToken") ||
-      localStorage.getItem("token");
-
-    if (!token) {
-      navigate("/login");
-      return;
-    }
-
     try {
       const response = await fetch(
         `${API_BASE_URL}/api/students/update-profile`,
         {
           method: "PUT",
-
           headers: {
+            Accept: "application/json",
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-
           body: JSON.stringify({
             studentId,
-            name,
-            phone,
+            name: name.trim(),
+            phone: phone.trim(),
           }),
         }
       );
@@ -204,72 +377,98 @@ export default function Profile() {
 
       if (!response.ok) {
         throw new Error(
-          data.message ||
-            "Failed to update profile"
+          data?.message ||
+            "Failed to update profile."
         );
       }
 
-      const studentStr =
-        localStorage.getItem("user") ||
-        localStorage.getItem("student");
+      const storageKey =
+        localStorage.getItem("user")
+          ? "user"
+          : "student";
 
-      if (studentStr) {
-        const student = JSON.parse(studentStr);
+      const existingStorage =
+        localStorage.getItem(storageKey);
 
-        student.name = name;
-        student.phone = phone;
+      if (existingStorage) {
+        try {
+          const existingStudent =
+            JSON.parse(existingStorage);
 
-        if (localStorage.getItem("user")) {
+          existingStudent.name =
+            name.trim();
+
+          existingStudent.phone =
+            phone.trim();
+
           localStorage.setItem(
-            "user",
-            JSON.stringify(student)
+            storageKey,
+            JSON.stringify(existingStudent)
           );
-        } else {
-          localStorage.setItem(
-            "student",
-            JSON.stringify(student)
+        } catch (error) {
+          console.error(
+            "Unable to update local student data:",
+            error
           );
         }
       }
 
+      setName(name.trim());
+      setPhone(phone.trim());
+
       setMessage({
         type: "success",
-        text: "Profile updated successfully!",
+        text:
+          "Profile updated successfully!",
       });
 
       window.dispatchEvent(
         new Event("authChanged")
       );
-    } catch (err: any) {
+    } catch (error) {
+      console.error(
+        "Profile update error:",
+        error
+      );
+
       setMessage({
         type: "error",
         text:
-          err.message ||
-          "Something went wrong!",
+          error instanceof Error
+            ? error.message
+            : "Something went wrong.",
       });
     } finally {
       setUpdatingProfile(false);
     }
   };
 
-  // ============================================================
+  // ==========================================================
   // CHANGE PASSWORD
-  // ============================================================
+  // ==========================================================
 
   const handleChangePassword = async (
-    e: React.FormEvent
+    event: React.FormEvent<HTMLFormElement>
   ) => {
-    e.preventDefault();
+    event.preventDefault();
+
+    if (!initialAccess) {
+      navigate("/dashboard", {
+        replace: true,
+      });
+      return;
+    }
 
     setPwdMessage({
       type: "",
       text: "",
     });
 
-    if (newPassword !== confirmPassword) {
+    if (!currentPassword.trim()) {
       setPwdMessage({
         type: "error",
-        text: "New passwords do not match!",
+        text:
+          "Please enter your current password.",
       });
 
       return;
@@ -285,28 +484,37 @@ export default function Profile() {
       return;
     }
 
-    setUpdatingPassword(true);
+    if (newPassword !== confirmPassword) {
+      setPwdMessage({
+        type: "error",
+        text:
+          "New passwords do not match.",
+      });
 
-    const token =
-      localStorage.getItem("studentToken") ||
-      localStorage.getItem("token");
-
-    if (!token) {
-      navigate("/login");
       return;
     }
+
+    const token = getToken();
+
+    if (!token) {
+      navigate("/login", {
+        replace: true,
+      });
+      return;
+    }
+
+    setUpdatingPassword(true);
 
     try {
       const response = await fetch(
         `${API_BASE_URL}/api/students/change-password`,
         {
           method: "PUT",
-
           headers: {
+            Accept: "application/json",
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-
           body: JSON.stringify({
             studentId,
             currentPassword,
@@ -319,38 +527,55 @@ export default function Profile() {
 
       if (!response.ok) {
         throw new Error(
-          data.message ||
-            "Failed to change password"
+          data?.message ||
+            "Failed to change password."
         );
       }
 
       setPwdMessage({
         type: "success",
-        text: "Password changed successfully!",
+        text:
+          "Password changed successfully!",
       });
 
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-    } catch (err: any) {
+    } catch (error) {
+      console.error(
+        "Password change error:",
+        error
+      );
+
       setPwdMessage({
         type: "error",
         text:
-          err.message ||
-          "Failed to change password.",
+          error instanceof Error
+            ? error.message
+            : "Failed to change password.",
       });
     } finally {
       setUpdatingPassword(false);
     }
   };
 
-  // ============================================================
+  // ==========================================================
   // SAVE NOTE
-  // ============================================================
+  // ==========================================================
 
   const handleSaveNote = () => {
-    const cleanTitle = noteTitle.trim();
-    const cleanContent = noteContent.trim();
+    if (!initialAccess) {
+      navigate("/dashboard", {
+        replace: true,
+      });
+      return;
+    }
+
+    const cleanTitle =
+      noteTitle.trim();
+
+    const cleanContent =
+      noteContent.trim();
 
     if (!cleanTitle) {
       return;
@@ -360,83 +585,86 @@ export default function Profile() {
       return;
     }
 
-    // EDIT EXISTING NOTE
+    let updatedNotes: Note[];
+
     if (editingNoteId) {
-      const updatedNotes = notes.map(
+      updatedNotes = notes.map(
         (note) =>
           note.id === editingNoteId
             ? {
                 ...note,
                 title: cleanTitle,
                 content: cleanContent,
-                date: new Date().toLocaleDateString(),
+                date:
+                  new Date().toLocaleDateString(),
               }
             : note
       );
-
-      setNotes(updatedNotes);
-
-      localStorage.setItem(
-        "studentStudyNotes",
-        JSON.stringify(updatedNotes)
-      );
-    }
-
-    // CREATE NEW NOTE
-    else {
+    } else {
       const newNote: Note = {
         id: `${Date.now()}-${Math.random()
           .toString(36)
           .slice(2, 8)}`,
-
         title: cleanTitle,
-
         content: cleanContent,
-
-        date: new Date().toLocaleDateString(),
+        date:
+          new Date().toLocaleDateString(),
       };
 
-      const updatedNotes = [
+      updatedNotes = [
         newNote,
         ...notes,
       ];
-
-      setNotes(updatedNotes);
-
-      localStorage.setItem(
-        "studentStudyNotes",
-        JSON.stringify(updatedNotes)
-      );
     }
 
-    setNoteTitle("");
-    setNoteContent("");
-    setEditingNoteId(null);
-    setShowNotesModal(false);
+    setNotes(updatedNotes);
+
+    localStorage.setItem(
+      "studentStudyNotes",
+      JSON.stringify(updatedNotes)
+    );
+
+    closeNotesModal();
   };
 
-  // ============================================================
+  // ==========================================================
   // EDIT NOTE
-  // ============================================================
+  // ==========================================================
 
-  const handleEditNote = (note: Note) => {
+  const handleEditNote = (
+    note: Note
+  ) => {
+    if (!initialAccess) {
+      navigate("/dashboard", {
+        replace: true,
+      });
+      return;
+    }
+
     setEditingNoteId(note.id);
-
     setNoteTitle(note.title);
-
     setNoteContent(note.content);
-
     setShowNotesModal(true);
   };
 
-  // ============================================================
+  // ==========================================================
   // DELETE NOTE
-  // ============================================================
+  // ==========================================================
 
-  const handleDeleteNote = (id: string) => {
-    const updatedNotes = notes.filter(
-      (note) => note.id !== id
-    );
+  const handleDeleteNote = (
+    id: string
+  ) => {
+    if (!initialAccess) {
+      navigate("/dashboard", {
+        replace: true,
+      });
+      return;
+    }
+
+    const updatedNotes =
+      notes.filter(
+        (note) => note.id !== id
+      );
 
     setNotes(updatedNotes);
 
@@ -446,52 +674,62 @@ export default function Profile() {
     );
   };
 
-  // ============================================================
-  // CLOSE NOTE MODAL
-  // ============================================================
+  // ==========================================================
+  // CLOSE NOTES MODAL
+  // ==========================================================
 
   const closeNotesModal = () => {
     setShowNotesModal(false);
-
     setEditingNoteId(null);
-
     setNoteTitle("");
     setNoteContent("");
   };
 
-  // ============================================================
+  // ==========================================================
   // DELETE ACCOUNT
-  // ============================================================
+  // ==========================================================
 
   const handleDeleteAccount = async (
-    e: React.FormEvent
+    event: React.FormEvent<HTMLFormElement>
   ) => {
-    e.preventDefault();
+    event.preventDefault();
 
-    setDeletingAccount(true);
-
-    setDeleteError("");
-
-    const token =
-      localStorage.getItem("studentToken") ||
-      localStorage.getItem("token");
-
-    if (!token) {
-      navigate("/login");
+    if (!initialAccess) {
+      navigate("/dashboard", {
+        replace: true,
+      });
       return;
     }
+
+    if (!deletePassword.trim()) {
+      setDeleteError(
+        "Please enter your password."
+      );
+      return;
+    }
+
+    const token = getToken();
+
+    if (!token) {
+      navigate("/login", {
+        replace: true,
+      });
+      return;
+    }
+
+    setDeletingAccount(true);
+    setDeleteError("");
 
     try {
       const response = await fetch(
         `${API_BASE_URL}/api/students/delete-account`,
         {
           method: "DELETE",
-
           headers: {
+            Accept: "application/json",
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-
           body: JSON.stringify({
             studentId,
             password: deletePassword,
@@ -503,61 +741,82 @@ export default function Profile() {
 
       if (!response.ok) {
         throw new Error(
-          data.message ||
-            "Failed to delete account"
+          data?.message ||
+            "Failed to delete account."
         );
       }
 
       localStorage.clear();
 
-      navigate("/login");
-    } catch (err: any) {
+      navigate("/login", {
+        replace: true,
+      });
+    } catch (error) {
+      console.error(
+        "Account deletion error:",
+        error
+      );
+
       setDeleteError(
-        err.message ||
-          "Failed to delete account. Check your password."
+        error instanceof Error
+          ? error.message
+          : "Failed to delete account. Check your password."
       );
 
       setDeletingAccount(false);
     }
   };
 
-  // ============================================================
-  // LOADING
-  // ============================================================
+  // ==========================================================
+  // NOT AUTHORIZED
+  // ==========================================================
 
-  if (loading) {
+  if (!initialAccess) {
     return (
-      <div className="prof-loading">
-        <div className="loading-spinner" />
+      <div
+        className="prof-loading"
+        role="status"
+        aria-live="polite"
+      >
+        <div
+          className="loading-spinner"
+          aria-hidden="true"
+        />
 
-        <p>Loading your profile...</p>
+        <p>
+          Redirecting...
+        </p>
       </div>
     );
   }
 
-  // ============================================================
-  // RETURN
-  // ============================================================
+  // ==========================================================
+  // MAIN PAGE
+  // ==========================================================
 
   return (
     <div className="prof-page">
-
-      <div className="prof-container">
-
-        {/* ======================================================
+      <main
+        className="prof-container"
+        aria-labelledby="profile-page-title"
+      >
+        {/* ====================================================
             TOP HEADER
-        ====================================================== */}
+        ==================================================== */}
 
-        <div className="prof-top-bar">
-
+        <header className="prof-top-bar">
           <button
             type="button"
             onClick={() =>
               navigate("/dashboard")
             }
             className="prof-back-btn"
+            aria-label="Back to Dashboard"
           >
-            <ArrowLeft size={16} />
+            <ArrowLeft
+              size={16}
+              aria-hidden="true"
+            />
 
             <span>
               Back to Dashboard
@@ -565,45 +824,44 @@ export default function Profile() {
           </button>
 
           <div className="prof-heading">
-
             <span className="prof-heading-label">
               ACCOUNT CENTER
             </span>
 
-            <h1>
-              Student Profile & Settings
+            <h1 id="profile-page-title">
+              Student Profile &amp; Settings
             </h1>
 
             <p>
               Manage your account, security and
               personal study notes.
             </p>
-
           </div>
+        </header>
 
-        </div>
-
-        {/* ======================================================
+        {/* ====================================================
             MAIN GRID
-        ====================================================== */}
+        ==================================================== */}
 
         <div className="prof-grid">
-
-          {/* ====================================================
+          {/* ==================================================
               PROFILE CARD
-          ==================================================== */}
+          ================================================== */}
 
-          <div className="prof-card profile-main-card">
-
+          <section
+            className="prof-card profile-main-card"
+            aria-labelledby="profile-details-title"
+          >
             <div className="prof-card-header">
-
-              <div className="prof-avatar">
+              <div
+                className="prof-avatar"
+                aria-hidden="true"
+              >
                 <User size={30} />
               </div>
 
               <div className="profile-identity">
-
-                <h2>
+                <h2 id="profile-details-title">
                   {name || "Student"}
                 </h2>
 
@@ -611,19 +869,30 @@ export default function Profile() {
                   Student ID:{" "}
                   {studentId || "N/A"}
                 </span>
-
               </div>
-
             </div>
 
             {message.text && (
               <div
                 className={`prof-alert ${message.type}`}
+                role={
+                  message.type === "error"
+                    ? "alert"
+                    : "status"
+                }
+                aria-live="polite"
               >
-                {message.type === "success" ? (
-                  <CheckCircle2 size={17} />
+                {message.type ===
+                "success" ? (
+                  <CheckCircle2
+                    size={17}
+                    aria-hidden="true"
+                  />
                 ) : (
-                  <AlertCircle size={17} />
+                  <AlertCircle
+                    size={17}
+                    aria-hidden="true"
+                  />
                 )}
 
                 <span>
@@ -636,34 +905,40 @@ export default function Profile() {
               onSubmit={handleUpdateProfile}
               className="prof-form"
             >
+              {/* Full Name */}
 
               <div className="prof-input-group">
-
-                <label>
+                <label htmlFor="profile-name">
                   Full Name
                 </label>
 
                 <div className="prof-input-wrapper">
-
-                  <User size={17} />
-
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(e) =>
-                      setName(e.target.value)
-                    }
-                    placeholder="Enter your full name"
-                    required
+                  <User
+                    size={17}
+                    aria-hidden="true"
                   />
 
+                  <input
+                    id="profile-name"
+                    name="name"
+                    type="text"
+                    value={name}
+                    onChange={(event) =>
+                      setName(
+                        event.target.value
+                      )
+                    }
+                    placeholder="Enter your full name"
+                    autoComplete="name"
+                    required
+                  />
                 </div>
-
               </div>
 
-              <div className="prof-input-group">
+              {/* Email */}
 
-                <label>
+              <div className="prof-input-group">
+                <label htmlFor="profile-email">
                   Email Address
                   <span>
                     Cannot be changed
@@ -671,100 +946,127 @@ export default function Profile() {
                 </label>
 
                 <div className="prof-input-wrapper disabled">
-
-                  <Mail size={17} />
+                  <Mail
+                    size={17}
+                    aria-hidden="true"
+                  />
 
                   <input
+                    id="profile-email"
+                    name="email"
                     type="email"
                     value={email}
                     disabled
+                    readOnly
+                    autoComplete="email"
                   />
-
                 </div>
-
               </div>
 
-              <div className="prof-input-group">
+              {/* Phone */}
 
-                <label>
+              <div className="prof-input-group">
+                <label htmlFor="profile-phone">
                   Phone Number
                 </label>
 
                 <div className="prof-input-wrapper">
-
-                  <Phone size={17} />
-
-                  <input
-                    type="text"
-                    value={phone}
-                    onChange={(e) =>
-                      setPhone(e.target.value)
-                    }
-                    placeholder="Enter phone number"
+                  <Phone
+                    size={17}
+                    aria-hidden="true"
                   />
 
+                  <input
+                    id="profile-phone"
+                    name="phone"
+                    type="tel"
+                    value={phone}
+                    onChange={(event) =>
+                      setPhone(
+                        event.target.value
+                      )
+                    }
+                    placeholder="Enter phone number"
+                    autoComplete="tel"
+                    inputMode="tel"
+                  />
                 </div>
-
               </div>
 
               <button
                 type="submit"
                 className="prof-submit-btn"
                 disabled={updatingProfile}
+                aria-busy={updatingProfile}
               >
-
-                <Save size={17} />
+                <Save
+                  size={17}
+                  aria-hidden="true"
+                />
 
                 <span>
                   {updatingProfile
                     ? "Saving..."
                     : "Save Changes"}
                 </span>
-
               </button>
-
             </form>
+          </section>
 
-          </div>
-
-          {/* ====================================================
+          {/* ==================================================
               RIGHT COLUMN
-          ==================================================== */}
+          ================================================== */}
 
           <div className="prof-right-column">
-
-            {/* ==================================================
+            {/* ================================================
                 SECURITY
-            ================================================== */}
+            ================================================ */}
 
-            <div className="prof-card security-card">
-
+            <section
+              className="prof-card security-card"
+              aria-labelledby="security-title"
+            >
               <div className="prof-card-title">
-
-                <div className="section-icon security-icon">
+                <div
+                  className="section-icon security-icon"
+                  aria-hidden="true"
+                >
                   <ShieldCheck size={20} />
                 </div>
 
                 <div>
-                  <h3>
-                    Security & Password
-                  </h3>
+                  <h2 id="security-title">
+                    Security &amp; Password
+                  </h2>
 
                   <p>
                     Keep your account protected.
                   </p>
                 </div>
-
               </div>
 
               {pwdMessage.text && (
                 <div
                   className={`prof-alert ${pwdMessage.type}`}
+                  role={
+                    pwdMessage.type ===
+                    "error"
+                      ? "alert"
+                      : "status"
+                  }
+                  aria-live="polite"
                 >
-                  {pwdMessage.type === "success" ? (
-                    <CheckCircle2 size={17} />
+                  {pwdMessage.type ===
+                  "success" ? (
+                    <CheckCircle2
+                      size={17}
+                      aria-hidden="true"
+                    />
                   ) : (
-                    <AlertCircle size={17} />
+                    <AlertCircle
+                      size={17}
+                      aria-hidden="true"
+                    />
                   )}
 
                   <span>
@@ -777,127 +1079,141 @@ export default function Profile() {
                 onSubmit={handleChangePassword}
                 className="prof-form"
               >
-
                 <div className="prof-input-group">
-
-                  <label>
+                  <label htmlFor="current-password">
                     Current Password
                   </label>
 
                   <div className="prof-input-wrapper">
-
-                    <Lock size={17} />
+                    <Lock
+                      size={17}
+                      aria-hidden="true"
+                    />
 
                     <input
+                      id="current-password"
+                      name="currentPassword"
                       type="password"
                       placeholder="Enter current password"
                       value={currentPassword}
-                      onChange={(e) =>
+                      onChange={(event) =>
                         setCurrentPassword(
-                          e.target.value
+                          event.target.value
                         )
                       }
+                      autoComplete="current-password"
                       required
                     />
-
                   </div>
-
                 </div>
 
                 <div className="prof-input-group">
-
-                  <label>
+                  <label htmlFor="new-password">
                     New Password
                   </label>
 
                   <div className="prof-input-wrapper">
-
-                    <Lock size={17} />
+                    <Lock
+                      size={17}
+                      aria-hidden="true"
+                    />
 
                     <input
+                      id="new-password"
+                      name="newPassword"
                       type="password"
                       placeholder="Create a new password"
                       value={newPassword}
-                      onChange={(e) =>
+                      onChange={(event) =>
                         setNewPassword(
-                          e.target.value
+                          event.target.value
                         )
                       }
+                      autoComplete="new-password"
+                      minLength={6}
                       required
                     />
-
                   </div>
-
                 </div>
 
                 <div className="prof-input-group">
-
-                  <label>
+                  <label htmlFor="confirm-password">
                     Confirm New Password
                   </label>
 
                   <div className="prof-input-wrapper">
-
-                    <Lock size={17} />
+                    <Lock
+                      size={17}
+                      aria-hidden="true"
+                    />
 
                     <input
+                      id="confirm-password"
+                      name="confirmPassword"
                       type="password"
                       placeholder="Confirm your password"
                       value={confirmPassword}
-                      onChange={(e) =>
+                      onChange={(event) =>
                         setConfirmPassword(
-                          e.target.value
+                          event.target.value
                         )
                       }
+                      autoComplete="new-password"
+                      minLength={6}
                       required
                     />
-
                   </div>
-
                 </div>
 
                 <button
                   type="submit"
                   className="prof-submit-btn secondary"
-                  disabled={updatingPassword}
+                  disabled={
+                    updatingPassword
+                  }
+                  aria-busy={
+                    updatingPassword
+                  }
                 >
-
-                  <Lock size={17} />
+                  <Lock
+                    size={17}
+                    aria-hidden="true"
+                  />
 
                   <span>
                     {updatingPassword
                       ? "Updating..."
                       : "Update Password"}
                   </span>
-
                 </button>
-
               </form>
+            </section>
 
-            </div>
-
-            {/* ==================================================
+            {/* ================================================
                 DANGER ZONE
-            ================================================== */}
+            ================================================ */}
 
-            <div className="prof-card danger-zone">
-
+            <section
+              className="prof-card danger-zone"
+              aria-labelledby="danger-title"
+            >
               <div className="danger-heading">
-
                 <div>
                   <span>
                     ACCOUNT SECURITY
                   </span>
 
-                  <h3>
+                  <h2 id="danger-title">
                     Danger Zone
-                  </h3>
+                  </h2>
                 </div>
 
-                <div className="danger-icon">
+                <div
+                  className="danger-icon"
+                  aria-hidden="true"
+                >
                   <Trash2 size={19} />
                 </div>
-
               </div>
 
               <p>
@@ -908,35 +1224,41 @@ export default function Profile() {
 
               <button
                 type="button"
-                onClick={() =>
-                  setShowDeleteModal(true)
-                }
+                onClick={() => {
+                  setDeleteError("");
+                  setDeletePassword("");
+                  setShowDeleteModal(
+                    true
+                  );
+                }}
                 className="prof-delete-btn"
               >
-
-                <Trash2 size={17} />
+                <Trash2
+                  size={17}
+                  aria-hidden="true"
+                />
 
                 <span>
                   Delete Account
                 </span>
-
               </button>
-
-            </div>
-
+            </section>
           </div>
 
-          {/* ====================================================
+          {/* ==================================================
               STUDY NOTES
-          ==================================================== */}
+          ================================================== */}
 
-          <div className="prof-card notes-card">
-
+          <section
+            className="prof-card notes-card"
+            aria-labelledby="notes-title"
+          >
             <div className="notes-header">
-
               <div className="notes-heading">
-
-                <div className="notes-icon">
+                <div
+                  className="notes-icon"
+                  aria-hidden="true"
+                >
                   <FileText size={21} />
                 </div>
 
@@ -945,16 +1267,15 @@ export default function Profile() {
                     PERSONAL LEARNING
                   </span>
 
-                  <h3>
+                  <h2 id="notes-title">
                     My Study Notes
-                  </h3>
+                  </h2>
 
                   <p>
                     Save formulas, concepts and
                     important revision points.
                   </p>
                 </div>
-
               </div>
 
               <button
@@ -967,30 +1288,33 @@ export default function Profile() {
                   setShowNotesModal(true);
                 }}
               >
-
-                <Plus size={17} />
+                <Plus
+                  size={17}
+                  aria-hidden="true"
+                />
 
                 <span>
                   Add New Note
                 </span>
-
               </button>
-
             </div>
 
-            {/* NOTES EMPTY STATE */}
+            {/* =================================================
+                EMPTY NOTES
+            ================================================= */}
 
             {notes.length === 0 ? (
-
               <div className="empty-notes">
-
-                <div className="empty-notes-icon">
+                <div
+                  className="empty-notes-icon"
+                  aria-hidden="true"
+                >
                   <FileText size={30} />
                 </div>
 
-                <h4>
+                <h3>
                   No study notes yet
-                </h4>
+                </h3>
 
                 <p>
                   Create your first note and keep
@@ -1007,38 +1331,33 @@ export default function Profile() {
                     setShowNotesModal(true);
                   }}
                 >
-
-                  <Plus size={16} />
+                  <Plus
+                    size={16}
+                    aria-hidden="true"
+                  />
 
                   <span>
                     Create Your First Note
                   </span>
-
                 </button>
-
               </div>
-
             ) : (
-
               <div className="notes-list">
-
                 {notes.map((note) => (
-
-                  <div
+                  <article
                     className="study-note"
                     key={note.id}
                   >
-
                     <div className="study-note-content">
-
                       <div className="note-heading">
+                        <FileText
+                          size={16}
+                          aria-hidden="true"
+                        />
 
-                        <FileText size={16} />
-
-                        <h4>
+                        <h3>
                           {note.title}
-                        </h4>
-
+                        </h3>
                       </div>
 
                       <p>
@@ -1046,145 +1365,161 @@ export default function Profile() {
                       </p>
 
                       <span className="note-date">
-                        Updated{" "}
-                        {note.date}
+                        Updated {note.date}
                       </span>
-
                     </div>
 
                     <div className="note-actions">
-
                       <button
                         type="button"
                         onClick={() =>
-                          handleEditNote(note)
+                          handleEditNote(
+                            note
+                          )
                         }
                         title="Edit note"
-                        aria-label="Edit note"
+                        aria-label={`Edit note: ${note.title}`}
                       >
-                        <Edit3 size={16} />
+                        <Edit3
+                          size={16}
+                          aria-hidden="true"
+                        />
                       </button>
 
                       <button
                         type="button"
                         onClick={() =>
-                          handleDeleteNote(note.id)
+                          handleDeleteNote(
+                            note.id
+                          )
                         }
                         title="Delete note"
-                        aria-label="Delete note"
+                        aria-label={`Delete note: ${note.title}`}
                       >
-                        <Trash2 size={16} />
+                        <Trash2
+                          size={16}
+                          aria-hidden="true"
+                        />
                       </button>
-
                     </div>
-
-                  </div>
-
+                  </article>
                 ))}
-
               </div>
-
             )}
-
-          </div>
-
+          </section>
         </div>
 
         {/* ======================================================
-            NOTE MODAL
+            NOTES MODAL
         ====================================================== */}
 
         {showNotesModal && (
-
-          <div className="prof-modal-overlay">
-
-            <div className="prof-modal notes-modal">
-
+          <div
+            className="prof-modal-overlay"
+            role="presentation"
+            onMouseDown={(event) => {
+              if (
+                event.target ===
+                event.currentTarget
+              ) {
+                closeNotesModal();
+              }
+            }}
+          >
+            <div
+              className="prof-modal notes-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="notes-modal-title"
+            >
               <div className="prof-modal-header">
-
                 <div>
-
                   <span className="modal-eyebrow">
                     PERSONAL NOTES
                   </span>
 
-                  <h3>
+                  <h2 id="notes-modal-title">
                     {editingNoteId
                       ? "Edit Study Note"
                       : "Create Study Note"}
-                  </h3>
+                  </h2>
 
                   <p className="modal-small-text">
                     Keep your important learning
                     points organized.
                   </p>
-
                 </div>
 
                 <button
                   type="button"
-                  onClick={closeNotesModal}
+                  onClick={
+                    closeNotesModal
+                  }
                   className="prof-close-btn"
+                  aria-label="Close study note dialog"
                 >
-                  <X size={20} />
+                  <X
+                    size={20}
+                    aria-hidden="true"
+                  />
                 </button>
-
               </div>
 
               <div className="note-form">
-
                 <div className="prof-input-group">
-
-                  <label>
+                  <label htmlFor="note-title">
                     Note Title
                   </label>
 
                   <div className="prof-input-wrapper">
-
-                    <FileText size={17} />
+                    <FileText
+                      size={17}
+                      aria-hidden="true"
+                    />
 
                     <input
+                      id="note-title"
                       type="text"
                       value={noteTitle}
-                      onChange={(e) =>
+                      onChange={(event) =>
                         setNoteTitle(
-                          e.target.value
+                          event.target.value
                         )
                       }
                       placeholder="Example: Kirchhoff's Laws"
                       autoFocus
+                      maxLength={100}
                     />
-
                   </div>
-
                 </div>
 
                 <div className="prof-input-group">
-
-                  <label>
+                  <label htmlFor="note-content">
                     Your Note
                   </label>
 
                   <textarea
+                    id="note-content"
                     className="note-textarea"
                     value={noteContent}
-                    onChange={(e) =>
+                    onChange={(event) =>
                       setNoteContent(
-                        e.target.value
+                        event.target.value
                       )
                     }
                     placeholder="Write your important concept, formula or revision point..."
                     rows={7}
+                    maxLength={3000}
                   />
-
                 </div>
 
                 <div className="note-modal-actions">
-
                   <button
                     type="button"
                     className="prof-cancel-btn"
-                    onClick={closeNotesModal}
+                    onClick={
+                      closeNotesModal
+                    }
                   >
                     Cancel
                   </button>
@@ -1192,31 +1527,29 @@ export default function Profile() {
                   <button
                     type="button"
                     className="note-save-btn"
-                    onClick={handleSaveNote}
+                    onClick={
+                      handleSaveNote
+                    }
                     disabled={
                       !noteTitle.trim() ||
                       !noteContent.trim()
                     }
                   >
-
-                    <Save size={16} />
+                    <Save
+                      size={16}
+                      aria-hidden="true"
+                    />
 
                     <span>
                       {editingNoteId
                         ? "Save Note"
                         : "Create Note"}
                     </span>
-
                   </button>
-
                 </div>
-
               </div>
-
             </div>
-
           </div>
-
         )}
 
         {/* ======================================================
@@ -1224,35 +1557,52 @@ export default function Profile() {
         ====================================================== */}
 
         {showDeleteModal && (
-
-          <div className="prof-modal-overlay">
-
-            <div className="prof-modal delete-modal">
-
+          <div
+            className="prof-modal-overlay"
+            role="presentation"
+            onMouseDown={(event) => {
+              if (
+                event.target ===
+                event.currentTarget
+              ) {
+                setShowDeleteModal(
+                  false
+                );
+              }
+            }}
+          >
+            <div
+              className="prof-modal delete-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="delete-modal-title"
+            >
               <div className="prof-modal-header">
-
                 <div>
-
                   <span className="modal-eyebrow danger-eyebrow">
                     PERMANENT ACTION
                   </span>
 
-                  <h3>
+                  <h2 id="delete-modal-title">
                     Delete Your Account?
-                  </h3>
-
+                  </h2>
                 </div>
 
                 <button
                   type="button"
                   onClick={() =>
-                    setShowDeleteModal(false)
+                    setShowDeleteModal(
+                      false
+                    )
                   }
                   className="prof-close-btn"
+                  aria-label="Close delete account dialog"
                 >
-                  <X size={20} />
+                  <X
+                    size={20}
+                    aria-hidden="true"
+                  />
                 </button>
-
               </div>
 
               <p className="delete-description">
@@ -1262,55 +1612,62 @@ export default function Profile() {
               </p>
 
               {deleteError && (
-
-                <div className="prof-alert error">
-
-                  <AlertCircle size={17} />
+                <div
+                  className="prof-alert error"
+                  role="alert"
+                  aria-live="assertive"
+                >
+                  <AlertCircle
+                    size={17}
+                    aria-hidden="true"
+                  />
 
                   <span>
                     {deleteError}
                   </span>
-
                 </div>
-
               )}
 
               <form
-                onSubmit={handleDeleteAccount}
+                onSubmit={
+                  handleDeleteAccount
+                }
               >
-
                 <div className="prof-input-group">
-
-                  <label>
+                  <label htmlFor="delete-password">
                     Enter Your Password
                   </label>
 
                   <div className="prof-input-wrapper">
-
-                    <Lock size={17} />
+                    <Lock
+                      size={17}
+                      aria-hidden="true"
+                    />
 
                     <input
+                      id="delete-password"
+                      name="deletePassword"
                       type="password"
                       placeholder="Enter your current password"
                       value={deletePassword}
-                      onChange={(e) =>
+                      onChange={(event) =>
                         setDeletePassword(
-                          e.target.value
+                          event.target.value
                         )
                       }
+                      autoComplete="current-password"
                       required
                     />
-
                   </div>
-
                 </div>
 
                 <div className="prof-modal-actions">
-
                   <button
                     type="button"
                     onClick={() =>
-                      setShowDeleteModal(false)
+                      setShowDeleteModal(
+                        false
+                      )
                     }
                     className="prof-cancel-btn"
                   >
@@ -1320,31 +1677,30 @@ export default function Profile() {
                   <button
                     type="submit"
                     className="prof-confirm-delete-btn"
-                    disabled={deletingAccount}
+                    disabled={
+                      deletingAccount
+                    }
+                    aria-busy={
+                      deletingAccount
+                    }
                   >
-
-                    <Trash2 size={16} />
+                    <Trash2
+                      size={16}
+                      aria-hidden="true"
+                    />
 
                     <span>
                       {deletingAccount
                         ? "Deleting..."
                         : "Permanently Delete"}
                     </span>
-
                   </button>
-
                 </div>
-
               </form>
-
             </div>
-
           </div>
-
         )}
-
-      </div>
-
+      </main>
     </div>
   );
 }

@@ -1,10 +1,12 @@
 /* =========================================================
+   STG COLLEGE
    BOTANY — PREMIUM LIGHT MINT GREEN LUXURY
-   Soft Light Green • Elegant • Glassmorphism
-   NO STAR ICON • Desktop + Tablet + Mobile
-========================================================= */
 
-@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
+   Soft Mint Green • Deep Forest • Glassmorphism
+   Desktop + Tablet + Mobile
+   Performance Friendly
+   No Star Icon
+========================================================= */
 
 
 /* =========================================================
@@ -15,7 +17,6 @@
   --botany-bg: #07110d;
   --botany-bg-soft: #0b1712;
 
-  /* Soft Light Green Palette */
   --botany-green-soft: #b8f2d0;
   --botany-green-light: #8ee8b5;
   --botany-mint: #6ee7a3;
@@ -30,6 +31,13 @@
   --botany-border-hover: rgba(142, 232, 181, 0.34);
 
   --botany-glow: rgba(110, 231, 163, 0.13);
+
+  --botany-shadow:
+    0 20px 55px rgba(0, 0, 0, 0.30);
+
+  --botany-radius-lg: 30px;
+  --botany-radius-md: 24px;
+  --botany-radius-sm: 16px;
 }
 
 
@@ -39,11 +47,19 @@
 
 .botany-page {
   min-height: 100vh;
+  width: 100%;
 
   padding: 55px 20px 80px;
 
+  position: relative;
+  overflow: hidden;
+
   font-family:
     "Plus Jakarta Sans",
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
     sans-serif;
 
   color: var(--botany-text);
@@ -54,19 +70,16 @@
       rgba(110, 231, 163, 0.12),
       transparent 28%
     ),
-
     radial-gradient(
       circle at 95% 15%,
       rgba(142, 232, 181, 0.09),
       transparent 30%
     ),
-
     radial-gradient(
       circle at 50% 100%,
       rgba(74, 222, 128, 0.06),
       transparent 32%
     ),
-
     linear-gradient(
       135deg,
       #06100c 0%,
@@ -74,9 +87,18 @@
       #050d09 100%
     );
 
-  position: relative;
+  box-sizing: border-box;
+}
 
-  overflow: hidden;
+
+/* =========================================================
+   GLOBAL BOX SIZING
+========================================================= */
+
+.botany-page *,
+.botany-page *::before,
+.botany-page *::after {
+  box-sizing: border-box;
 }
 
 
@@ -134,11 +156,9 @@
 
 .botany-container {
   width: min(1180px, 100%);
-
   margin: 0 auto;
 
   position: relative;
-
   z-index: 2;
 }
 
@@ -151,13 +171,11 @@
   position: relative;
 
   padding: 58px 50px;
-
   margin-bottom: 55px;
 
-  border-radius: 30px;
+  border-radius: var(--botany-radius-lg);
 
-  border:
-    1px solid var(--botany-border);
+  border: 1px solid var(--botany-border);
 
   background:
     linear-gradient(
@@ -168,12 +186,8 @@
 
   box-shadow:
     0 30px 80px rgba(0, 0, 0, 0.48),
-
-    0 0 55px
-      rgba(110, 231, 163, 0.06),
-
-    inset 0 1px 0
-      rgba(255, 255, 255, 0.035);
+    0 0 55px rgba(110, 231, 163, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.035);
 
   overflow: hidden;
 }
@@ -212,7 +226,6 @@
 
 /* =========================================================
    HERO DECORATIVE LIGHT
-   NO STAR ICON
 ========================================================= */
 
 .botany-hero::after {
@@ -247,7 +260,6 @@
   max-width: 800px;
 
   position: relative;
-
   z-index: 2;
 }
 
@@ -260,13 +272,11 @@
   width: fit-content;
 
   display: flex;
-
   align-items: center;
 
   gap: 8px;
 
   padding: 9px 16px;
-
   margin-bottom: 22px;
 
   border-radius: 999px;
@@ -286,14 +296,12 @@
     var(--botany-green-soft);
 
   font-size: 11px;
-
   font-weight: 800;
 
   letter-spacing: 1.2px;
 
   box-shadow:
-    0 8px 25px
-    rgba(110, 231, 163, 0.04);
+    0 8px 25px rgba(110, 231, 163, 0.04);
 }
 
 
@@ -343,7 +351,6 @@
     );
 
   -webkit-background-clip: text;
-
   background-clip: text;
 
   -webkit-text-fill-color: transparent;
@@ -374,7 +381,6 @@
 
 .botany-stats {
   display: flex;
-
   flex-wrap: wrap;
 
   gap: 14px;
@@ -395,19 +401,25 @@
   border-radius: 17px;
 
   border:
-    1px solid var(--botany-border);
+    1px solid
+    var(--botany-border);
 
   background:
     rgba(255, 255, 255, 0.025);
 
   backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 
   transition:
     transform 0.25s ease,
     border-color 0.25s ease,
-    background 0.25s ease;
+    background-color 0.25s ease;
 }
 
+
+/* =========================================================
+   STAT HOVER
+========================================================= */
 
 .botany-stat:hover {
   transform:
@@ -460,6 +472,16 @@
 
 
 /* =========================================================
+   SECTION
+========================================================= */
+
+.botany-section {
+  position: relative;
+  z-index: 2;
+}
+
+
+/* =========================================================
    SECTION HEADER
 ========================================================= */
 
@@ -467,7 +489,6 @@
   display: flex;
 
   justify-content: space-between;
-
   align-items: flex-end;
 
   gap: 20px;
@@ -505,11 +526,13 @@
     var(--botany-muted);
 
   font-size: 13px;
+
+  line-height: 1.6;
 }
 
 
 /* =========================================================
-   GRID
+   CHAPTER GRID
 ========================================================= */
 
 .botany-chapter-grid {
@@ -523,7 +546,7 @@
 
 
 /* =========================================================
-   CARD
+   CHAPTER CARD
 ========================================================= */
 
 .botany-chapter-card {
@@ -533,10 +556,12 @@
 
   padding: 23px;
 
-  border-radius: 24px;
+  border-radius:
+    var(--botany-radius-md);
 
   border:
-    1px solid var(--botany-border);
+    1px solid
+    var(--botany-border);
 
   background:
     linear-gradient(
@@ -546,8 +571,7 @@
     );
 
   box-shadow:
-    0 20px 55px
-    rgba(0, 0, 0, 0.30);
+    var(--botany-shadow);
 
   overflow: hidden;
 
@@ -555,12 +579,12 @@
     transform 0.3s ease,
     border-color 0.3s ease,
     box-shadow 0.3s ease,
-    background 0.3s ease;
+    background-color 0.3s ease;
 }
 
 
 /* =========================================================
-   CARD GLOW
+   CARD TOP GLOW
 ========================================================= */
 
 .botany-chapter-card::before {
@@ -587,6 +611,8 @@
 
   transition:
     transform 0.35s ease;
+
+  pointer-events: none;
 }
 
 
@@ -637,11 +663,8 @@
     );
 
   box-shadow:
-    0 30px 75px
-    rgba(0, 0, 0, 0.42),
-
-    0 0 40px
-    rgba(110, 231, 163, 0.07);
+    0 30px 75px rgba(0, 0, 0, 0.42),
+    0 0 40px rgba(110, 231, 163, 0.07);
 }
 
 
@@ -659,11 +682,9 @@
   display: flex;
 
   justify-content: space-between;
-
   align-items: center;
 
   position: relative;
-
   z-index: 2;
 }
 
@@ -679,7 +700,6 @@
   display: flex;
 
   align-items: center;
-
   justify-content: center;
 
   border-radius: 16px;
@@ -701,15 +721,18 @@
   box-shadow:
     0 12px 30px
     rgba(110, 231, 163, 0.07),
-
     inset 0 1px 0
     rgba(255, 255, 255, 0.05);
 
   transition:
     transform 0.3s ease,
-    background 0.3s ease;
+    background-color 0.3s ease;
 }
 
+
+/* =========================================================
+   ICON HOVER
+========================================================= */
 
 .botany-chapter-card:hover
 .botany-chapter-icon {
@@ -727,7 +750,7 @@
 
 
 /* =========================================================
-   NUMBER
+   CHAPTER NUMBER
 ========================================================= */
 
 .botany-chapter-number {
@@ -743,12 +766,11 @@
 
 
 /* =========================================================
-   CONTENT
+   CARD CONTENT
 ========================================================= */
 
 .botany-card-content {
   position: relative;
-
   z-index: 2;
 
   margin-top: 28px;
@@ -770,6 +792,8 @@
   font-weight: 800;
 
   letter-spacing: -0.5px;
+
+  line-height: 1.3;
 }
 
 
@@ -792,16 +816,17 @@
 
 
 /* =========================================================
-   BUTTON
+   TEST BUTTON
 ========================================================= */
 
 .botany-test-button {
   width: 100%;
 
+  min-height: 46px;
+
   display: flex;
 
   align-items: center;
-
   justify-content: center;
 
   gap: 8px;
@@ -833,7 +858,11 @@
   cursor: pointer;
 
   transition:
-    all 0.25s ease;
+    transform 0.25s ease,
+    background-color 0.25s ease,
+    border-color 0.25s ease,
+    color 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
 
@@ -875,22 +904,355 @@
 
 
 /* =========================================================
+   FOCUS ACCESSIBILITY
+========================================================= */
+
+.botany-test-button:focus-visible {
+  outline:
+    2px solid
+    var(--botany-green-light);
+
+  outline-offset:
+    3px;
+}
+
+
+/* =========================================================
+   STATE CARD
+   Used by loading / empty / error UI
+========================================================= */
+
+.botany-state-card {
+  min-height: 220px;
+
+  width: 100%;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+
+  padding: 35px 24px;
+
+  border-radius: 24px;
+
+  border:
+    1px solid
+    var(--botany-border);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(13, 38, 24, 0.78),
+      rgba(7, 17, 11, 0.94)
+    );
+
+  box-shadow:
+    0 18px 50px
+    rgba(0, 0, 0, 0.28);
+}
+
+
+/* =========================================================
+   STATE ICON
+========================================================= */
+
+.botany-state-icon {
+  width: 52px;
+  height: 52px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 15px;
+
+  border-radius: 16px;
+
+  color:
+    var(--botany-green-light);
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(110, 231, 163, 0.15),
+      rgba(142, 232, 181, 0.045)
+    );
+
+  border:
+    1px solid
+    rgba(142, 232, 181, 0.20);
+}
+
+
+/* =========================================================
+   STATE TITLE
+========================================================= */
+
+.botany-state-card h3 {
+  margin: 0;
+
+  color:
+    var(--botany-white);
+
+  font-size: 18px;
+
+  font-weight: 800;
+}
+
+
+/* =========================================================
+   STATE TEXT
+========================================================= */
+
+.botany-state-card p {
+  max-width: 520px;
+
+  margin: 8px auto 0;
+
+  color:
+    var(--botany-muted);
+
+  font-size: 13px;
+
+  line-height: 1.7;
+}
+
+
+/* =========================================================
+   RETRY BUTTON
+========================================================= */
+
+.botany-retry-button {
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  margin-top: 18px;
+
+  min-height: 44px;
+
+  padding: 11px 18px;
+
+  border-radius: 12px;
+
+  border:
+    1px solid
+    rgba(142, 232, 181, 0.24);
+
+  background:
+    rgba(110, 231, 163, 0.08);
+
+  color:
+    var(--botany-green-light);
+
+  font-family: inherit;
+
+  font-size: 12px;
+
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+
+.botany-retry-button:hover {
+  transform:
+    translateY(-2px);
+
+  border-color:
+    var(--botany-border-hover);
+
+  background:
+    rgba(110, 231, 163, 0.14);
+}
+
+
+.botany-retry-button:active {
+  transform:
+    scale(0.97);
+}
+
+
+.botany-retry-button:focus-visible {
+  outline:
+    2px solid
+    var(--botany-green-light);
+
+  outline-offset:
+    3px;
+}
+
+
+/* =========================================================
+   SPINNER
+========================================================= */
+
+.botany-loading-icon {
+  animation:
+    botanySpin 0.9s linear infinite;
+}
+
+
+@keyframes botanySpin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+/* =========================================================
+   QUESTION COUNT
+========================================================= */
+
+.botany-question-count {
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  padding: 7px 11px;
+
+  border-radius: 999px;
+
+  color:
+    var(--botany-green-soft);
+
+  border:
+    1px solid
+    rgba(142, 232, 181, 0.16);
+
+  background:
+    rgba(110, 231, 163, 0.06);
+
+  font-size: 10px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.4px;
+}
+
+
+/* =========================================================
+   COMPLETED MARK
+========================================================= */
+
+.botany-completed-mark {
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 6px;
+
+  padding: 7px 11px;
+
+  border-radius: 999px;
+
+  border:
+    1px solid
+    rgba(110, 231, 163, 0.22);
+
+  background:
+    rgba(110, 231, 163, 0.08);
+
+  color:
+    var(--botany-green-soft);
+
+  font-size: 10px;
+
+  font-weight: 800;
+}
+
+
+/* =========================================================
+   HISTORY SYNC
+========================================================= */
+
+.botany-history-sync {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  margin-top: 18px;
+
+  padding: 10px 14px;
+
+  border-radius: 12px;
+
+  border:
+    1px solid
+    rgba(142, 232, 181, 0.10);
+
+  background:
+    rgba(110, 231, 163, 0.025);
+
+  color:
+    #789486;
+
+  font-size: 10px;
+
+  font-weight: 700;
+
+  text-align: center;
+}
+
+
+/* =========================================================
+   RESPONSIVE LARGE TABLET
+========================================================= */
+
+@media (max-width: 1100px) {
+  .botany-container {
+    width: min(100%, 960px);
+  }
+
+  .botany-hero {
+    padding:
+      50px 42px;
+  }
+}
+
+
+/* =========================================================
    TABLET
 ========================================================= */
 
 @media (max-width: 950px) {
-
   .botany-chapter-grid {
     grid-template-columns:
       repeat(2, minmax(0, 1fr));
   }
-
 
   .botany-hero {
     padding:
       45px 35px;
   }
 
+  .botany-title {
+    font-size:
+      clamp(42px, 7vw, 62px);
+  }
 }
 
 
@@ -899,10 +1261,28 @@
 ========================================================= */
 
 @media (max-width: 650px) {
-
   .botany-page {
     padding:
       25px 14px 55px;
+
+    overflow-x: hidden;
+  }
+
+
+  /* -------------------------------------------------------
+     Reduce expensive blur on mobile
+  ------------------------------------------------------- */
+
+  .botany-page::before,
+  .botany-page::after {
+    filter:
+      blur(70px);
+  }
+
+
+  .botany-hero::before {
+    filter:
+      blur(18px);
   }
 
 
@@ -915,8 +1295,35 @@
 
     margin-bottom:
       38px;
+
+    box-shadow:
+      0 22px 55px
+      rgba(0, 0, 0, 0.38);
   }
 
+
+  /* -------------------------------------------------------
+     Badge
+  ------------------------------------------------------- */
+
+  .botany-badge {
+    padding:
+      8px 13px;
+
+    margin-bottom:
+      18px;
+
+    font-size:
+      9px;
+
+    letter-spacing:
+      0.9px;
+  }
+
+
+  /* -------------------------------------------------------
+     Title
+  ------------------------------------------------------- */
 
   .botany-title {
     font-size:
@@ -933,8 +1340,15 @@
 
     margin-top:
       10px;
+
+    letter-spacing:
+      -0.6px;
   }
 
+
+  /* -------------------------------------------------------
+     Description
+  ------------------------------------------------------- */
 
   .botany-description {
     font-size:
@@ -942,12 +1356,15 @@
 
     line-height:
       1.7;
+
+    margin-top:
+      19px;
   }
 
 
-  /* =======================================================
-     MOBILE STATS
-  ======================================================= */
+  /* -------------------------------------------------------
+     Stats
+  ------------------------------------------------------- */
 
   .botany-stats {
     display:
@@ -958,6 +1375,9 @@
 
     gap:
       8px;
+
+    margin-top:
+      25px;
   }
 
 
@@ -970,6 +1390,18 @@
 
     text-align:
       center;
+
+    backdrop-filter:
+      blur(8px);
+
+    -webkit-backdrop-filter:
+      blur(8px);
+  }
+
+
+  .botany-stat:hover {
+    transform:
+      none;
   }
 
 
@@ -982,12 +1414,30 @@
   .botany-stat-label {
     font-size:
       8px;
+
+    letter-spacing:
+      0.4px;
   }
 
 
-  /* =======================================================
-     SECTION
-  ======================================================= */
+  /* -------------------------------------------------------
+     Section
+  ------------------------------------------------------- */
+
+  .botany-section-header {
+    align-items:
+      flex-start;
+
+    flex-direction:
+      column;
+
+    gap:
+      4px;
+
+    margin-bottom:
+      20px;
+  }
+
 
   .botany-section-title {
     font-size:
@@ -998,12 +1448,15 @@
   .botany-section-subtitle {
     font-size:
       11px;
+
+    line-height:
+      1.6;
   }
 
 
-  /* =======================================================
-     GRID
-  ======================================================= */
+  /* -------------------------------------------------------
+     Grid
+  ------------------------------------------------------- */
 
   .botany-chapter-grid {
     grid-template-columns:
@@ -1014,9 +1467,9 @@
   }
 
 
-  /* =======================================================
-     CARD
-  ======================================================= */
+  /* -------------------------------------------------------
+     Card
+  ------------------------------------------------------- */
 
   .botany-chapter-card {
     min-height:
@@ -1027,6 +1480,16 @@
 
     border-radius:
       20px;
+
+    box-shadow:
+      0 16px 40px
+      rgba(0, 0, 0, 0.25);
+  }
+
+
+  .botany-chapter-card:hover {
+    transform:
+      none;
   }
 
 
@@ -1046,14 +1509,20 @@
     min-height:
       auto;
 
+    margin-bottom:
+      17px;
+
     font-size:
       11px;
+
+    line-height:
+      1.7;
   }
 
 
-  /* =======================================================
-     ICON
-  ======================================================= */
+  /* -------------------------------------------------------
+     Icon
+  ------------------------------------------------------- */
 
   .botany-chapter-icon {
     width:
@@ -1066,6 +1535,91 @@
       14px;
   }
 
+
+  /* -------------------------------------------------------
+     Buttons
+  ------------------------------------------------------- */
+
+  .botany-test-button {
+    min-height:
+      44px;
+
+    padding:
+      12px 14px;
+
+    font-size:
+      11px;
+  }
+
+
+  .botany-test-button:hover {
+    transform:
+      none;
+  }
+
+
+  /* -------------------------------------------------------
+     State
+  ------------------------------------------------------- */
+
+  .botany-state-card {
+    min-height:
+      190px;
+
+    padding:
+      28px 18px;
+
+    border-radius:
+      20px;
+  }
+
+
+  .botany-state-card h3 {
+    font-size:
+      16px;
+  }
+
+
+  .botany-state-card p {
+    font-size:
+      11px;
+  }
+
+
+  .botany-state-icon {
+    width:
+      46px;
+
+    height:
+      46px;
+
+    border-radius:
+      14px;
+  }
+
+
+  .botany-retry-button {
+    min-height:
+      42px;
+
+    margin-top:
+      15px;
+
+    padding:
+      10px 15px;
+
+    font-size:
+      11px;
+  }
+
+
+  .botany-history-sync {
+    font-size:
+      9px;
+
+    padding:
+      9px 11px;
+  }
 }
 
 
@@ -1074,7 +1628,6 @@
 ========================================================= */
 
 @media (max-width: 390px) {
-
   .botany-page {
     padding-left:
       10px;
@@ -1087,6 +1640,9 @@
   .botany-hero {
     padding:
       27px 18px;
+
+    border-radius:
+      21px;
   }
 
 
@@ -1099,6 +1655,12 @@
   .botany-title span {
     font-size:
       18px;
+  }
+
+
+  .botany-description {
+    font-size:
+      12px;
   }
 
 
@@ -1119,20 +1681,85 @@
       7px;
   }
 
+
+  .botany-chapter-card {
+    padding:
+      17px;
+  }
+
+
+  .botany-card-content h3 {
+    font-size:
+      17px;
+  }
+
+
+  .botany-section-title {
+    font-size:
+      21px;
+  }
 }
 
 
 /* =========================================================
-   FOCUS ACCESSIBILITY
+   VERY SMALL MOBILE
 ========================================================= */
 
-.botany-test-button:focus-visible {
-  outline:
-    2px solid
-    var(--botany-green-light);
+@media (max-width: 340px) {
+  .botany-title {
+    font-size:
+      34px;
+  }
 
-  outline-offset:
-    3px;
+
+  .botany-title span {
+    font-size:
+      16px;
+  }
+
+
+  .botany-stats {
+    gap:
+      6px;
+  }
+
+
+  .botany-stat-value {
+    font-size:
+      13px;
+  }
+
+
+  .botany-stat-label {
+    font-size:
+      6.5px;
+  }
+}
+
+
+/* =========================================================
+   TOUCH DEVICES
+========================================================= */
+
+@media (hover: none) and (pointer: coarse) {
+  .botany-stat:hover,
+  .botany-chapter-card:hover,
+  .botany-test-button:hover,
+  .botany-retry-button:hover {
+    transform:
+      none;
+  }
+
+  .botany-chapter-card:hover {
+    border-color:
+      var(--botany-border);
+  }
+
+  .botany-chapter-card:hover
+  .botany-chapter-icon {
+    transform:
+      none;
+  }
 }
 
 
@@ -1141,14 +1768,90 @@
 ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
+  .botany-page *,
+  .botany-page *::before,
+  .botany-page *::after {
+    scroll-behavior:
+      auto !important;
+  }
 
   .botany-chapter-card,
   .botany-test-button,
   .botany-stat,
-  .botany-chapter-icon {
-
+  .botany-chapter-icon,
+  .botany-retry-button {
     transition:
+      none !important;
+  }
+
+  .botany-loading-icon {
+    animation:
+      none !important;
+  }
+}
+
+
+/* =========================================================
+   PRINT
+========================================================= */
+
+@media print {
+  .botany-page {
+    min-height:
+      auto;
+
+    padding:
+      0;
+
+    background:
+      #ffffff;
+
+    color:
+      #111111;
+  }
+
+  .botany-page::before,
+  .botany-page::after,
+  .botany-hero::before,
+  .botany-hero::after,
+  .botany-chapter-card::before,
+  .botany-chapter-card::after {
+    display:
       none;
   }
 
+  .botany-hero,
+  .botany-chapter-card,
+  .botany-state-card {
+    color:
+      #111111;
+
+    background:
+      #ffffff;
+
+    box-shadow:
+      none;
+
+    border:
+      1px solid #cccccc;
+  }
+
+  .botany-title,
+  .botany-section-title,
+  .botany-card-content h3,
+  .botany-state-card h3 {
+    color:
+      #111111;
+
+    -webkit-text-fill-color:
+      initial;
+  }
+
+  .botany-description,
+  .botany-section-subtitle,
+  .botany-card-content p,
+  .botany-state-card p {
+    color:
+      #555555;
+  }
 }

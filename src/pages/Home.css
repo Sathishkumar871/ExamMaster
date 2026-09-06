@@ -1,18 +1,4 @@
 
-/* =========================================================
-   STG EXAM MASTER
-   PREMIUM LUXURY HOME EXPERIENCE
-   BRIGHT WHITE • ESPRESSO • CHAMPAGNE • SOFT BLUE
-   DESKTOP • TABLET • PREMIUM MOBILE
-========================================================= */
-
-
-/* =========================================================
-   GOOGLE FONTS
-========================================================= */
-
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap");
-
 
 /* =========================================================
    ROOT
@@ -3580,5 +3566,382 @@ a {
 
     font-size: 7.5px;
   }
+}
+
+
+
+/* =========================================================
+   STG HOME — FINAL SCROLL SYSTEM
+   ---------------------------------------------------------
+   ✅ Smooth vertical page scrolling
+   ✅ No horizontal page drag
+   ✅ Subject cards horizontal swipe
+   ✅ Mobile touch remains natural
+   ✅ Desktop wheel / trackpad remains natural
+========================================================= */
+
+/* =========================================================
+   GLOBAL
+========================================================= */
+
+html {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+  overscroll-behavior-x: none;
+}
+
+body {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
+
+  /* IMPORTANT:
+     Do NOT use touch-action: pan-y here.
+     Browser native scrolling feels smoother without it.
+  */
+}
+
+/* React root */
+#root {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+/* =========================================================
+   HOME PAGE
+========================================================= */
+
+.home-page {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* =========================================================
+   HERO
+========================================================= */
+
+.hero {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* Background never participates in touch */
+.hero-bg-wrapper,
+.hero-custom-img,
+.hero-gradient-overlay {
+  pointer-events: none;
+}
+
+.hero-custom-img {
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* Decorative elements */
+.hero::before,
+.hero::after,
+.hero-bg-wrapper::before,
+.hero-bg-wrapper::after {
+  pointer-events: none;
+}
+
+/* =========================================================
+   CONTENT WIDTH SAFETY
+========================================================= */
+
+.hero-content,
+.subjects-section-header,
+.feature-grid,
+.section-header,
+.subject-scroll-bottom {
+  min-width: 0;
+}
+
+/* =========================================================
+   SUBJECT AREA
+   ---------------------------------------------------------
+   ONLY THIS AREA gets horizontal scrolling.
+========================================================= */
+
+.subject-scroll-wrapper {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* Horizontal scrolling container */
+.subject-scroll-container {
+  width: 100%;
+  max-width: 100%;
+
+  display: flex;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  /* Natural horizontal touch inside cards */
+  touch-action: pan-x;
+
+  /* Prevent horizontal overscroll from leaking to body */
+  overscroll-behavior-x: contain;
+
+  -webkit-overflow-scrolling: touch;
+
+  scroll-behavior: smooth;
+}
+
+/* Chrome / Edge */
+.subject-scroll-container::-webkit-scrollbar {
+  height: 5px;
+}
+
+/* Mobile scrollbar hidden */
+@media (max-width: 650px) {
+  .subject-scroll-container::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* =========================================================
+   SUBJECT CARDS
+========================================================= */
+
+.premium-subject-card {
+  flex-shrink: 0;
+  min-width: 0;
+
+  /* Do not make entire card draggable like an image */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.premium-subject-card img,
+.premium-subject-card svg {
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* =========================================================
+   SUBJECT BUTTON
+========================================================= */
+
+.premium-subject-link {
+  touch-action: manipulation;
+}
+
+/* =========================================================
+   BUTTONS
+========================================================= */
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.start-btn,
+.locked-hero-btn,
+.browse-btn,
+.start-exam-now-btn,
+.waiting-btn,
+.close-alert-btn {
+  touch-action: manipulation;
+}
+
+/* =========================================================
+   SWIPE HINT
+   ---------------------------------------------------------
+   It should NOT drag the whole page.
+========================================================= */
+
+.scroll-hint {
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  cursor: default;
+}
+
+.scroll-hint:active {
+  transform: none;
+}
+
+/* =========================================================
+   FEATURES
+========================================================= */
+
+.features {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* =========================================================
+   MEDIA SAFETY
+========================================================= */
+
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+}
+
+/* =========================================================
+   MODAL
+========================================================= */
+
+.exam-modal-backdrop {
+  overflow: hidden;
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 650px) {
+
+  html {
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    overflow-x: hidden;
+
+    /* Let browser handle vertical swipe naturally */
+    overscroll-behavior-x: none;
+  }
+
+  #root {
+    overflow-x: hidden;
+  }
+
+  .home-page {
+    overflow-x: hidden;
+  }
+
+  /* =======================================================
+     HERO
+  ======================================================= */
+
+  .hero {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .hero-bg-wrapper {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  /* =======================================================
+     SUBJECT SCROLLER
+  ======================================================= */
+
+  .subject-scroll-wrapper {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .subject-scroll-container {
+    width: 100%;
+    max-width: 100%;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    touch-action: pan-x;
+    overscroll-behavior-x: contain;
+
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+
+    scrollbar-width: none;
+  }
+
+  /* =======================================================
+     SUBJECT CARD
+  ======================================================= */
+
+  .premium-subject-card {
+    flex: 0 0 calc(100vw - 88px);
+    max-width: calc(100vw - 88px);
+
+    scroll-snap-align: center;
+  }
+
+  /* =======================================================
+     DO NOT FORCE TOUCH-ACTION ON NORMAL PAGE CONTENT
+  ======================================================= */
+
+  .subjects-premium-section,
+  .features,
+  .section-header,
+  .subjects-section-header,
+  .feature-grid {
+    touch-action: auto;
+  }
+}
+
+/* =========================================================
+   EXTRA SMALL
+========================================================= */
+
+@media (max-width: 380px) {
+
+  html,
+  body,
+  #root {
+    overflow-x: hidden;
+  }
+
+  .premium-subject-card {
+    flex-basis: calc(100vw - 68px);
+    max-width: calc(100vw - 68px);
+  }
+}
+
+/* =========================================================
+   FIX INVALID TRANSITIONS FROM ORIGINAL CSS
+========================================================= */
+
+.locked-hero-btn {
+  transition:
+    transform 0.3s ease,
+    background 0.3s ease,
+    border-color 0.3s ease;
+}
+
+.browse-btn {
+  transition:
+    transform 0.3s ease,
+    background 0.3s ease,
+    border-color 0.3s ease;
+}
+
+.premium-subject-link {
+  transition:
+    background 0.25s ease,
+    transform 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.close-alert-btn {
+  transition:
+    background 0.25s ease,
+    transform 0.25s ease;
 }
 

@@ -2555,3 +2555,798 @@ body {
     overflow: visible;
   }
 }
+
+/* ============================================================
+   TOTAL STUDENTS PDF CARD
+============================================================ */
+
+.mentor-total-students-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.mentor-stat-content {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.mentor-stat-content > span {
+  display: block;
+}
+
+.mentor-stat-content > strong {
+  display: block;
+  margin-top: 4px;
+}
+
+/* ============================================================
+   TOTAL STUDENTS DATA BUTTON
+============================================================ */
+
+.mentor-total-students-btn {
+  margin-top: 10px;
+  border: 1px solid rgba(120, 88, 61, 0.18);
+  background: linear-gradient(
+    135deg,
+    #fffaf6,
+    #f5ede5
+  );
+  color: #5b3f2c;
+  min-height: 30px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease,
+    border-color 0.18s ease;
+  white-space: nowrap;
+}
+
+.mentor-total-students-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: linear-gradient(
+    135deg,
+    #ffffff,
+    #f0e4d9
+  );
+  border-color: rgba(120, 88, 61, 0.34);
+  box-shadow:
+    0 7px 18px rgba(70, 46, 32, 0.09);
+}
+
+.mentor-total-students-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.mentor-total-students-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.mentor-total-students-btn svg {
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   REFRESH SPIN
+============================================================ */
+
+.mentor-refresh-spin {
+  animation: mentorRefreshSpin 0.85s linear infinite;
+}
+
+@keyframes mentorRefreshSpin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================================
+   MOBILE
+============================================================ */
+
+@media (max-width: 768px) {
+  .mentor-total-students-btn {
+    font-size: 10px;
+    padding: 6px 8px;
+  }
+}
+
+@media (max-width: 560px) {
+  .mentor-total-students-card {
+    align-items: flex-start;
+  }
+
+  .mentor-stat-content {
+    width: 100%;
+  }
+
+  .mentor-total-students-btn {
+    width: 100%;
+  }
+}
+
+
+/* ============================================================
+   TOTAL STUDENTS ACTION
+============================================================ */
+
+.mentor-total-students-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.mentor-stat-content {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.mentor-stat-content > span {
+  display: block;
+}
+
+.mentor-stat-content > strong {
+  display: block;
+  margin-top: 4px;
+}
+
+.mentor-total-students-btn {
+  margin-top: 10px;
+  min-height: 31px;
+  border: 1px solid rgba(120, 88, 61, 0.18);
+  border-radius: 9px;
+  padding: 7px 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: linear-gradient(
+    135deg,
+    #fffaf6,
+    #f4e9df
+  );
+  color: #5b3f2c;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.mentor-total-students-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: rgba(120, 88, 61, 0.35);
+  box-shadow:
+    0 8px 20px rgba(70, 46, 32, 0.1);
+  background: linear-gradient(
+    135deg,
+    #ffffff,
+    #f0e4d9
+  );
+}
+
+.mentor-total-students-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   REPORT OVERLAY
+============================================================ */
+
+.mentor-report-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    rgba(28, 22, 19, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+/* ============================================================
+   REPORT MODAL
+============================================================ */
+
+.mentor-report-modal {
+  width: min(1180px, 100%);
+  max-height: calc(100vh - 40px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border:
+    1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 22px;
+  background:
+    linear-gradient(
+      180deg,
+      #fffdfb 0%,
+      #f8f3ee 100%
+    );
+  box-shadow:
+    0 35px 90px rgba(0, 0, 0, 0.32),
+    0 8px 24px rgba(76, 51, 37, 0.14);
+}
+
+/* ============================================================
+   REPORT HEADER
+============================================================ */
+
+.mentor-report-header {
+  flex-shrink: 0;
+  padding: 22px 24px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  color: #ffffff;
+  background:
+    linear-gradient(
+      135deg,
+      #2d211c,
+      #49352a
+    );
+}
+
+.mentor-report-eyebrow {
+  display: block;
+  margin-bottom: 7px;
+  color: rgba(255, 255, 255, 0.63);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+}
+
+.mentor-report-header h2 {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.15;
+  font-weight: 850;
+}
+
+.mentor-report-header p {
+  margin: 7px 0 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+}
+
+.mentor-report-close {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    transform 0.18s ease;
+}
+
+.mentor-report-close:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+}
+
+/* ============================================================
+   SUMMARY
+============================================================ */
+
+.mentor-report-summary {
+  flex-shrink: 0;
+  padding: 16px 22px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  border-bottom:
+    1px solid rgba(83, 63, 49, 0.09);
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.mentor-report-summary > div {
+  min-height: 66px;
+  padding: 12px 15px;
+  border:
+    1px solid rgba(108, 78, 57, 0.1);
+  border-radius: 13px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background:
+    linear-gradient(
+      135deg,
+      #fffefd,
+      #f8f0e8
+    );
+}
+
+.mentor-report-summary span {
+  color: #8f7b6d;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.mentor-report-summary strong {
+  margin-top: 4px;
+  color: #3b2c24;
+  font-size: 19px;
+  font-weight: 900;
+}
+
+/* ============================================================
+   REPORT CONTENT
+============================================================ */
+
+.mentor-report-section {
+  padding: 18px 22px 0;
+}
+
+.mentor-report-section-title {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 13px;
+}
+
+.mentor-report-section-title span {
+  display: block;
+  margin-bottom: 4px;
+  color: #947d6c;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+}
+
+.mentor-report-section-title h3 {
+  margin: 0;
+  color: #3d2e25;
+  font-size: 17px;
+  font-weight: 850;
+}
+
+.mentor-report-section-title p {
+  margin: 0;
+  color: #8e7a6b;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* ============================================================
+   SUBJECT SUMMARY
+============================================================ */
+
+.mentor-subject-summary {
+  display: grid;
+  grid-template-columns:
+    repeat(
+      auto-fit,
+      minmax(150px, 1fr)
+    );
+  gap: 10px;
+}
+
+.mentor-subject-summary-card {
+  padding: 13px;
+  border:
+    1px solid rgba(111, 79, 57, 0.11);
+  border-radius: 13px;
+  background: #ffffff;
+  box-shadow:
+    0 5px 17px rgba(67, 45, 33, 0.045);
+}
+
+.mentor-subject-summary-card span {
+  display: block;
+  color: #796657;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.mentor-subject-summary-card strong {
+  display: block;
+  margin-top: 5px;
+  color: #483429;
+  font-size: 19px;
+  font-weight: 900;
+}
+
+.mentor-subject-summary-card small {
+  display: block;
+  margin-top: 4px;
+  color: #a18d7e;
+  font-size: 9px;
+}
+
+/* ============================================================
+   STUDENT LIST
+============================================================ */
+
+.mentor-report-students {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 16px;
+}
+
+.mentor-report-student {
+  overflow: hidden;
+  border:
+    1px solid rgba(111, 79, 57, 0.11);
+  border-radius: 15px;
+  background: #ffffff;
+  box-shadow:
+    0 6px 18px rgba(67, 45, 33, 0.04);
+}
+
+.mentor-report-student-head {
+  width: 100%;
+  padding: 14px 15px;
+  border: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  text-align: left;
+  background: transparent;
+  cursor: pointer;
+}
+
+.mentor-report-student-main {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.mentor-report-avatar {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    linear-gradient(
+      135deg,
+      #e9d5c4,
+      #c9a98e
+    );
+  color: #513a2b;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.mentor-report-student-main strong {
+  display: block;
+  overflow: hidden;
+  color: #3f3027;
+  font-size: 13px;
+  font-weight: 850;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mentor-report-student-main span {
+  display: block;
+  margin-top: 3px;
+  overflow: hidden;
+  color: #978576;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mentor-report-student-right {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #806b5c;
+}
+
+.mentor-report-student-right > div {
+  text-align: right;
+}
+
+.mentor-report-student-right span {
+  display: block;
+  color: #9c8b7f;
+  font-size: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.mentor-report-student-right strong {
+  display: block;
+  margin-top: 3px;
+  color: #4a362a;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+/* ============================================================
+   STUDENT TABLE
+============================================================ */
+
+.mentor-report-student-body {
+  padding: 0 15px 15px;
+}
+
+.mentor-report-table-wrap {
+  overflow-x: auto;
+  border:
+    1px solid rgba(111, 79, 57, 0.1);
+  border-radius: 11px;
+}
+
+.mentor-report-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+  background: #ffffff;
+}
+
+.mentor-report-table th {
+  padding: 9px 10px;
+  border-bottom:
+    1px solid rgba(111, 79, 57, 0.13);
+  background: #4a382e;
+  color: #ffffff;
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+  text-align: left;
+}
+
+.mentor-report-table td {
+  padding: 10px;
+  border-bottom:
+    1px solid rgba(111, 79, 57, 0.08);
+  color: #59483d;
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.mentor-report-table tbody tr:nth-child(even) {
+  background: #fbf8f5;
+}
+
+.mentor-report-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.mentor-result-status {
+  min-width: 48px;
+  padding: 4px 7px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.mentor-result-status.pass {
+  background: #e8f5eb;
+  color: #367348;
+}
+
+.mentor-result-status.fail {
+  background: #f8e8e4;
+  color: #96513f;
+}
+
+.mentor-report-no-results {
+  padding: 18px;
+  border-radius: 11px;
+  text-align: center;
+  color: #968579;
+  background: #faf7f4;
+  font-size: 11px;
+}
+
+/* ============================================================
+   ERROR
+============================================================ */
+
+.mentor-report-error {
+  margin: 16px 22px 0;
+  padding: 12px 14px;
+  border:
+    1px solid rgba(160, 71, 53, 0.16);
+  border-radius: 11px;
+  background: #fff3ef;
+  color: #8d4738;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* ============================================================
+   FOOTER ACTIONS
+============================================================ */
+
+.mentor-report-footer {
+  flex-shrink: 0;
+  padding: 15px 22px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  border-top:
+    1px solid rgba(83, 63, 49, 0.09);
+  background:
+    rgba(255, 255, 255, 0.94);
+}
+
+.mentor-report-secondary-btn,
+.mentor-report-primary-btn {
+  min-height: 40px;
+  padding: 0 15px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 850;
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    opacity 0.18s ease;
+}
+
+.mentor-report-secondary-btn {
+  border:
+    1px solid rgba(93, 68, 50, 0.16);
+  background: #ffffff;
+  color: #5b4333;
+}
+
+.mentor-report-primary-btn {
+  border: 1px solid #4b3629;
+  background:
+    linear-gradient(
+      135deg,
+      #4e382c,
+      #6d4b38
+    );
+  color: #ffffff;
+}
+
+.mentor-report-secondary-btn:hover:not(:disabled),
+.mentor-report-primary-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow:
+    0 8px 18px rgba(70, 46, 32, 0.11);
+}
+
+.mentor-report-secondary-btn:disabled,
+.mentor-report-primary-btn:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   SPINNER
+============================================================ */
+
+.mentor-refresh-spin {
+  animation:
+    mentorReportSpin
+    0.85s
+    linear
+    infinite;
+}
+
+@keyframes mentorReportSpin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================================
+   MOBILE
+============================================================ */
+
+@media (max-width: 760px) {
+  .mentor-report-overlay {
+    padding: 8px;
+  }
+
+  .mentor-report-modal {
+    max-height: calc(100vh - 16px);
+    border-radius: 17px;
+  }
+
+  .mentor-report-header {
+    padding: 17px;
+  }
+
+  .mentor-report-header h2 {
+    font-size: 18px;
+  }
+
+  .mentor-report-summary {
+    padding: 11px;
+    grid-template-columns: 1fr;
+  }
+
+  .mentor-report-section {
+    padding: 15px 12px 0;
+  }
+
+  .mentor-report-footer {
+    padding: 12px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .mentor-report-secondary-btn,
+  .mentor-report-primary-btn {
+    width: 100%;
+  }
+
+  .mentor-report-student-head {
+    padding: 12px;
+  }
+
+  .mentor-report-student-body {
+    padding: 0 10px 10px;
+  }
+}
+
+@media (max-width: 520px) {
+  .mentor-total-students-btn {
+    width: 100%;
+  }
+
+  .mentor-report-footer {
+    grid-template-columns: 1fr;
+  }
+
+  .mentor-report-student-main span {
+    max-width: 180px;
+  }
+
+  .mentor-subject-summary {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+

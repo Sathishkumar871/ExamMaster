@@ -1,18 +1,16 @@
 /* =========================================================
    STG EXAM MASTER
-   JEE MATHEMATICS PAGE
-   PREMIUM DEEP BLUE • ROYAL BLUE • SKY BLUE
-   DESKTOP + TABLET + MOBILE
-   ========================================================= */
+   MATHEMATICS PAGE
+   PHYSICS STRUCTURE + MATHEMATICS COLORS
 
-@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
-
-
-/* =========================================================
-   ROOT
-   ========================================================= */
+   Deep Blue • Royal Blue • Sky Blue
+   Desktop + Tablet + Mobile
+========================================================= */
 
 :root {
+  /* =======================================================
+     MATHEMATICS COLORS
+  ======================================================= */
 
   --math-bg: #030814;
   --math-bg-soft: #071326;
@@ -37,673 +35,697 @@
   --math-text-soft: #c5d7ed;
   --math-muted: #8195b2;
 
+  --math-success: #20d6a3;
+  --math-warning: #ffb84d;
+  --math-danger: #ff5f6d;
+
   --math-shadow:
     0 25px 70px rgba(0, 20, 55, 0.42);
 
   --math-radius: 24px;
+
+  font-family:
+    "Plus Jakarta Sans",
+    "Inter",
+    system-ui,
+    sans-serif;
 }
 
 
 /* =========================================================
    PAGE
-   ========================================================= */
+   PHYSICS SIZES
+========================================================= */
 
 .mathematics-page {
-
   min-height: 100vh;
-  width: 100%;
 
-  padding: 50px 20px 90px;
-
-  background:
-
-    radial-gradient(
-      circle at 12% 5%,
-      rgba(22, 119, 255, 0.18),
-      transparent 29%
-    ),
-
-    radial-gradient(
-      circle at 88% 12%,
-      rgba(56, 189, 248, 0.12),
-      transparent 27%
-    ),
-
-    radial-gradient(
-      circle at 50% 100%,
-      rgba(40, 127, 255, 0.08),
-      transparent 32%
-    ),
-
-    linear-gradient(
-      135deg,
-      #020711 0%,
-      #071326 46%,
-      #030917 100%
-    );
-
-  color: var(--math-text);
-
-  font-family:
-    "Plus Jakarta Sans",
-    sans-serif;
+  position: relative;
 
   overflow: hidden;
+
+  background:
+    radial-gradient(
+      circle at 10% 10%,
+      rgba(22, 119, 255, 0.13),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 90% 20%,
+      rgba(56, 189, 248, 0.09),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 50% 100%,
+      rgba(40, 127, 255, 0.06),
+      transparent 30%
+    ),
+    var(--math-bg);
+
+  color:
+    var(--math-text);
+
+  padding:
+    45px 24px 80px;
 }
 
 
 /* =========================================================
-   CONTAINER
-   ========================================================= */
+   BACKGROUND GLOW
+========================================================= */
+
+.mathematics-page::before,
+.mathematics-page::after {
+  content: "";
+
+  position: absolute;
+
+  width: 420px;
+  height: 420px;
+
+  border-radius: 50%;
+
+  filter:
+    blur(100px);
+
+  pointer-events: none;
+
+  opacity: 0.18;
+}
+
+
+.mathematics-page::before {
+  top: -180px;
+  left: -150px;
+
+  background:
+    var(--math-primary);
+}
+
+
+.mathematics-page::after {
+  right: -180px;
+  bottom: -180px;
+
+  background:
+    var(--math-cyan);
+}
+
+
+/* =========================================================
+   MAIN CONTAINER
+========================================================= */
 
 .mathematics-container {
+  width:
+    min(1250px, 100%);
 
-  width: min(1380px, 100%);
+  margin:
+    0 auto;
 
-  margin: 0 auto;
+  position:
+    relative;
+
+  z-index:
+    2;
 }
 
 
 /* =========================================================
    HERO
-   ========================================================= */
+========================================================= */
 
 .mathematics-hero {
+  position:
+    relative;
 
-  position: relative;
+  padding:
+    48px;
 
-  min-height: 420px;
+  margin-bottom:
+    35px;
 
-  display: flex;
+  border:
+    1px solid
+    var(--math-border);
 
-  align-items: center;
-
-  padding: 65px;
-
-  margin-bottom: 70px;
-
-  border-radius: 36px;
-
-  overflow: hidden;
+  border-radius:
+    32px;
 
   background:
-
     linear-gradient(
       135deg,
-      rgba(10, 34, 72, 0.98),
-      rgba(4, 14, 32, 0.96)
-    );
+      rgba(22, 119, 255, 0.12),
+      rgba(56, 189, 248, 0.035)
+    ),
+    rgba(12, 18, 31, 0.82);
 
-  border: 1px solid
-    rgba(58, 148, 255, 0.22);
+  backdrop-filter:
+    blur(25px);
+
+  -webkit-backdrop-filter:
+    blur(25px);
 
   box-shadow:
+    var(--math-shadow);
 
-    0 30px 80px
-      rgba(0, 25, 70, 0.42),
-
-    inset 0 1px 0
-      rgba(255, 255, 255, 0.045);
+  overflow:
+    hidden;
 }
 
 
 /* =========================================================
    HERO GLOW
-   ========================================================= */
-
-.mathematics-hero-glow {
-
-  position: absolute;
-
-  width: 470px;
-  height: 470px;
-
-  right: -150px;
-  top: -180px;
-
-  border-radius: 50%;
-
-  background:
-
-    radial-gradient(
-      circle,
-      rgba(22, 119, 255, 0.34),
-      rgba(56, 189, 248, 0.10) 45%,
-      transparent 72%
-    );
-
-  filter: blur(8px);
-
-  pointer-events: none;
-}
-
-
-/* =========================================================
-   HERO DECORATION
-   ========================================================= */
+========================================================= */
 
 .mathematics-hero::before {
+  content:
+    "";
 
-  content: "";
+  position:
+    absolute;
 
-  position: absolute;
+  width:
+    320px;
 
-  width: 320px;
-  height: 320px;
+  height:
+    320px;
 
-  right: 100px;
-  bottom: -220px;
+  top:
+    -180px;
 
-  border-radius: 50%;
+  right:
+    -100px;
+
+  border-radius:
+    50%;
 
   background:
+    rgba(22, 119, 255, 0.22);
 
-    radial-gradient(
-      circle,
-      rgba(56, 189, 248, 0.13),
-      transparent 70%
-    );
+  filter:
+    blur(60px);
 
-  pointer-events: none;
+  pointer-events:
+    none;
 }
 
 
 .mathematics-hero::after {
+  content:
+    "";
 
-  content: "";
+  position:
+    absolute;
 
-  position: absolute;
+  width:
+    220px;
 
-  width: 180px;
-  height: 180px;
+  height:
+    220px;
 
-  left: -90px;
-  bottom: -90px;
+  right:
+    45px;
 
-  border-radius: 50%;
+  bottom:
+    -150px;
+
+  border-radius:
+    50%;
 
   background:
+    rgba(56, 189, 248, 0.09);
 
-    radial-gradient(
-      circle,
-      rgba(22, 119, 255, 0.12),
-      transparent 70%
-    );
+  filter:
+    blur(50px);
 
-  pointer-events: none;
+  pointer-events:
+    none;
 }
 
 
 /* =========================================================
    HERO CONTENT
-   ========================================================= */
+========================================================= */
 
 .mathematics-hero-content {
+  position:
+    relative;
 
-  position: relative;
+  z-index:
+    2;
 
-  z-index: 2;
-
-  max-width: 860px;
+  max-width:
+    850px;
 }
 
 
 /* =========================================================
    BADGE
-   ========================================================= */
+========================================================= */
 
 .mathematics-badge {
+  display:
+    inline-flex;
 
-  width: fit-content;
+  align-items:
+    center;
 
-  display: inline-flex;
+  gap:
+    9px;
 
-  align-items: center;
+  padding:
+    9px 15px;
 
-  gap: 9px;
+  border-radius:
+    999px;
 
-  padding: 9px 16px;
-
-  margin-bottom: 23px;
-
-  border-radius: 999px;
+  border:
+    1px solid
+    rgba(22, 119, 255, 0.28);
 
   background:
-
-    linear-gradient(
-      135deg,
-      rgba(22, 119, 255, 0.18),
-      rgba(56, 189, 248, 0.08)
-    );
-
-  border: 1px solid
-    rgba(65, 160, 255, 0.30);
+    rgba(22, 119, 255, 0.09);
 
   color:
     var(--math-cyan-light);
 
-  font-size: 11px;
+  font-size:
+    12px;
 
-  font-weight: 800;
+  font-weight:
+    800;
 
-  letter-spacing: 1.5px;
+  letter-spacing:
+    1.3px;
 
-  box-shadow:
+  text-transform:
+    uppercase;
 
-    0 8px 28px
-      rgba(22, 119, 255, 0.11);
+  margin-bottom:
+    20px;
+}
+
+
+.mathematics-badge svg {
+  color:
+    var(--math-cyan);
+
+  flex:
+    0 0 auto;
 }
 
 
 /* =========================================================
    TITLE
-   ========================================================= */
+========================================================= */
 
 .mathematics-title {
-
-  margin: 0;
+  margin:
+    0;
 
   font-size:
-    clamp(43px, 5vw, 78px);
+    clamp(38px, 5vw, 68px);
 
-  line-height: 0.98;
+  line-height:
+    1.03;
 
-  letter-spacing: -3.5px;
+  letter-spacing:
+    -2.8px;
 
-  font-weight: 800;
+  font-weight:
+    850;
 
-  color: #f7fbff;
+  background:
+    linear-gradient(
+      100deg,
+      #ffffff 15%,
+      #c5d7ff 50%,
+      #71d9ff 90%
+    );
+
+  -webkit-background-clip:
+    text;
+
+  background-clip:
+    text;
+
+  -webkit-text-fill-color:
+    transparent;
 }
 
 
+/* =========================================================
+   TITLE SUBTEXT
+========================================================= */
+
 .mathematics-title span {
+  display:
+    block;
 
-  display: block;
-
-  margin-top: 17px;
+  margin-top:
+    8px;
 
   font-size:
-    clamp(20px, 2.3vw, 33px);
+    0.48em;
 
-  line-height: 1.2;
-
-  letter-spacing: -1px;
+  letter-spacing:
+    -0.5px;
 
   background:
-
     linear-gradient(
       90deg,
-      #55a7ff,
-      #287fff,
-      #7edcff
+      var(--math-primary),
+      var(--math-cyan)
     );
 
-  -webkit-background-clip: text;
+  -webkit-background-clip:
+    text;
 
-  background-clip: text;
+  background-clip:
+    text;
 
-  -webkit-text-fill-color: transparent;
+  -webkit-text-fill-color:
+    transparent;
 }
 
 
 /* =========================================================
    DESCRIPTION
-   ========================================================= */
+========================================================= */
 
 .mathematics-description {
+  max-width:
+    720px;
 
-  max-width: 730px;
-
-  margin: 26px 0 0;
+  margin:
+    20px 0 0;
 
   color:
-    var(--math-text-soft);
+    var(--math-muted);
 
-  font-size: 15px;
+  font-size:
+    15px;
 
-  line-height: 1.8;
+  line-height:
+    1.8;
+}
+
+
+.mathematics-description strong {
+  color:
+    #e1efff;
 }
 
 
 /* =========================================================
    STATS
-   ========================================================= */
+========================================================= */
 
 .mathematics-stats {
+  display:
+    grid;
 
-  display: flex;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
 
-  flex-wrap: wrap;
+  gap:
+    14px;
 
-  gap: 12px;
-
-  margin-top: 33px;
+  margin-top:
+    30px;
 }
 
 
 .mathematics-stat {
+  padding:
+    18px;
 
-  min-width: 140px;
+  border-radius:
+    18px;
 
-  padding: 15px 19px;
-
-  display: flex;
-
-  flex-direction: column;
-
-  gap: 4px;
-
-  border-radius: 16px;
+  border:
+    1px solid
+    var(--math-border);
 
   background:
-    rgba(30, 110, 220, 0.035);
-
-  border: 1px solid
-    rgba(65, 145, 255, 0.14);
-
-  backdrop-filter: blur(15px);
+    rgba(255, 255, 255, 0.035);
 
   transition:
     transform 0.3s ease,
     border-color 0.3s ease,
-    background 0.3s ease;
+    background-color 0.3s ease;
 }
 
 
 .mathematics-stat:hover {
-
   transform:
     translateY(-4px);
 
   border-color:
-    rgba(55, 145, 255, 0.34);
+    rgba(22, 119, 255, 0.35);
 
   background:
-    rgba(22, 119, 255, 0.08);
+    rgba(22, 119, 255, 0.07);
 }
 
 
 .mathematics-stat-value {
+  display:
+    block;
 
-  font-size: 20px;
+  font-size:
+    23px;
 
-  font-weight: 800;
+  font-weight:
+    800;
 
-  background:
+  color:
+    #ffffff;
 
-    linear-gradient(
-      90deg,
-      #55a7ff,
-      #82d7ff
-    );
-
-  -webkit-background-clip: text;
-
-  background-clip: text;
-
-  -webkit-text-fill-color: transparent;
+  margin-bottom:
+    4px;
 }
 
 
 .mathematics-stat-label {
-
-  font-size: 10px;
-
   color:
     var(--math-muted);
 
-  font-weight: 700;
+  font-size:
+    12px;
 
-  text-transform: uppercase;
-
-  letter-spacing: 0.8px;
-}
-
-
-/* =========================================================
-   CHAPTER SECTION
-   ========================================================= */
-
-.mathematics-chapters-section {
-
-  width: 100%;
+  font-weight:
+    600;
 }
 
 
 /* =========================================================
    SECTION HEADER
-   ========================================================= */
+========================================================= */
 
 .mathematics-section-header {
-
-  display: flex;
-
-  justify-content:
-    space-between;
+  display:
+    flex;
 
   align-items:
     flex-end;
 
-  margin-bottom: 30px;
-}
+  justify-content:
+    space-between;
 
+  gap:
+    20px;
 
-.mathematics-section-eyebrow {
-
-  display: inline-block;
-
-  margin-bottom: 9px;
-
-  color:
-    #55c7ff;
-
-  font-size: 10px;
-
-  font-weight: 800;
-
-  letter-spacing: 2px;
+  margin:
+    45px 0 22px;
 }
 
 
 .mathematics-section-title {
-
-  margin: 0;
-
-  color:
-    #f5faff;
+  margin:
+    0;
 
   font-size:
-    clamp(28px, 3vw, 42px);
+    27px;
 
-  line-height: 1.1;
+  letter-spacing:
+    -0.8px;
 
-  letter-spacing: -1.6px;
+  font-weight:
+    800;
 
-  font-weight: 800;
+  color:
+    #ffffff;
 }
 
 
 .mathematics-section-subtitle {
-
-  margin: 10px 0 0;
+  margin:
+    7px 0 0;
 
   color:
     var(--math-muted);
 
-  font-size: 14px;
+  font-size:
+    13px;
 }
 
 
 /* =========================================================
-   GRID
-   ========================================================= */
+   CHAPTER GRID
+   PHYSICS SIZES
+========================================================= */
 
 .mathematics-chapter-grid {
-
-  display: grid;
+  display:
+    grid;
 
   grid-template-columns:
-    repeat(4, minmax(0, 1fr));
+    repeat(3, minmax(0, 1fr));
 
-  gap: 18px;
+  gap:
+    18px;
 }
 
 
 /* =========================================================
-   CARD
-   ========================================================= */
+   CHAPTER CARD
+========================================================= */
 
 .mathematics-chapter-card {
+  position:
+    relative;
 
-  position: relative;
+  min-height:
+    230px;
 
-  min-height: 365px;
-
-  display: flex;
-
-  flex-direction: column;
-
-  padding: 22px;
+  padding:
+    25px;
 
   border-radius:
     var(--math-radius);
 
-  overflow: hidden;
-
-  background:
-
-    linear-gradient(
-      145deg,
-      rgba(13, 34, 70, 0.94),
-      rgba(5, 17, 37, 0.94)
-    );
-
-  border: 1px solid
+  border:
+    1px solid
     var(--math-border);
 
-  box-shadow:
+  background:
+    linear-gradient(
+      145deg,
+      rgba(13, 34, 70, 0.92),
+      rgba(5, 17, 37, 0.90)
+    );
 
-    0 20px 55px
-      rgba(0, 20, 55, 0.28);
+  box-shadow:
+    0 15px 40px
+    rgba(0, 20, 55, 0.25);
+
+  overflow:
+    hidden;
 
   transition:
-
-    transform 0.35s ease,
-
+    transform 0.35s
+      cubic-bezier(0.2, 0.8, 0.2, 1),
     border-color 0.35s ease,
-
-    box-shadow 0.35s ease,
-
-    background 0.35s ease;
+    box-shadow 0.35s ease;
 }
 
+
+/* =========================================================
+   CARD GLOW
+========================================================= */
 
 .mathematics-chapter-card::before {
+  content:
+    "";
 
-  content: "";
+  position:
+    absolute;
 
-  position: absolute;
+  width:
+    180px;
 
-  width: 190px;
-  height: 190px;
+  height:
+    180px;
 
-  top: -110px;
-  right: -90px;
+  right:
+    -90px;
 
-  border-radius: 50%;
+  top:
+    -90px;
 
-  background:
-
-    radial-gradient(
-      circle,
-      rgba(22, 119, 255, 0.18),
-      transparent 70%
-    );
-
-  pointer-events: none;
-}
-
-
-.mathematics-chapter-card::after {
-
-  content: "";
-
-  position: absolute;
-
-  width: 110px;
-  height: 110px;
-
-  left: -65px;
-  bottom: -65px;
-
-  border-radius: 50%;
+  border-radius:
+    50%;
 
   background:
+    rgba(22, 119, 255, 0.13);
 
-    radial-gradient(
-      circle,
-      rgba(56, 189, 248, 0.08),
-      transparent 70%
-    );
+  filter:
+    blur(20px);
 
-  pointer-events: none;
+  transition:
+    transform 0.4s ease,
+    opacity 0.4s ease;
 }
 
 
 .mathematics-chapter-card:hover {
-
   transform:
-    translateY(-9px);
+    translateY(-8px);
 
   border-color:
     var(--math-border-hover);
 
-  background:
-
-    linear-gradient(
-      145deg,
-      rgba(16, 43, 88, 0.97),
-      rgba(5, 18, 40, 0.97)
-    );
-
   box-shadow:
+    0 25px 60px
+    rgba(0, 25, 70, 0.42),
+    0 0 35px
+    rgba(22, 119, 255, 0.08);
+}
 
-    0 30px 80px
-      rgba(0, 25, 70, 0.42),
 
-    0 0 40px
-      rgba(22, 119, 255, 0.10);
+.mathematics-chapter-card:hover::before {
+  transform:
+    scale(1.5);
 }
 
 
 /* =========================================================
    CARD TOP
-   ========================================================= */
+========================================================= */
 
 .mathematics-card-top {
+  display:
+    flex;
 
-  display: flex;
+  align-items:
+    center;
 
   justify-content:
     space-between;
 
-  align-items:
-    center;
+  position:
+    relative;
 
-  margin-bottom: 24px;
+  z-index:
+    2;
 }
 
 
 /* =========================================================
-   ICON BASE
-   ========================================================= */
+   ICON
+========================================================= */
 
 .mathematics-chapter-icon {
+  width:
+    52px;
 
-  width: 55px;
-  height: 55px;
+  height:
+    52px;
 
-  display: flex;
+  display:
+    flex;
 
   align-items:
     center;
@@ -711,242 +733,235 @@
   justify-content:
     center;
 
-  border-radius: 17px;
+  border-radius:
+    16px;
 
-  border: 1px solid
-    rgba(255, 255, 255, 0.08);
+  color:
+    #82c5ff;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(22, 119, 255, 0.20),
+      rgba(56, 189, 248, 0.08)
+    );
+
+  border:
+    1px solid
+    rgba(54, 143, 255, 0.25);
 
   box-shadow:
-
     inset 0 1px 0
-      rgba(255, 255, 255, 0.09),
-
-    0 8px 22px
-      rgba(0, 0, 0, 0.12);
+    rgba(255, 255, 255, 0.08),
+    0 10px 25px
+    rgba(22, 119, 255, 0.06);
 
   transition:
-    transform 0.3s ease;
+    transform 0.3s ease,
+    background-color 0.3s ease;
 }
 
 
 .mathematics-chapter-card:hover
 .mathematics-chapter-icon {
-
   transform:
     scale(1.06)
     rotate(-2deg);
-}
-
-
-/* =========================================================
-   ICON COLORS
-   BLUE FAMILY
-   ========================================================= */
-
-.mathematics-chapter-icon.algebra {
-
-  color: #69aaff;
 
   background:
-
     linear-gradient(
       135deg,
-      rgba(22, 119, 255, 0.23),
-      rgba(22, 119, 255, 0.05)
-    );
-}
-
-
-.mathematics-chapter-icon.calculus {
-
-  color: #82c4ff;
-
-  background:
-
-    linear-gradient(
-      135deg,
-      rgba(40, 126, 255, 0.23),
-      rgba(40, 126, 255, 0.05)
-    );
-}
-
-
-.mathematics-chapter-icon.coordinate {
-
-  color: #58d5ff;
-
-  background:
-
-    linear-gradient(
-      135deg,
-      rgba(56, 189, 248, 0.22),
-      rgba(56, 189, 248, 0.05)
-    );
-}
-
-
-.mathematics-chapter-icon.trigonometry {
-
-  color: #7ab8ff;
-
-  background:
-
-    linear-gradient(
-      135deg,
-      rgba(55, 130, 255, 0.22),
-      rgba(55, 130, 255, 0.05)
-    );
-}
-
-
-.mathematics-chapter-icon.matrices {
-
-  color: #6fa8ff;
-
-  background:
-
-    linear-gradient(
-      135deg,
-      rgba(40, 110, 255, 0.22),
-      rgba(40, 110, 255, 0.05)
-    );
-}
-
-
-.mathematics-chapter-icon.vector {
-
-  color: #65d7ff;
-
-  background:
-
-    linear-gradient(
-      135deg,
-      rgba(45, 180, 255, 0.20),
-      rgba(45, 180, 255, 0.05)
-    );
-}
-
-
-.mathematics-chapter-icon.probability {
-
-  color: #8bc7ff;
-
-  background:
-
-    linear-gradient(
-      135deg,
-      rgba(70, 150, 255, 0.20),
-      rgba(70, 150, 255, 0.05)
-    );
-}
-
-
-.mathematics-chapter-icon.statistics {
-
-  color: #9bc9ff;
-
-  background:
-
-    linear-gradient(
-      135deg,
-      rgba(80, 145, 255, 0.21),
-      rgba(80, 145, 255, 0.05)
+      rgba(22, 119, 255, 0.27),
+      rgba(56, 189, 248, 0.11)
     );
 }
 
 
 /* =========================================================
    NUMBER
-   ========================================================= */
+========================================================= */
 
 .mathematics-chapter-number {
-
-  font-size: 11px;
-
-  font-weight: 800;
-
   color:
-    rgba(190, 211, 239, 0.40);
+    #788da8;
 
-  letter-spacing: 1px;
+  font-size:
+    11px;
+
+  font-weight:
+    800;
+
+  letter-spacing:
+    1px;
 }
 
 
 /* =========================================================
    CARD CONTENT
-   ========================================================= */
+========================================================= */
 
 .mathematics-card-content {
+  position:
+    relative;
 
-  display: flex;
+  z-index:
+    2;
 
-  flex-direction: column;
-
-  flex: 1;
-}
-
-
-.mathematics-card-tag {
-
-  width: fit-content;
-
-  margin-bottom: 10px;
-
-  color:
-    #55c7ff;
-
-  font-size: 9px;
-
-  font-weight: 800;
-
-  letter-spacing: 1.3px;
+  margin-top:
+    24px;
 }
 
 
 .mathematics-card-content h3 {
+  margin:
+    0;
 
-  margin: 0;
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  flex-wrap:
+    wrap;
+
+  gap:
+    6px;
 
   color:
-    #f4f8ff;
+    #ffffff;
 
-  font-size: 20px;
+  font-size:
+    20px;
 
-  line-height: 1.25;
+  font-weight:
+    800;
 
-  font-weight: 800;
+  letter-spacing:
+    -0.4px;
 
-  letter-spacing: -0.5px;
+  line-height:
+    1.3;
 }
 
 
 .mathematics-card-content p {
-
   margin:
-    13px 0 22px;
+    9px 0 0;
 
   color:
     var(--math-muted);
 
-  font-size: 12px;
+  font-size:
+    12.5px;
 
-  line-height: 1.75;
+  line-height:
+    1.65;
 }
 
 
 /* =========================================================
-   TEST BUTTON
-   ========================================================= */
+   QUESTION META
+========================================================= */
 
-.mathematics-test-button {
+.mathematics-question-meta {
+  display:
+    flex;
 
-  width: 100%;
+  align-items:
+    center;
 
-  margin-top: auto;
+  justify-content:
+    space-between;
 
-  min-height: 47px;
+  flex-wrap:
+    wrap;
 
-  display: flex;
+  gap:
+    8px;
+
+  margin-top:
+    12px;
+
+  margin-bottom:
+    12px;
+}
+
+
+/* =========================================================
+   QUESTION COUNT
+========================================================= */
+
+.mathematics-question-count {
+  color:
+    var(--math-primary-light);
+
+  padding:
+    6px 10px;
+
+  border-radius:
+    999px;
+
+  border:
+    1px solid
+    rgba(22, 119, 255, 0.16);
+
+  background:
+    rgba(22, 119, 255, 0.06);
+
+  font-size:
+    10px;
+
+  line-height:
+    1.3;
+
+  font-weight:
+    700;
+}
+
+
+/* =========================================================
+   DB HISTORY
+========================================================= */
+
+.mathematics-db-history {
+  color:
+    #6ff0c8;
+
+  padding:
+    6px 10px;
+
+  border-radius:
+    999px;
+
+  border:
+    1px solid
+    rgba(32, 214, 163, 0.20);
+
+  background:
+    rgba(32, 214, 163, 0.07);
+
+  font-size:
+    10px;
+
+  font-weight:
+    700;
+}
+
+
+/* =========================================================
+   COMPLETED MARK
+========================================================= */
+
+.mathematics-completed-mark {
+  width:
+    19px;
+
+  height:
+    19px;
+
+  display:
+    inline-flex;
 
   align-items:
     center;
@@ -954,256 +969,256 @@
   justify-content:
     center;
 
-  gap: 8px;
-
-  border: 1px solid
-    rgba(22, 119, 255, 0.24);
-
-  border-radius: 13px;
+  border-radius:
+    50%;
 
   background:
+    rgba(32, 214, 163, 0.13);
 
+  border:
+    1px solid
+    rgba(32, 214, 163, 0.22);
+
+  color:
+    #62e8c3;
+
+  font-size:
+    11px;
+
+  font-weight:
+    900;
+}
+
+
+/* =========================================================
+   TEST BUTTON
+========================================================= */
+
+.mathematics-test-button {
+  position:
+    relative;
+
+  z-index:
+    3;
+
+  width:
+    100%;
+
+  min-height:
+    46px;
+
+  margin-top:
+    10px;
+
+  padding:
+    0 14px;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  gap:
+    9px;
+
+  border:
+    1px solid
+    rgba(22, 119, 255, 0.35);
+
+  border-radius:
+    14px;
+
+  background:
     linear-gradient(
       135deg,
-      rgba(22, 119, 255, 0.15),
-      rgba(56, 189, 248, 0.05)
+      rgba(22, 119, 255, 0.18),
+      rgba(56, 189, 248, 0.08)
     );
 
   color:
-    #70b5ff;
+    #dcecff;
 
   font-family:
     inherit;
 
-  font-size: 11px;
+  font-size:
+    12px;
 
-  font-weight: 800;
+  font-weight:
+    800;
 
-  cursor: pointer;
+  cursor:
+    pointer;
 
   transition:
-    0.3s ease;
+    transform 0.25s ease,
+    background-color 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
 
-.mathematics-test-button svg:last-child {
+.mathematics-test-button:hover {
+  transform:
+    translateY(-2px);
 
+  border-color:
+    rgba(22, 119, 255, 0.70);
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(22, 119, 255, 0.30),
+      rgba(56, 189, 248, 0.13)
+    );
+
+  box-shadow:
+    0 10px 28px
+    rgba(22, 119, 255, 0.17);
+}
+
+
+.mathematics-test-button:active {
+  transform:
+    translateY(0);
+}
+
+
+/* =========================================================
+   BUTTON SVG
+========================================================= */
+
+.mathematics-test-button svg:last-child {
   transition:
     transform 0.3s ease;
 }
 
 
-.mathematics-test-button:hover {
-
-  color: #ffffff;
-
-  background:
-
-    linear-gradient(
-      135deg,
-      #1677ff,
-      #299dff
-    );
-
-  border-color:
-    #2b8dff;
-
-  box-shadow:
-
-    0 12px 35px
-      rgba(22, 119, 255, 0.30);
-
-  transform:
-    translateY(-2px);
-}
-
-
 .mathematics-test-button:hover
 svg:last-child {
-
   transform:
     translateX(4px);
 }
 
 
 /* =========================================================
-   BOTTOM CTA
-   ========================================================= */
+   STATE CARD
+========================================================= */
 
-.mathematics-bottom-cta {
+.mathematics-state-card {
+  width:
+    100%;
 
-  position: relative;
+  box-sizing:
+    border-box;
 
-  margin-top: 55px;
+  padding:
+    42px 24px;
 
-  padding: 29px 30px;
-
-  display: flex;
-
-  align-items:
+  text-align:
     center;
 
-  gap: 20px;
+  border:
+    1px solid
+    var(--math-border);
 
-  border-radius: 26px;
+  border-radius:
+    22px;
 
   background:
-
     linear-gradient(
-      120deg,
-      rgba(12, 38, 78, 0.96),
-      rgba(5, 18, 40, 0.96)
+      145deg,
+      rgba(24, 38, 65, 0.92),
+      rgba(12, 17, 28, 0.88)
     );
-
-  border: 1px solid
-    rgba(45, 140, 255, 0.20);
 
   box-shadow:
-
-    0 22px 65px
-      rgba(0, 25, 65, 0.32);
-
-  overflow: hidden;
+    0 15px 40px
+    rgba(0, 0, 0, 0.22);
 }
 
 
-.mathematics-bottom-cta::before {
+.mathematics-state-icon {
+  width:
+    52px;
 
-  content: "";
-
-  position: absolute;
-
-  width: 280px;
-  height: 280px;
-
-  right: -150px;
-  top: -190px;
-
-  border-radius: 50%;
-
-  background:
-
-    radial-gradient(
-      circle,
-      rgba(22, 119, 255, 0.16),
-      transparent 70%
-    );
-
-  pointer-events: none;
-}
-
-
-/* =========================================================
-   CTA ICON
-   ========================================================= */
-
-.mathematics-cta-icon {
-
-  position: relative;
-
-  z-index: 1;
-
-  flex: 0 0 auto;
-
-  width: 60px;
-  height: 60px;
-
-  display: flex;
-
-  align-items:
-    center;
-
-  justify-content:
-    center;
-
-  border-radius: 18px;
-
-  color:
-    #7bdcff;
-
-  background:
-
-    linear-gradient(
-      135deg,
-      rgba(56, 189, 248, 0.13),
-      rgba(22, 119, 255, 0.13)
-    );
-
-  border: 1px solid
-    rgba(56, 189, 248, 0.20);
-}
-
-
-/* =========================================================
-   CTA CONTENT
-   ========================================================= */
-
-.mathematics-cta-content {
-
-  position: relative;
-
-  z-index: 1;
-
-  flex: 1;
-}
-
-
-.mathematics-cta-content > span {
-
-  font-size: 9px;
-
-  font-weight: 800;
-
-  letter-spacing: 1.5px;
-
-  color:
-    #55c7ff;
-}
-
-
-.mathematics-cta-content h2 {
+  height:
+    52px;
 
   margin:
-    5px 0;
+    0 auto 14px;
 
-  font-size: 22px;
+  display:
+    grid;
 
-  font-weight: 800;
+  place-items:
+    center;
+
+  border-radius:
+    15px;
+
+  background:
+    rgba(22, 119, 255, 0.10);
+
+  border:
+    1px solid
+    rgba(22, 119, 255, 0.18);
 
   color:
-    #f5f9ff;
+    #82c5ff;
+
+  font-size:
+    20px;
+
+  font-weight:
+    900;
 }
 
 
-.mathematics-cta-content p {
+.mathematics-state-card h3 {
+  margin:
+    0;
 
-  margin: 0;
+  color:
+    #ffffff;
+
+  font-size:
+    17px;
+
+  font-weight:
+    800;
+}
+
+
+.mathematics-state-card p {
+  max-width:
+    440px;
+
+  margin:
+    8px auto 18px;
 
   color:
     var(--math-muted);
 
-  font-size: 12px;
+  font-size:
+    12px;
+
+  line-height:
+    1.6;
 }
 
 
 /* =========================================================
-   CTA BUTTON
-   ========================================================= */
+   RETRY
+========================================================= */
 
-.mathematics-cta-button {
-
-  position: relative;
-
-  z-index: 1;
-
-  flex: 0 0 auto;
-
-  min-height: 49px;
-
-  padding:
-    0 21px;
-
-  display: flex;
+.mathematics-retry-button {
+  display:
+    inline-flex;
 
   align-items:
     center;
@@ -1211,215 +1226,212 @@ svg:last-child {
   justify-content:
     center;
 
-  gap: 9px;
+  gap:
+    7px;
 
-  border: 0;
+  min-height:
+    40px;
 
-  border-radius: 13px;
+  padding:
+    0 17px;
+
+  border:
+    1px solid
+    rgba(22, 119, 255, 0.34);
+
+  border-radius:
+    11px;
 
   background:
-
     linear-gradient(
       135deg,
-      #1677ff,
-      #299dff
+      rgba(22, 119, 255, 0.24),
+      rgba(56, 189, 248, 0.08)
     );
 
-  color: #ffffff;
+  color:
+    #e5f1ff;
 
   font-family:
     inherit;
 
-  font-size: 11px;
+  font-size:
+    12px;
 
-  font-weight: 800;
+  font-weight:
+    800;
 
-  cursor: pointer;
-
-  box-shadow:
-
-    0 14px 35px
-      rgba(22, 119, 255, 0.25);
+  cursor:
+    pointer;
 
   transition:
-    0.3s ease;
+    transform 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease;
 }
 
 
-.mathematics-cta-button:hover {
-
+.mathematics-retry-button:hover {
   transform:
-    translateY(-3px);
+    translateY(-1px);
 
-  box-shadow:
+  border-color:
+    rgba(22, 119, 255, 0.65);
 
-    0 20px 45px
-      rgba(22, 119, 255, 0.36);
+  background:
+    rgba(22, 119, 255, 0.28);
+}
+
+
+/* =========================================================
+   HISTORY SYNC
+========================================================= */
+
+.mathematics-history-sync {
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  gap:
+    7px;
+
+  margin-top:
+    13px;
+
+  color:
+    #7e91aa;
+
+  font-size:
+    10px;
+
+  font-weight:
+    600;
+}
+
+
+/* =========================================================
+   LOADING
+========================================================= */
+
+.mathematics-loading-icon {
+  animation:
+    mathematicsSpin
+    0.8s
+    linear
+    infinite;
+}
+
+
+@keyframes mathematicsSpin {
+  to {
+    transform:
+      rotate(360deg);
+  }
+}
+
+
+/* =========================================================
+   ACCESSIBILITY
+========================================================= */
+
+.mathematics-test-button:focus-visible,
+.mathematics-retry-button:focus-visible {
+  outline:
+    2px solid
+    var(--math-cyan);
+
+  outline-offset:
+    3px;
 }
 
 
 /* =========================================================
    TABLET
-   ========================================================= */
+   SAME BREAKPOINT + SIZES AS PHYSICS
+========================================================= */
 
-@media (max-width: 1150px) {
-
-  .mathematics-chapter-grid {
-
-    grid-template-columns:
-      repeat(3, minmax(0, 1fr));
-  }
-
-}
-
-
-/* =========================================================
-   SMALL TABLET
-   ========================================================= */
-
-@media (max-width: 850px) {
-
+@media (max-width: 1000px) {
   .mathematics-page {
-
     padding:
-      30px 15px 70px;
+      30px
+      18px
+      60px;
   }
 
 
   .mathematics-hero {
-
     padding:
-      48px 35px;
-
-    min-height:
-      auto;
-
-    border-radius:
-      28px;
+      35px;
   }
 
 
   .mathematics-chapter-grid {
-
     grid-template-columns:
       repeat(2, minmax(0, 1fr));
   }
-
-
-  .mathematics-bottom-cta {
-
-    align-items:
-      flex-start;
-
-    flex-wrap:
-      wrap;
-  }
-
-
-  .mathematics-cta-content {
-
-    min-width:
-      220px;
-  }
-
-
-  .mathematics-cta-button {
-
-    width:
-      100%;
-  }
-
 }
 
 
 /* =========================================================
    MOBILE
-   ========================================================= */
+   SAME BREAKPOINT + SIZES AS PHYSICS
+========================================================= */
 
-@media (max-width: 600px) {
-
+@media (max-width: 700px) {
   .mathematics-page {
-
     padding:
-      18px 11px 55px;
+      20px
+      13px
+      45px;
+  }
+
+
+  .mathematics-page::before,
+  .mathematics-page::after {
+    filter:
+      blur(75px);
+
+    opacity:
+      0.14;
   }
 
 
   .mathematics-hero {
-
     padding:
-      33px 21px;
-
-    margin-bottom:
-      45px;
+      27px
+      20px;
 
     border-radius:
-      23px;
-  }
-
-
-  .mathematics-hero-glow {
-
-    width:
-      290px;
-
-    height:
-      290px;
-
-    right:
-      -155px;
-
-    top:
-      -135px;
-  }
-
-
-  .mathematics-badge {
-
-    padding:
-      8px 12px;
+      24px;
 
     margin-bottom:
-      18px;
+      25px;
 
-    font-size:
-      9px;
+    backdrop-filter:
+      blur(14px);
 
-    letter-spacing:
-      1px;
+    -webkit-backdrop-filter:
+      blur(14px);
   }
 
 
   .mathematics-title {
-
     font-size:
-      42px;
+      40px;
 
     letter-spacing:
-      -2.3px;
-  }
-
-
-  .mathematics-title span {
-
-    margin-top:
-      12px;
-
-    font-size:
-      20px;
-
-    letter-spacing:
-      -0.6px;
+      -1.8px;
   }
 
 
   .mathematics-description {
-
-    margin-top:
-      19px;
-
     font-size:
-      12px;
+      13px;
 
     line-height:
       1.7;
@@ -1427,90 +1439,49 @@ svg:last-child {
 
 
   .mathematics-stats {
-
-    display:
-      grid;
-
     grid-template-columns:
-      repeat(3, 1fr);
+      1fr;
 
     gap:
-      7px;
+      9px;
 
     margin-top:
-      23px;
-  }
-
-
-  .mathematics-stat {
-
-    min-width:
-      0;
-
-    padding:
-      12px 7px;
-
-    text-align:
-      center;
-
-    border-radius:
-      13px;
-  }
-
-
-  .mathematics-stat-value {
-
-    font-size:
-      16px;
-  }
-
-
-  .mathematics-stat-label {
-
-    font-size:
-      7px;
-
-    letter-spacing:
-      0.35px;
-  }
-
-
-  .mathematics-section-header {
-
-    margin-bottom:
       22px;
   }
 
 
-  .mathematics-section-eyebrow {
+  .mathematics-stat {
+    padding:
+      14px
+      16px;
+  }
 
-    font-size:
-      8px;
+
+  .mathematics-stat:hover {
+    transform:
+      none;
+  }
+
+
+  .mathematics-section-header {
+    align-items:
+      stretch;
+
+    flex-direction:
+      column;
+
+    margin-top:
+      30px;
   }
 
 
   .mathematics-section-title {
-
     font-size:
-      28px;
-
-    letter-spacing:
-      -1px;
-  }
-
-
-  .mathematics-section-subtitle {
-
-    font-size:
-      11px;
-
-    line-height:
-      1.6;
+      23px;
   }
 
 
   .mathematics-chapter-grid {
-
     grid-template-columns:
       1fr;
 
@@ -1520,225 +1491,205 @@ svg:last-child {
 
 
   .mathematics-chapter-card {
-
     min-height:
       auto;
 
     padding:
-      18px;
+      20px;
 
     border-radius:
       20px;
   }
 
 
-  .mathematics-card-top {
-
-    margin-bottom:
-      18px;
+  .mathematics-chapter-card:hover {
+    transform:
+      none;
   }
 
 
-  .mathematics-chapter-icon {
-
-    width:
-      48px;
-
-    height:
-      48px;
-
-    border-radius:
-      14px;
-  }
-
-
-  .mathematics-chapter-number {
-
-    font-size:
-      9px;
-  }
-
-
-  .mathematics-card-tag {
-
-    font-size:
-      8px;
-
-    letter-spacing:
-      1px;
+  .mathematics-card-content {
+    margin-top:
+      20px;
   }
 
 
   .mathematics-card-content h3 {
-
     font-size:
       18px;
   }
 
 
-  .mathematics-card-content p {
+  .mathematics-question-meta {
+    align-items:
+      flex-start;
 
-    margin:
-      10px 0 18px;
-
-    font-size:
-      11px;
-
-    line-height:
-      1.65;
+    flex-direction:
+      column;
   }
 
 
   .mathematics-test-button {
-
     min-height:
       44px;
 
-    border-radius:
-      12px;
-
     font-size:
-      10px;
+      11px;
   }
 
 
-  .mathematics-bottom-cta {
-
-    margin-top:
-      35px;
-
+  .mathematics-state-card {
     padding:
-      20px;
-
-    gap:
-      14px;
-
-    border-radius:
-      20px;
-  }
-
-
-  .mathematics-cta-icon {
-
-    width:
-      48px;
-
-    height:
-      48px;
-
-    border-radius:
-      14px;
-  }
-
-
-  .mathematics-cta-content h2 {
-
-    font-size:
+      34px
       18px;
-
-    line-height:
-      1.3;
   }
 
 
-  .mathematics-cta-content p {
-
+  .mathematics-history-sync {
     font-size:
-      10px;
-
-    line-height:
-      1.6;
+      9px;
   }
-
-
-  .mathematics-cta-button {
-
-    min-height:
-      45px;
-
-    font-size:
-      10px;
-  }
-
 }
 
 
 /* =========================================================
-   VERY SMALL MOBILE
-   ========================================================= */
+   SMALL MOBILE
+   SAME AS PHYSICS
+========================================================= */
 
-@media (max-width: 380px) {
+@media (max-width: 420px) {
+  .mathematics-page {
+    padding-left:
+      10px;
+
+    padding-right:
+      10px;
+  }
+
+
+  .mathematics-hero {
+    padding:
+      23px
+      17px;
+  }
+
 
   .mathematics-title {
-
     font-size:
-      36px;
+      34px;
   }
 
 
   .mathematics-title span {
-
     font-size:
-      18px;
+      16px;
   }
 
 
-  .mathematics-stats {
+  .mathematics-badge {
+    font-size:
+      10px;
 
-    grid-template-columns:
-      1fr;
+    padding:
+      8px
+      12px;
   }
 
 
-  .mathematics-stat {
-
-    flex-direction:
-      row;
-
-    align-items:
-      center;
-
-    justify-content:
-      space-between;
-
-    text-align:
-      left;
+  .mathematics-description {
+    font-size:
+      12px;
   }
 
+
+  .mathematics-chapter-card {
+    padding:
+      17px;
+  }
+
+
+  .mathematics-chapter-icon {
+    width:
+      46px;
+
+    height:
+      46px;
+  }
+
+
+  .mathematics-state-card {
+    padding:
+      28px
+      14px;
+  }
+
+
+  .mathematics-state-card h3 {
+    font-size:
+      15px;
+  }
+
+
+  .mathematics-state-card p {
+    font-size:
+      11px;
+  }
 }
 
 
 /* =========================================================
-   ACCESSIBILITY
-   ========================================================= */
+   TOUCH DEVICES
+========================================================= */
 
-.mathematics-test-button:focus-visible,
-.mathematics-cta-button:focus-visible {
+@media (hover: none) and (pointer: coarse) {
+  .mathematics-stat:hover,
+  .mathematics-chapter-card:hover,
+  .mathematics-test-button:hover,
+  .mathematics-retry-button:hover {
+    transform:
+      none;
+  }
 
-  outline:
-    2px solid
-    #70cfff;
 
-  outline-offset:
-    3px;
+  .mathematics-chapter-card:hover {
+    border-color:
+      var(--math-border);
+  }
+
+
+  .mathematics-chapter-card:hover
+  .mathematics-chapter-icon {
+    transform:
+      none;
+  }
+
+
+  .mathematics-test-button:hover
+  svg:last-child {
+    transform:
+      none;
+  }
 }
 
 
 /* =========================================================
    REDUCED MOTION
-   ========================================================= */
+========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
-
-  .mathematics-chapter-card,
-  .mathematics-test-button,
-  .mathematics-cta-button,
   .mathematics-stat,
+  .mathematics-chapter-card,
+  .mathematics-chapter-card::before,
   .mathematics-chapter-icon,
-  .mathematics-test-button svg {
-
+  .mathematics-test-button,
+  .mathematics-retry-button {
     transition:
       none;
   }
 
+
+  .mathematics-loading-icon {
+    animation:
+      none;
+  }
 }

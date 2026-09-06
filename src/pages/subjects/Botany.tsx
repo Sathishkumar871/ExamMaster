@@ -1,144 +1,451 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Leaf, BookOpen, ArrowRight } from "lucide-react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
+import {
+  ArrowRight,
+  BookOpen,
+  Leaf,
+  LoaderCircle,
+  RefreshCw,
+} from "lucide-react";
+
 import TestInterface from "../../components/TestInterface";
 import "./Botany.css";
 
-// ఆటోమేటిక్ డిటెక్షన్ (Local & Render)
-const API_BASE_URL = 
-  window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+// ============================================================
+// API BASE URL
+// ============================================================
+
+const API_BASE_URL =
+  window.location.hostname === "localhost" ||
+  window.location.hostname === "127.0.0.1"
     ? "http://localhost:5000"
     : "https://exammaster-backend-up1y.onrender.com";
 
+// ============================================================
+// TYPES
+// ============================================================
+
 interface Question {
   _id: string;
+
   question?: string;
   questionText?: string;
+
   options: string[];
+
   correctAnswer: string;
+
   subject?: string;
   chapter?: string;
   className?: string;
+
   testCategory?: string;
+
   isPublished?: boolean;
+
+  questionImage?: string;
+  imageUrl?: string;
+
+  tableHeaders?: string[];
+  tableRows?: unknown[][];
 }
 
+interface StudentData {
+  studentId?: string;
+  name?: string;
+  className?: string;
+}
+
+interface Chapter {
+  name: string;
+  count: number;
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+
+function getStoredStudent(): StudentData {
+  try {
+    const userRaw = localStorage.getItem("user");
+    const studentRaw = localStorage.getItem("student");
+
+    const raw =
+      userRaw ||
+      studentRaw ||
+      "{}";
+
+    const parsed = JSON.parse(raw);
+
+    return parsed &&
+      typeof parsed === "object"
+      ? parsed
+      : {};
+  } catch {
+    return {};
+  }
+}
+
+function getInitialStudentData() {
+  const storedStudent =
+    getStoredStudent();
+
+  return {
+    studentId:
+      localStorage.getItem("studentId") ||
+      storedStudent.studentId ||
+      "STU1001",
+
+    studentName:
+      localStorage.getItem("studentName") ||
+      storedStudent.name ||
+      "Student",
+
+    className:
+      localStorage.getItem("className") ||
+      storedStudent.className ||
+      "2nd PUC",
+  };
+}
+
+function getChapterName(
+  question: Question
+): string {
+  const chapter = String(
+    question.chapter || ""
+  ).trim();
+
+  return (
+    chapter ||
+    "General Botany"
+  );
+}
+
+function extractResultsList(
+  data: any
+): any[] {
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  if (Array.isArray(data?.results)) {
+    return data.results;
+  }
+
+  if (Array.isArray(data?.data)) {
+    return data.data;
+  }
+
+  return [];
+}
+
+// ============================================================
+// COMPONENT
+// ============================================================
+
 export default function Botany() {
-  const navigate = useNavigate();
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  // ==========================================================
+  // INITIAL STUDENT DATA
+  // ==========================================================
 
-  const [studentId, setStudentId] = useState<string>("STU1001");
-  const [studentName, setStudentName] = useState<string>("Student");
-  const [className, setClassName] = useState<string>("2nd PUC");
+  const initialStudent = useMemo(
+    () => getInitialStudentData(),
+    []
+  );
 
-  const [selectedChapter, setSelectedChapter] = useState<string | null>(null);
-  
-  const [chapterUserAnswers, setChapterUserAnswers] = useState<Record<string, Record<string, string>>>({});
-  const [submittedChapters, setSubmittedChapters] = useState<Record<string, boolean>>({});
+  // ==========================================================
+  // STATE
+  // ==========================================================
 
-  useEffect(() => {
-    try {
-      const storedUser = localStorage.getItem("user") || localStorage.getItem("student") || "{}";
-      const parsedUser = JSON.parse(storedUser);
+  const [questions, setQuestions] =
+    useState<Question[]>([]);
 
-      if (parsedUser.className) setClassName(parsedUser.className);
-      if (parsedUser.name) setStudentName(parsedUser.name);
-      if (parsedUser.studentId) setStudentId(parsedUser.studentId);
+  const [questionsLoading, setQuestionsLoading] =
+    useState(true);
 
-      if (localStorage.getItem("className")) setClassName(localStorage.getItem("className")!);
-      if (localStorage.getItem("studentName")) setStudentName(localStorage.getItem("studentName")!);
-      if (localStorage.getItem("studentId")) setStudentId(localStorage.getItem("studentId")!);
-    } catch (e) {
-      console.log("Error reading student data from localStorage", e);
-    }
-  }, []);
+  const [questionsError, setQuestionsError] =
+    useState("");
 
-  useEffect(() => {
-    const loadDataFromDB = async () => {
+  const [studentId] =
+    useState<string>(
+      initialStudent.studentId
+    );
+
+  const [studentName] =
+    useState<string>(
+      initialStudent.studentName
+    );
+
+  const [className] =
+    useState<string>(
+      initialStudent.className
+    );
+
+  const [selectedChapter, setSelectedChapter] =
+    useState<string | null>(null);
+
+  const [
+    chapterUserAnswers,
+    setChapterUserAnswers,
+  ] = useState<
+    Record<
+      string,
+      Record<string, string>
+    >
+  >({});
+
+  const [
+    submittedChapters,
+    setSubmittedChapters,
+  ] = useState<
+    Record<string, boolean>
+  >({});
+
+  const [resultsLoading, setResultsLoading] =
+    useState(true);
+
+  // ==========================================================
+  // LOAD PREVIOUS RESULTS
+  // ==========================================================
+
+  const loadPreviousResults =
+    useCallback(async () => {
+      if (!studentId) {
+        setResultsLoading(false);
+        return;
+      }
+
       try {
-        setLoading(true);
+        setResultsLoading(true);
 
-        // 1. Fetch Botany Questions from Backend API
-        const queryParams = new URLSearchParams({
-          className: className,
-          subject: "Botany",
-          testCategory: "subject",
-        });
+        const response = await fetch(
+          `${API_BASE_URL}/api/results/student/${encodeURIComponent(
+            studentId
+          )}`
+        );
 
-        const qResponse = await fetch(`${API_BASE_URL}/api/subjects/questions?${queryParams.toString()}`);
-        if (!qResponse.ok) throw new Error("Failed to load Botany questions from database");
-        
-        const qData = await qResponse.json();
-        const botanyQuestions = qData.questions || [];
-        setQuestions(botanyQuestions);
-
-        // 2. Fetch Student's Previous Results from MongoDB Database
-        const currentStudentId = localStorage.getItem("studentId") || studentId;
-        const resultsResponse = await fetch(`${API_BASE_URL}/api/results/student/${currentStudentId}`);
-        
-        if (resultsResponse.ok) {
-          const resultsData = await resultsResponse.json();
-          const resultsList = Array.isArray(resultsData) ? resultsData : (resultsData.results || resultsData.data || []);
-
-          const loadedSubmittedChapters: Record<string, boolean> = {};
-          const loadedChapterAnswers: Record<string, Record<string, string>> = {};
-
-          resultsList.forEach((res: any) => {
-            if (res.examName && res.examName.includes("Botany -")) {
-              const parts = res.examName.split("Botany -");
-              const chapName = parts[1]?.trim();
-
-              if (chapName && res.review && Array.isArray(res.review)) {
-                loadedSubmittedChapters[chapName] = true;
-                const ansMap: Record<string, string> = {};
-                res.review.forEach((item: any) => {
-                  if (item.questionId && item.selectedAnswer) {
-                    ansMap[item.questionId] = item.selectedAnswer;
-                  }
-                });
-                loadedChapterAnswers[chapName] = ansMap;
-              }
-            }
-          });
-
-          setSubmittedChapters(loadedSubmittedChapters);
-          setChapterUserAnswers(loadedChapterAnswers);
+        if (!response.ok) {
+          return;
         }
 
-      } catch (err: any) {
-        setError(err.message || "Failed to load data");
+        const data =
+          await response.json();
+
+        const resultsList =
+          extractResultsList(data);
+
+        const loadedSubmittedChapters:
+          Record<string, boolean> = {};
+
+        const loadedChapterAnswers:
+          Record<
+            string,
+            Record<string, string>
+          > = {};
+
+        for (const result of resultsList) {
+          if (
+            !result?.examName ||
+            !result.examName.includes(
+              "Botany -"
+            )
+          ) {
+            continue;
+          }
+
+          const parts =
+            result.examName.split(
+              "Botany -"
+            );
+
+          const chapterName =
+            parts[1]?.trim();
+
+          if (
+            !chapterName ||
+            !Array.isArray(result.review)
+          ) {
+            continue;
+          }
+
+          loadedSubmittedChapters[
+            chapterName
+          ] = true;
+
+          const answerMap:
+            Record<string, string> = {};
+
+          for (const item of result.review) {
+            if (
+              item?.questionId &&
+              item?.selectedAnswer
+            ) {
+              answerMap[
+                item.questionId
+              ] = item.selectedAnswer;
+            }
+          }
+
+          loadedChapterAnswers[
+            chapterName
+          ] = answerMap;
+        }
+
+        setSubmittedChapters(
+          loadedSubmittedChapters
+        );
+
+        setChapterUserAnswers(
+          loadedChapterAnswers
+        );
+      } catch (error) {
+        console.error(
+          "BOTANY RESULTS LOAD ERROR:",
+          error
+        );
       } finally {
-        setLoading(false);
+        setResultsLoading(false);
       }
-    };
+    }, [studentId]);
 
-    loadDataFromDB();
-  }, [className]);
+  // ==========================================================
+  // LOAD BOTANY QUESTIONS
+  // ==========================================================
 
-  const chaptersList = (() => {
-    const map = new Map<string, number>();
-    questions.forEach((q) => {
-      const chap = String(q.chapter || "General Botany").trim();
-      map.set(chap, (map.get(chap) || 0) + 1);
-    });
-    return Array.from(map.entries()).map(([name, count]) => ({ name, count }));
-  })();
+  const loadBotanyQuestions =
+    useCallback(async () => {
+      try {
+        setQuestionsLoading(true);
+        setQuestionsError("");
 
-  const currentChapterQuestions = selectedChapter
-    ? questions.filter((q) => String(q.chapter || "").trim() === selectedChapter)
-    : [];
+        const queryParams =
+          new URLSearchParams({
+            className,
+            subject: "Botany",
+            testCategory: "subject",
+          });
 
-  if (loading) {
-    return <div style={{ textAlign: "center", padding: "80px", color: "#64748b", fontSize: "16px" }}>Loading Botany data from database...</div>;
-  }
+        const response = await fetch(
+          `${API_BASE_URL}/api/subjects/questions?${queryParams.toString()}`
+        );
 
-  if (error) {
-    return <div style={{ textAlign: "center", padding: "80px", color: "red", fontSize: "16px" }}>{error}</div>;
-  }
+        if (!response.ok) {
+          throw new Error(
+            "Failed to load Botany questions from database"
+          );
+        }
 
-  // ================= 1. EXAM / QUESTIONS SCREEN (USING TestInterface) =================
+        const data =
+          await response.json();
+
+        const botanyQuestions =
+          Array.isArray(data?.questions)
+            ? data.questions
+            : [];
+
+        setQuestions(
+          botanyQuestions
+        );
+      } catch (error) {
+        console.error(
+          "BOTANY QUESTIONS LOAD ERROR:",
+          error
+        );
+
+        setQuestionsError(
+          error instanceof Error
+            ? error.message
+            : "Failed to load Botany data"
+        );
+      } finally {
+        setQuestionsLoading(false);
+      }
+    }, [className]);
+
+  // ==========================================================
+  // INITIAL LOAD
+  // ==========================================================
+
+  useEffect(() => {
+    void loadBotanyQuestions();
+    void loadPreviousResults();
+  }, [
+    loadBotanyQuestions,
+    loadPreviousResults,
+  ]);
+
+  // ==========================================================
+  // CHAPTER LIST
+  // ==========================================================
+
+  const chaptersList =
+    useMemo<Chapter[]>(() => {
+      const chapterMap =
+        new Map<string, number>();
+
+      for (const question of questions) {
+        const chapter =
+          getChapterName(question);
+
+        chapterMap.set(
+          chapter,
+          (chapterMap.get(chapter) || 0) + 1
+        );
+      }
+
+      return Array.from(
+        chapterMap.entries()
+      ).map(([name, count]) => ({
+        name,
+        count,
+      }));
+    }, [questions]);
+
+  // ==========================================================
+  // CURRENT CHAPTER QUESTIONS
+  // ==========================================================
+
+  const currentChapterQuestions =
+    useMemo(() => {
+      if (!selectedChapter) {
+        return [];
+      }
+
+      return questions.filter(
+        (question) =>
+          getChapterName(question) ===
+          selectedChapter
+      );
+    }, [
+      questions,
+      selectedChapter,
+    ]);
+
+  // ==========================================================
+  // RETRY
+  // ==========================================================
+
+  const handleRetry = useCallback(() => {
+    void loadBotanyQuestions();
+  }, [loadBotanyQuestions]);
+
+  // ==========================================================
+  // BACK
+  // ==========================================================
+
+  const handleBack = useCallback(() => {
+    setSelectedChapter(null);
+  }, []);
+
+  // ==========================================================
+  // EXAM SCREEN
+  // ==========================================================
+
   if (selectedChapter) {
     return (
       <TestInterface
@@ -148,42 +455,82 @@ export default function Botany() {
         questions={currentChapterQuestions}
         studentId={studentId}
         studentName={studentName}
-        themeColor="#16a34a" // Botany Emerald Green Theme
-        onBack={() => setSelectedChapter(null)}
-        isAlreadySubmitted={submittedChapters[selectedChapter] || false}
-        initialAnswers={chapterUserAnswers[selectedChapter] || {}}
+        themeColor="#16a34a"
+        onBack={handleBack}
+        isAlreadySubmitted={
+          submittedChapters[
+            selectedChapter
+          ] || false
+        }
+        initialAnswers={
+          chapterUserAnswers[
+            selectedChapter
+          ] || {}
+        }
+        testCategory="subject"
+        examType=""
       />
     );
   }
 
-  // ================= 2. MAIN DASHBOARD VIEW =================
+  // ==========================================================
+  // DASHBOARD
+  // ==========================================================
+
   return (
     <main className="botany-page">
       <div className="botany-container">
+
+        {/* ==================================================
+            HERO
+        ================================================== */}
+
         <section className="botany-hero">
           <div className="botany-hero-content">
+
             <div className="botany-badge">
-              <Leaf size={15} />
-              JEE / NEET • {className.toUpperCase()} BOTANY
+              <Leaf
+                size={15}
+                aria-hidden="true"
+              />
+
+              <span>
+                JEE / NEET •{" "}
+                {className.toUpperCase()}{" "}
+                BOTANY
+              </span>
             </div>
 
             <h1 className="botany-title">
               Botany
+
               <span>
-                Master Plant Sciences. Crack Exams.
+                Master Plant Sciences.
+                Crack Exams.
               </span>
             </h1>
 
             <p className="botany-description">
-              Welcome back, <strong>{studentName}</strong>! Practice {className} Botany chapter-wise with focused
-              plant anatomy, physiology, and exam-oriented tests.
+              Welcome back,{" "}
+              <strong>
+                {studentName}
+              </strong>
+              ! Practice{" "}
+              {className} Botany
+              chapter-wise with focused
+              plant anatomy, physiology,
+              and exam-oriented tests.
             </p>
 
             <div className="botany-stats">
+
               <div className="botany-stat">
                 <span className="botany-stat-value">
-                  {questions.length}+
+                  {questionsLoading
+                    ? "—"
+                    : `${questions.length}+`}
                 </span>
+
                 <span className="botany-stat-label">
                   {className} Questions
                 </span>
@@ -191,8 +538,11 @@ export default function Botany() {
 
               <div className="botany-stat">
                 <span className="botany-stat-value">
-                  {chaptersList.length}
+                  {questionsLoading
+                    ? "—"
+                    : chaptersList.length}
                 </span>
+
                 <span className="botany-stat-label">
                   Chapters
                 </span>
@@ -202,73 +552,250 @@ export default function Botany() {
                 <span className="botany-stat-value">
                   JEE / NEET
                 </span>
+
                 <span className="botany-stat-label">
                   Exam Standard
                 </span>
               </div>
+
             </div>
           </div>
         </section>
 
-        <section>
+        {/* ==================================================
+            CHAPTER SECTION
+        ================================================== */}
+
+        <section
+          aria-labelledby="botany-chapters-title"
+        >
           <div className="botany-section-header">
             <div>
-              <h2 className="botany-section-title">
+
+              <h2
+                id="botany-chapters-title"
+                className="botany-section-title"
+              >
                 {className} Botany Chapters
               </h2>
+
               <p className="botany-section-subtitle">
-                Select a chapter and start your practice. (Student ID: {studentId})
+                Select a chapter and start
+                your practice.
               </p>
+
             </div>
           </div>
 
-          {chaptersList.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "40px", color: "#64748b", background: "#fff", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
-              No Botany chapters found for {className}.
+          {/* ==================================================
+              ERROR
+          ================================================== */}
+
+          {questionsError ? (
+            <div className="botany-state-card">
+
+              <div
+                className="botany-state-icon error"
+                aria-hidden="true"
+              >
+                !
+              </div>
+
+              <h3>
+                Unable to load Botany
+              </h3>
+
+              <p>
+                {questionsError}
+              </p>
+
+              <button
+                type="button"
+                className="botany-retry-button"
+                onClick={handleRetry}
+              >
+                <RefreshCw
+                  size={15}
+                  aria-hidden="true"
+                />
+
+                Retry
+              </button>
+
+            </div>
+          ) : questionsLoading ? (
+            <div
+              className="botany-state-card"
+              aria-live="polite"
+            >
+              <div
+                className="botany-state-icon"
+                aria-hidden="true"
+              >
+                <LoaderCircle
+                  size={24}
+                  className="botany-spinner"
+                />
+              </div>
+
+              <h3>
+                Loading Botany Chapters
+              </h3>
+
+              <p>
+                Preparing your chapter-wise
+                practice questions...
+              </p>
+            </div>
+          ) : chaptersList.length === 0 ? (
+            <div className="botany-state-card">
+
+              <div
+                className="botany-state-icon"
+                aria-hidden="true"
+              >
+                📚
+              </div>
+
+              <h3>
+                No Botany Chapters Found
+              </h3>
+
+              <p>
+                No Botany chapters are
+                currently available for{" "}
+                {className}.
+              </p>
+
             </div>
           ) : (
             <div className="botany-chapter-grid">
-              {chaptersList.map((chap, idx) => {
-                const isCompleted = submittedChapters[chap.name];
 
-                return (
-                  <div className="botany-chapter-card" key={idx}>
-                    <div className="botany-card-top">
-                      <div className="botany-chapter-icon">
-                        <Leaf size={24} />
+              {chaptersList.map(
+                (chapter, index) => {
+                  const isCompleted =
+                    submittedChapters[
+                      chapter.name
+                    ];
+
+                  return (
+                    <article
+                      className="botany-chapter-card"
+                      key={chapter.name}
+                    >
+
+                      <div className="botany-card-top">
+
+                        <div
+                          className="botany-chapter-icon"
+                          aria-hidden="true"
+                        >
+                          <Leaf size={24} />
+                        </div>
+
+                        <span className="botany-chapter-number">
+                          {String(
+                            index + 1
+                          ).padStart(2, "0")}
+                        </span>
+
                       </div>
-                      <span className="botany-chapter-number">
-                        {String(idx + 1).padStart(2, "0")}
-                      </span>
-                    </div>
 
-                    <div className="botany-card-content">
-                      <h3>
-                        {chap.name} {isCompleted && " ✅"}
-                      </h3>
-                      <p>
-                        Practice important multiple-choice questions and conceptual problems from this chapter.
-                      </p>
+                      <div className="botany-card-content">
 
-                      <div style={{ fontSize: "13px", fontWeight: "600", color: "#16a34a", marginBottom: "12px" }}>
-                        {chap.count} Questions Available {isCompleted && "• Saved in DB"}
+                        <h3>
+                          {chapter.name}
+
+                          {isCompleted && (
+                            <span
+                              className="botany-completed-mark"
+                              aria-label="Completed"
+                              title="Completed"
+                            >
+                              ✓
+                            </span>
+                          )}
+                        </h3>
+
+                        <p>
+                          Practice important
+                          multiple-choice
+                          questions and
+                          conceptual problems
+                          from this chapter.
+                        </p>
+
+                        <div className="botany-question-count">
+                          {chapter.count} Questions
+                          Available
+
+                          {isCompleted && (
+                            <span>
+                              {" "}
+                              • Saved in DB
+                            </span>
+                          )}
+                        </div>
+
+                        <button
+                          type="button"
+                          className="botany-test-button"
+                          onClick={() =>
+                            setSelectedChapter(
+                              chapter.name
+                            )
+                          }
+                        >
+                          <BookOpen
+                            size={16}
+                            aria-hidden="true"
+                          />
+
+                          <span>
+                            {isCompleted
+                              ? "View DB History"
+                              : "Start Practice"}
+                          </span>
+
+                          <ArrowRight
+                            size={15}
+                            aria-hidden="true"
+                          />
+                        </button>
+
                       </div>
+                    </article>
+                  );
+                }
+              )}
 
-                      <button
-                        type="button"
-                        className="botany-test-button"
-                        onClick={() => setSelectedChapter(chap.name)}
-                      >
-                        <BookOpen size={16} />
-                        {isCompleted ? "View DB History" : "Start Practice"}
-                        <ArrowRight size={15} />
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
             </div>
           )}
+
+          {/* ==================================================
+              RESULTS SYNC
+          ================================================== */}
+
+          {!questionsLoading &&
+            !questionsError &&
+            resultsLoading && (
+              <div
+                className="botany-history-sync"
+                aria-live="polite"
+              >
+                <LoaderCircle
+                  size={13}
+                  className="botany-spinner"
+                  aria-hidden="true"
+                />
+
+                <span>
+                  Syncing your previous
+                  chapter history...
+                </span>
+              </div>
+            )}
+
         </section>
       </div>
     </main>

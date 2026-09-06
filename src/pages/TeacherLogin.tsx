@@ -311,7 +311,7 @@ export default function TeacherLogin() {
             <div className="field-group">
               <label htmlFor="teacher-id">
                 {isManagement
-                  ? "Teacher ID"
+                  ? "Management ID"
                   : "Director ID"}
               </label>
 

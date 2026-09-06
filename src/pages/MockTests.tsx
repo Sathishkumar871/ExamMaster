@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   ArrowRight,
-  Award,
   BookOpen,
   CheckCircle2,
   Clock3,
@@ -67,6 +66,8 @@ interface Question {
   chapterName?: string;
 
   questionNumber?: number;
+
+  examId?: string;
 
   [key: string]: any;
 }
@@ -171,6 +172,13 @@ export default function MockTests() {
     useState<Question[]>([]);
 
   /* =======================================================
+     EXAM ID
+  ======================================================= */
+
+  const [examId, setExamId] =
+    useState("");
+
+  /* =======================================================
      STATES
   ======================================================= */
 
@@ -202,7 +210,11 @@ export default function MockTests() {
     useState(false);
 
   const [isOnline, setIsOnline] =
-    useState(navigator.onLine);
+    useState(
+      typeof navigator !== "undefined"
+        ? navigator.onLine
+        : true
+    );
 
   /* =========================================================
      NETWORK STATUS
@@ -337,7 +349,7 @@ export default function MockTests() {
       }
     }
 
-    checkBackendSubmission(
+    void checkBackendSubmission(
       storedId,
       token,
       storedExam
@@ -356,14 +368,6 @@ export default function MockTests() {
     setCheckingSubmission(true);
 
     try {
-      /*
-       * IMPORTANT:
-       *
-       * API_BASE_URL already contains /api.
-       *
-       * Therefore DO NOT add /api again.
-       */
-
       const response =
         await fetch(
           `${API_BASE_URL}/results/student/${encodeURIComponent(
@@ -381,8 +385,8 @@ export default function MockTests() {
         );
 
       /*
-       * Previous-result API failure
-       * must NOT block new exam.
+       * Previous result failure must not
+       * block a new exam.
        */
 
       if (!response.ok) {
@@ -482,206 +486,279 @@ export default function MockTests() {
      FETCH MOCK QUESTIONS
   ========================================================= */
 
-  const fetchQuestionsForClass =
-    async (
-      selectedClass: string,
-      selectedExamType: string
-    ) => {
-      setLoading(true);
-      setError("");
+  const fetchQuestionsForClass = async (
+    selectedClass: string,
+    selectedExamType: string
+  ) => {
+    setLoading(true);
+    setError("");
+    setExamId("");
+    setQuestions([]);
 
-      const token =
-        localStorage.getItem(
-          "studentToken"
-        ) ||
-        localStorage.getItem(
-          "token"
+    const token =
+      localStorage.getItem(
+        "studentToken"
+      ) ||
+      localStorage.getItem(
+        "token"
+      );
+
+    if (!token) {
+      navigate("/login");
+      setLoading(false);
+      return false;
+    }
+
+    try {
+      const queryParams =
+        new URLSearchParams();
+
+      if (selectedClass) {
+        queryParams.append(
+          "className",
+          selectedClass
+        );
+      }
+
+      if (selectedExamType) {
+        queryParams.append(
+          "examType",
+          selectedExamType
+        );
+      }
+
+      /* =====================================================
+         IMPORTANT
+         Backend route is:
+
+         GET /api/mock-test/questions
+
+         API_BASE_URL already contains /api.
+      ===================================================== */
+
+      const requestUrl =
+        `${API_BASE_URL}/mock-test/questions?${queryParams.toString()}`;
+
+      console.log(
+        "MOCK TEST REQUEST:",
+        requestUrl
+      );
+
+      const response =
+        await fetch(
+          requestUrl,
+          {
+            method: "GET",
+            headers: {
+              Authorization:
+                `Bearer ${token}`,
+              "Content-Type":
+                "application/json",
+            },
+          }
         );
 
-      if (!token) {
-        navigate("/login");
-        setLoading(false);
-        return false;
-      }
+      let data: any = null;
 
       try {
-        const queryParams =
-          new URLSearchParams();
-
-        if (selectedClass) {
-          queryParams.append(
-            "className",
-            selectedClass
-          );
-        }
-
-        if (selectedExamType) {
-          queryParams.append(
-            "examType",
-            selectedExamType
-          );
-        }
-
-        /*
-         * IMPORTANT:
-         *
-         * API_BASE_URL already has /api.
-         * So here we use /questions, NOT /api/questions.
-         */
-
-        const response =
-          await fetch(
-            `${API_BASE_URL}/questions/mock-tests?${queryParams.toString()}`,
-            {
-              method: "GET",
-              headers: {
-                Authorization:
-                  `Bearer ${token}`,
-                "Content-Type":
-                  "application/json",
-              },
-            }
-          );
-
-        const data =
+        data =
           await response.json();
-
-        if (!response.ok) {
-          throw new Error(
-            data?.message ||
-              data?.error ||
-              "Unable to load mock test questions."
-          );
-        }
-
-        const loadedQuestions =
-          data?.questions ||
-          data?.data ||
-          data;
-
-        if (
-          !Array.isArray(
-            loadedQuestions
-          )
-        ) {
-          throw new Error(
-            "The server returned an invalid question format."
-          );
-        }
-
-        if (
-          loadedQuestions.length === 0
-        ) {
-          throw new Error(
-            "No questions are currently available for this mock test."
-          );
-        }
-
-        /* =================================================
-           NORMALIZE QUESTIONS
-        ================================================= */
-
-        const normalizedQuestions =
-          loadedQuestions.map(
-            (
-              question: any,
-              index: number
-            ) => ({
-              ...question,
-
-              _id:
-                question?._id ||
-                question?.id ||
-                `mock-question-${index}`,
-
-              questionText:
-                question?.questionText ||
-                question?.question ||
-                "",
-
-              question:
-                question?.question ||
-                question?.questionText ||
-                "",
-
-              options:
-                Array.isArray(
-                  question?.options
-                )
-                  ? question.options
-                  : [],
-
-              correctAnswer:
-                question?.correctAnswer ||
-                "",
-            })
-          );
-
-        /* =================================================
-           REMOVE INVALID QUESTIONS
-        ================================================= */
-
-        const validQuestions =
-          normalizedQuestions.filter(
-            (question: any) =>
-              question.question &&
-              Array.isArray(
-                question.options
-              ) &&
-              question.options.length >= 2
-          );
-
-        if (
-          validQuestions.length === 0
-        ) {
-          throw new Error(
-            "No valid questions were found for this mock test."
-          );
-        }
-
-        /* =================================================
-           QUESTION NUMBER
-        ================================================= */
-
-        const finalQuestions =
-          validQuestions.map(
-            (
-              question: any,
-              index: number
-            ) => ({
-              ...question,
-
-              questionNumber:
-                question.questionNumber ||
-                index + 1,
-            })
-          );
-
-        /* =================================================
-           SAVE
-        ================================================= */
-
-        setQuestions(
-          finalQuestions
-        );
-
-        return true;
-      } catch (err: any) {
-        console.error(
-          "Mock test question loading error:",
-          err
-        );
-
-        setError(
-          err?.message ||
-            "Unable to load the mock test."
-        );
-
-        return false;
-      } finally {
-        setLoading(false);
+      } catch {
+        data = null;
       }
-    };
+
+      console.log(
+        "MOCK TEST SERVER RESPONSE:",
+        data
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          data?.message ||
+            data?.error ||
+            `Unable to load mock test questions (${response.status}).`
+        );
+      }
+
+      /* =====================================================
+         FIND QUESTIONS
+      ===================================================== */
+
+      const loadedQuestions =
+        Array.isArray(data?.questions)
+          ? data.questions
+          : Array.isArray(data?.data)
+          ? data.data
+          : Array.isArray(data)
+          ? data
+          : [];
+
+      if (
+        loadedQuestions.length === 0
+      ) {
+        throw new Error(
+          "No questions are currently available for this mock test."
+        );
+      }
+
+      /* =====================================================
+         FIND EXAM ID
+      ===================================================== */
+
+      const serverExamId =
+        String(
+          data?.examId ||
+            data?.exam?.examId ||
+            data?.exam?._id ||
+            data?.exam?.id ||
+            data?.test?.examId ||
+            data?.test?._id ||
+            data?.test?.id ||
+            ""
+        ).trim();
+
+      const questionExamId =
+        String(
+          loadedQuestions?.[0]?.examId ||
+            loadedQuestions?.[0]?.exam?._id ||
+            loadedQuestions?.[0]?.exam?.id ||
+            loadedQuestions?.[0]?.testId ||
+            ""
+        ).trim();
+
+      const finalExamId =
+        serverExamId ||
+        questionExamId;
+
+      /*
+       * The exam session requires an examId.
+       */
+
+      if (!finalExamId) {
+        throw new Error(
+          "Mock test examId was not returned by the server."
+        );
+      }
+
+      setExamId(
+        finalExamId
+      );
+
+      /* =====================================================
+         NORMALIZE QUESTIONS
+      ===================================================== */
+
+      const normalizedQuestions =
+        loadedQuestions.map(
+          (
+            question: any,
+            index: number
+          ) => ({
+            ...question,
+
+            _id:
+              question?._id ||
+              question?.id ||
+              `mock-question-${index}`,
+
+            examId:
+              question?.examId ||
+              finalExamId,
+
+            questionText:
+              question?.questionText ||
+              question?.question ||
+              "",
+
+            question:
+              question?.question ||
+              question?.questionText ||
+              "",
+
+            options:
+              Array.isArray(
+                question?.options
+              )
+                ? question.options
+                : [],
+
+            correctAnswer:
+              question?.correctAnswer ||
+              "",
+          })
+        );
+
+      /* =====================================================
+         VALID QUESTIONS
+      ===================================================== */
+
+      const validQuestions =
+        normalizedQuestions.filter(
+          (question: any) =>
+            question.question &&
+            Array.isArray(
+              question.options
+            ) &&
+            question.options.length >= 2
+        );
+
+      if (
+        validQuestions.length === 0
+      ) {
+        throw new Error(
+          "No valid questions were found for this mock test."
+        );
+      }
+
+      /* =====================================================
+         QUESTION NUMBER
+      ===================================================== */
+
+      const finalQuestions =
+        validQuestions.map(
+          (
+            question: any,
+            index: number
+          ) => ({
+            ...question,
+
+            questionNumber:
+              question.questionNumber ||
+              index + 1,
+          })
+        );
+
+      setQuestions(
+        finalQuestions
+      );
+
+      console.log(
+        "MOCK TEST QUESTIONS LOADED:",
+        finalQuestions.length
+      );
+
+      console.log(
+        "MOCK TEST EXAM ID:",
+        finalExamId
+      );
+
+      return true;
+    } catch (err: any) {
+      console.error(
+        "Mock test question loading error:",
+        err
+      );
+
+      setError(
+        err?.message ||
+          "Unable to load the mock test."
+      );
+
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
 
   /* =========================================================
      START BUTTON
@@ -708,17 +785,14 @@ export default function MockTests() {
      MODAL → READY SCREEN
   ========================================================= */
 
-  const handleContinueToInstructions =
-    () => {
-      setShowInstructions(false);
-      setStep("instructions");
-      setError("");
-    };
+  const handleContinueToInstructions = () => {
+    setShowInstructions(false);
+    setStep("instructions");
+    setError("");
+  };
 
   /* =========================================================
      READY → LOAD QUESTIONS
-     → GREETING
-     → EXAM
   ========================================================= */
 
   const handleReady = async () => {
@@ -734,7 +808,16 @@ export default function MockTests() {
       return;
     }
 
+    if (!className) {
+      setError(
+        "Student class could not be identified. Please log in again."
+      );
+
+      return;
+    }
+
     setError("");
+    setExamId("");
 
     const success =
       await fetchQuestionsForClass(
@@ -768,79 +851,6 @@ export default function MockTests() {
     }, [examResult]);
 
   /* =========================================================
-     PERFORMANCE
-  ========================================================= */
-
-  const performance =
-    useMemo(() => {
-      if (percentage >= 85) {
-        return {
-          title:
-            "Excellent Performance",
-
-          description:
-            "Outstanding work. Your preparation is producing strong results.",
-
-          icon: (
-            <Trophy size={28} />
-          ),
-
-          className:
-            "excellent",
-        };
-      }
-
-      if (percentage >= 70) {
-        return {
-          title:
-            "Strong Performance",
-
-          description:
-            "Good work. A little more refinement can push your score even higher.",
-
-          icon: (
-            <Award size={28} />
-          ),
-
-          className:
-            "strong",
-        };
-      }
-
-      if (percentage >= 50) {
-        return {
-          title:
-            "Good Progress",
-
-          description:
-            "You are on the right track. Focus on your weaker areas for improvement.",
-
-          icon: (
-            <Target size={28} />
-          ),
-
-          className:
-            "progress",
-        };
-      }
-
-      return {
-        title:
-          "Needs More Practice",
-
-        description:
-          "Use this result as a guide and strengthen your fundamentals before the next attempt.",
-
-        icon: (
-          <BookOpen size={28} />
-        ),
-
-        className:
-          "focus",
-      };
-    }, [percentage]);
-
-  /* =========================================================
      DASHBOARD
   ========================================================= */
 
@@ -850,28 +860,33 @@ export default function MockTests() {
         <div className="mock-page">
           <div className="mock-container">
 
-            {/* HEADER */}
-
             <header className="mock-header">
 
               <button
+                type="button"
                 className="mock-back-btn"
                 onClick={() =>
-                  navigate(
-                    "/dashboard"
-                  )
+                  navigate("/dashboard")
                 }
               >
-                <ArrowLeft size={17} />
+                <ArrowLeft
+                  size={17}
+                  aria-hidden="true"
+                />
 
                 Dashboard
               </button>
 
-              <div className="mock-online-status">
-
+              <div
+                className="mock-online-status"
+                aria-live="polite"
+              >
                 {isOnline ? (
                   <>
-                    <Wifi size={14} />
+                    <Wifi
+                      size={14}
+                      aria-hidden="true"
+                    />
 
                     Online
                   </>
@@ -879,19 +894,21 @@ export default function MockTests() {
                   <>
                     <WifiOff
                       size={14}
+                      aria-hidden="true"
                     />
 
                     Offline
                   </>
                 )}
-
               </div>
 
             </header>
 
-            {/* HERO */}
 
-            <section className="mock-hero">
+            <section
+              className="mock-hero"
+              aria-labelledby="mock-hero-title"
+            >
 
               <div className="mock-hero-content">
 
@@ -899,7 +916,7 @@ export default function MockTests() {
                   EXAM SIMULATION
                 </div>
 
-                <h1>
+                <h1 id="mock-hero-title">
                   Ready for your
                   next
                   <span>
@@ -922,6 +939,7 @@ export default function MockTests() {
                   <span>
                     <ShieldCheck
                       size={14}
+                      aria-hidden="true"
                     />
 
                     Secure Assessment
@@ -930,13 +948,17 @@ export default function MockTests() {
                   <span>
                     <Target
                       size={14}
+                      aria-hidden="true"
                     />
 
                     Performance Tracking
                   </span>
 
                   <span>
-                    <Zap size={14} />
+                    <Zap
+                      size={14}
+                      aria-hidden="true"
+                    />
 
                     Instant Evaluation
                   </span>
@@ -945,49 +967,51 @@ export default function MockTests() {
 
               </div>
 
-              <div className="mock-hero-visual">
+
+              <div
+                className="mock-hero-visual"
+                aria-hidden="true"
+              >
 
                 <div className="mock-orbit mock-orbit-one" />
 
                 <div className="mock-orbit mock-orbit-two" />
 
                 <div className="mock-hero-icon">
-
-                  <GraduationCap
-                    size={48}
-                  />
-
+                  <GraduationCap size={48} />
                 </div>
 
               </div>
 
             </section>
 
-            {/* START GRID */}
 
-            <section className="mock-start-grid">
-
-              {/* MAIN CARD */}
+            <section
+              className="mock-start-grid"
+              aria-label="Mock test start"
+            >
 
               <div className="mock-start-card">
 
                 <div className="mock-card-top">
 
                   <div className="mock-test-icon">
-
                     <BookOpen
                       size={23}
+                      aria-hidden="true"
                     />
-
                   </div>
 
-                  <div className="mock-test-status">
-
+                  <div
+                    className="mock-test-status"
+                    aria-live="polite"
+                  >
                     {checkingSubmission ? (
                       <>
                         <RefreshCw
                           size={13}
                           className="mock-spin"
+                          aria-hidden="true"
                         />
 
                         Checking
@@ -996,15 +1020,16 @@ export default function MockTests() {
                       <>
                         <CheckCircle2
                           size={13}
+                          aria-hidden="true"
                         />
 
                         Available
                       </>
                     )}
-
                   </div>
 
                 </div>
+
 
                 <div className="mock-test-category">
                   {examType.toUpperCase()}
@@ -1021,12 +1046,13 @@ export default function MockTests() {
                   academic level.
                 </p>
 
+
                 <div className="mock-info-grid">
 
                   <div>
-
                     <FileQuestion
                       size={17}
+                      aria-hidden="true"
                     />
 
                     <span>
@@ -1036,13 +1062,13 @@ export default function MockTests() {
                         180
                       </strong>
                     </span>
-
                   </div>
 
-                  <div>
 
+                  <div>
                     <Clock3
                       size={17}
+                      aria-hidden="true"
                     />
 
                     <span>
@@ -1052,13 +1078,13 @@ export default function MockTests() {
                         3 Hours
                       </strong>
                     </span>
-
                   </div>
 
-                  <div>
 
+                  <div>
                     <GraduationCap
                       size={17}
+                      aria-hidden="true"
                     />
 
                     <span>
@@ -1068,13 +1094,13 @@ export default function MockTests() {
                         NEET
                       </strong>
                     </span>
-
                   </div>
 
-                  <div>
 
+                  <div>
                     <ShieldCheck
                       size={17}
+                      aria-hidden="true"
                     />
 
                     <span>
@@ -1084,34 +1110,42 @@ export default function MockTests() {
                         720
                       </strong>
                     </span>
-
                   </div>
 
                 </div>
 
+
                 {!isOnline && (
                   <div className="mock-warning">
-
-                    <WifiOff size={15} />
+                    <WifiOff
+                      size={15}
+                      aria-hidden="true"
+                    />
 
                     Internet connection
                     required before
                     starting.
-
                   </div>
                 )}
+
 
                 {error && (
-                  <div className="mock-inline-error">
-
-                    <Info size={15} />
+                  <div
+                    className="mock-inline-error"
+                    role="alert"
+                  >
+                    <Info
+                      size={15}
+                      aria-hidden="true"
+                    />
 
                     {error}
-
                   </div>
                 )}
 
+
                 <button
+                  type="button"
                   className="mock-start-btn"
                   onClick={
                     handleStartExam
@@ -1122,12 +1156,12 @@ export default function MockTests() {
                     !isOnline
                   }
                 >
-
                   {checkingSubmission ? (
                     <>
                       <RefreshCw
                         size={17}
                         className="mock-spin"
+                        aria-hidden="true"
                       />
 
                       Checking...
@@ -1140,24 +1174,22 @@ export default function MockTests() {
 
                       <ArrowRight
                         size={18}
+                        aria-hidden="true"
                       />
                     </>
                   )}
-
                 </button>
 
               </div>
 
-              {/* SIDE CARD */}
 
               <aside className="mock-side-card">
 
                 <div className="mock-side-icon">
-
                   <LockKeyhole
                     size={21}
+                    aria-hidden="true"
                   />
-
                 </div>
 
                 <h3>
@@ -1169,6 +1201,7 @@ export default function MockTests() {
                   <li>
                     <CheckCircle2
                       size={15}
+                      aria-hidden="true"
                     />
 
                     Ensure a stable
@@ -1178,6 +1211,7 @@ export default function MockTests() {
                   <li>
                     <CheckCircle2
                       size={15}
+                      aria-hidden="true"
                     />
 
                     Keep your device
@@ -1187,6 +1221,7 @@ export default function MockTests() {
                   <li>
                     <CheckCircle2
                       size={15}
+                      aria-hidden="true"
                     />
 
                     Choose a quiet
@@ -1196,6 +1231,7 @@ export default function MockTests() {
                   <li>
                     <CheckCircle2
                       size={15}
+                      aria-hidden="true"
                     />
 
                     Do not refresh during
@@ -1205,6 +1241,7 @@ export default function MockTests() {
                   <li>
                     <CheckCircle2
                       size={15}
+                      aria-hidden="true"
                     />
 
                     Submit only after
@@ -1217,11 +1254,13 @@ export default function MockTests() {
 
             </section>
 
-            {/* SECURITY */}
 
             <section className="mock-security-strip">
 
-              <ShieldCheck size={19} />
+              <ShieldCheck
+                size={19}
+                aria-hidden="true"
+              />
 
               <div>
 
@@ -1244,41 +1283,51 @@ export default function MockTests() {
           </div>
         </div>
 
-        {/* INSTRUCTIONS MODAL */}
+
+        {/* =================================================
+            INSTRUCTIONS MODAL
+        ================================================= */}
 
         {showInstructions && (
           <div className="mock-modal-overlay">
 
-            <div className="mock-instructions-modal">
+            <div
+              className="mock-instructions-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="mock-instructions-title"
+            >
 
               <button
+                type="button"
                 className="mock-modal-close"
                 onClick={() =>
-                  setShowInstructions(
-                    false
-                  )
+                  setShowInstructions(false)
                 }
                 aria-label="Close instructions"
               >
                 <X size={19} />
               </button>
 
-              <div className="mock-modal-icon">
 
+              <div className="mock-modal-icon">
                 <ShieldCheck
                   size={25}
+                  aria-hidden="true"
                 />
-
               </div>
+
 
               <span className="mock-modal-label">
                 EXAM INSTRUCTIONS
               </span>
 
-              <h2>
+
+              <h2 id="mock-instructions-title">
                 Please review before
                 starting
               </h2>
+
 
               <p className="mock-modal-description">
                 Once the assessment
@@ -1287,6 +1336,7 @@ export default function MockTests() {
                 active examination
                 session.
               </p>
+
 
               <div className="mock-instruction-list">
 
@@ -1332,7 +1382,9 @@ export default function MockTests() {
 
               </div>
 
+
               <button
+                type="button"
                 className="mock-modal-primary"
                 onClick={
                   handleContinueToInstructions
@@ -1342,6 +1394,7 @@ export default function MockTests() {
 
                 <ArrowRight
                   size={17}
+                  aria-hidden="true"
                 />
               </button>
 
@@ -1354,6 +1407,7 @@ export default function MockTests() {
     );
   }
 
+
   /* =========================================================
      FINAL READINESS SCREEN
   ========================================================= */
@@ -1365,26 +1419,30 @@ export default function MockTests() {
         <div className="mock-ready-container">
 
           <button
+            type="button"
             className="mock-back-btn"
             onClick={() =>
               setStep("dashboard")
             }
           >
-            <ArrowLeft size={17} />
+            <ArrowLeft
+              size={17}
+              aria-hidden="true"
+            />
 
             Back
           </button>
+
 
           <div className="mock-ready-card">
 
             <div className="mock-ready-header">
 
               <div className="mock-ready-icon">
-
                 <LockKeyhole
                   size={28}
+                  aria-hidden="true"
                 />
-
               </div>
 
               <div>
@@ -1401,6 +1459,7 @@ export default function MockTests() {
               </div>
 
             </div>
+
 
             <div className="mock-ready-exam">
 
@@ -1447,6 +1506,7 @@ export default function MockTests() {
 
             </div>
 
+
             <div className="mock-checklist">
 
               <label>
@@ -1456,20 +1516,18 @@ export default function MockTests() {
                   checked={isReady}
                   onChange={(event) =>
                     setIsReady(
-                      event.target
-                        .checked
+                      event.target.checked
                     )
                   }
                 />
 
                 <span className="mock-checkbox">
-
                   {isReady && (
                     <CheckCircle2
                       size={17}
+                      aria-hidden="true"
                     />
                   )}
-
                 </span>
 
                 <span>
@@ -1484,17 +1542,24 @@ export default function MockTests() {
 
             </div>
 
-            {error && (
-              <div className="mock-inline-error">
 
-                <Info size={15} />
+            {error && (
+              <div
+                className="mock-inline-error"
+                role="alert"
+              >
+                <Info
+                  size={15}
+                  aria-hidden="true"
+                />
 
                 {error}
-
               </div>
             )}
 
+
             <button
+              type="button"
               className="mock-begin-btn"
               disabled={
                 !isReady ||
@@ -1504,12 +1569,12 @@ export default function MockTests() {
                 handleReady
               }
             >
-
               {loading ? (
                 <>
                   <RefreshCw
                     size={17}
                     className="mock-spin"
+                    aria-hidden="true"
                   />
 
                   Preparing Exam...
@@ -1520,16 +1585,18 @@ export default function MockTests() {
 
                   <ArrowRight
                     size={18}
+                    aria-hidden="true"
                   />
                 </>
               )}
-
             </button>
+
 
             <p className="mock-secure-note">
 
               <ShieldCheck
                 size={14}
+                aria-hidden="true"
               />
 
               Your attempt will be
@@ -1546,6 +1613,7 @@ export default function MockTests() {
     );
   }
 
+
   /* =========================================================
      ALL THE BEST
   ========================================================= */
@@ -1554,14 +1622,18 @@ export default function MockTests() {
     return (
       <div className="mock-greeting">
 
-        <div className="mock-greeting-glow" />
+        <div
+          className="mock-greeting-glow"
+          aria-hidden="true"
+        />
 
         <div className="mock-greeting-content">
 
           <div className="mock-greeting-icon">
-
-            <Trophy size={42} />
-
+            <Trophy
+              size={42}
+              aria-hidden="true"
+            />
           </div>
 
           <div className="mock-greeting-label">
@@ -1580,7 +1652,10 @@ export default function MockTests() {
             and give your best.
           </p>
 
-          <div className="mock-greeting-loader">
+          <div
+            className="mock-greeting-loader"
+            aria-hidden="true"
+          >
             <span />
           </div>
 
@@ -1594,8 +1669,9 @@ export default function MockTests() {
     );
   }
 
+
   /* =========================================================
-     EXAM / QUESTIONS INTERFACE
+     EXAM
   ========================================================= */
 
   if (step === "exam") {
@@ -1636,11 +1712,16 @@ export default function MockTests() {
           apiBaseUrl={
             API_BASE_URL
           }
+
+          examId={
+            examId
+          }
         />
 
       </div>
     );
   }
+
 
   return null;
 }

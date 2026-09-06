@@ -1,3 +1,4 @@
+
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -68,6 +69,7 @@ interface Question {
 
   examType?: string;
   exam?: string;
+  examId?: string;
 
   testCategory?: string;
   category?: string;
@@ -183,6 +185,13 @@ export default function MockTests() {
 
   const [questions, setQuestions] =
     useState<Question[]>([]);
+
+  /* =======================================================
+     EXAM ID
+  ======================================================= */
+
+  const [examId, setExamId] =
+    useState("");
 
   /* =======================================================
      STATES
@@ -301,10 +310,7 @@ export default function MockTests() {
       "";
 
     /*
-     * JEE FIXED
-     *
-     * If you want to make it dynamic later,
-     * remove "JEE" and read it from localStorage.
+     * JEE is fixed for this page.
      */
 
     const storedExam = "JEE";
@@ -353,7 +359,7 @@ export default function MockTests() {
       }
     }
 
-    checkBackendSubmission(
+    void checkBackendSubmission(
       storedId,
       token,
       storedExam
@@ -512,6 +518,7 @@ export default function MockTests() {
     ) => {
       setLoading(true);
       setError("");
+      setExamId("");
 
       const token =
         localStorage.getItem(
@@ -574,6 +581,10 @@ export default function MockTests() {
           );
         }
 
+        /* =================================================
+           RESPONSE QUESTIONS
+        ================================================= */
+
         const loadedQuestions =
           data?.questions ||
           data?.data ||
@@ -598,6 +609,48 @@ export default function MockTests() {
         }
 
         /* =================================================
+           EXAM ID
+        ================================================= */
+
+        const responseExamId =
+          String(
+            data?.examId ||
+              data?.exam?.examId ||
+              data?.exam?._id ||
+              data?.exam?.id ||
+              data?.test?.examId ||
+              data?.test?._id ||
+              data?.test?.id ||
+              ""
+          ).trim();
+
+        const questionExamId =
+          String(
+            loadedQuestions?.[0]?.examId ||
+              loadedQuestions?.[0]?.exam?.examId ||
+              loadedQuestions?.[0]?.exam?._id ||
+              loadedQuestions?.[0]?.exam?.id ||
+              loadedQuestions?.[0]?.test?.examId ||
+              loadedQuestions?.[0]?.test?._id ||
+              loadedQuestions?.[0]?.test?.id ||
+              ""
+          ).trim();
+
+        const finalExamId =
+          responseExamId ||
+          questionExamId;
+
+        if (!finalExamId) {
+          throw new Error(
+            "JEE mock test examId was not returned by the server."
+          );
+        }
+
+        setExamId(
+          finalExamId
+        );
+
+        /* =================================================
            NORMALIZE QUESTIONS
         ================================================= */
 
@@ -613,6 +666,10 @@ export default function MockTests() {
                 question?._id ||
                 question?.id ||
                 `jee-question-${index}`,
+
+              examId:
+                question?.examId ||
+                finalExamId,
 
               questionText:
                 question?.questionText ||
@@ -755,6 +812,7 @@ export default function MockTests() {
     }
 
     setError("");
+    setExamId("");
 
     const success =
       await fetchQuestionsForClass(
@@ -767,15 +825,7 @@ export default function MockTests() {
       return;
     }
 
-    /*
-     * Questions successfully loaded.
-     */
-
     setStep("greeting");
-
-    /*
-     * All The Best screen.
-     */
 
     window.setTimeout(() => {
       setStep("exam");
@@ -1161,6 +1211,7 @@ export default function MockTests() {
                     Internet connection
                     required before
                     starting.
+
                   </div>
                 )}
 
@@ -1747,6 +1798,10 @@ export default function MockTests() {
           apiBaseUrl={
             API_BASE_URL
           }
+
+          examId={
+            examId
+          }
         />
 
       </div>
@@ -1755,3 +1810,4 @@ export default function MockTests() {
 
   return null;
 }
+

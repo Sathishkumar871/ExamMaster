@@ -1,0 +1,1047 @@
+
+/* ============================================================
+   STUDENT REPORT OVERLAY
+============================================================ */
+
+.student-report-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background:
+    rgba(31, 24, 20, 0.74);
+
+  backdrop-filter:
+    blur(14px);
+
+  -webkit-backdrop-filter:
+    blur(14px);
+}
+
+/* ============================================================
+   REPORT MODAL
+============================================================ */
+
+.student-report-modal {
+  width: min(
+    1180px,
+    100%
+  );
+
+  max-height:
+    calc(100vh - 36px);
+
+  overflow: hidden;
+
+  display: flex;
+  flex-direction: column;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.14);
+
+  border-radius: 22px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #fffdfb 0%,
+      #f8f3ee 100%
+    );
+
+  box-shadow:
+    0 34px 90px
+    rgba(0, 0, 0, 0.32);
+}
+
+/* ============================================================
+   HEADER
+============================================================ */
+
+.student-report-header {
+  flex-shrink: 0;
+
+  padding:
+    22px 24px;
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+
+  color: #fff;
+
+  background:
+    linear-gradient(
+      135deg,
+      #2c201b,
+      #4c382b
+    );
+}
+
+.student-report-eyebrow {
+  display: block;
+  margin-bottom: 7px;
+
+  color:
+    rgba(255, 255, 255, 0.58);
+
+  font-size: 9px;
+  font-weight: 850;
+
+  letter-spacing:
+    0.14em;
+}
+
+.student-report-header h2 {
+  margin: 0;
+
+  color: #fff;
+
+  font-size: 22px;
+  line-height: 1.2;
+
+  font-weight: 850;
+}
+
+.student-report-header p {
+  margin: 7px 0 0;
+
+  color:
+    rgba(255, 255, 255, 0.7);
+
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.student-report-close {
+  width: 38px;
+  height: 38px;
+
+  flex-shrink: 0;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.18);
+
+  border-radius: 10px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background:
+    rgba(255, 255, 255, 0.08);
+
+  color: #fff;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.18s ease,
+    background 0.18s ease;
+}
+
+.student-report-close:hover {
+  transform:
+    translateY(-1px);
+
+  background:
+    rgba(255, 255, 255, 0.15);
+}
+
+/* ============================================================
+   CONTENT
+============================================================ */
+
+.student-report-content {
+  min-height: 0;
+  overflow-y: auto;
+
+  scrollbar-width:
+    thin;
+
+  scrollbar-color:
+    #b9a89b transparent;
+}
+
+/* ============================================================
+   SUMMARY
+============================================================ */
+
+.student-report-summary {
+  padding:
+    15px 22px;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, 1fr);
+
+  gap: 11px;
+
+  border-bottom:
+    1px solid
+    rgba(80, 58, 44, 0.08);
+
+  background:
+    rgba(255, 255, 255, 0.8);
+}
+
+.student-report-stat {
+  min-height: 64px;
+
+  padding:
+    11px 14px;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  border:
+    1px solid
+    rgba(103, 76, 58, 0.11);
+
+  border-radius: 12px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #fffefd,
+      #f8f0e8
+    );
+}
+
+.student-report-stat > svg {
+  color:
+    #73533d;
+}
+
+.student-report-stat span {
+  display: block;
+
+  color:
+    #968476;
+
+  font-size: 8px;
+  font-weight: 850;
+
+  letter-spacing:
+    0.08em;
+}
+
+.student-report-stat strong {
+  display: block;
+
+  margin-top: 4px;
+
+  color:
+    #413128;
+
+  font-size: 18px;
+
+  font-weight: 900;
+}
+
+/* ============================================================
+   BLOCK
+============================================================ */
+
+.student-report-block {
+  padding:
+    18px 22px 0;
+}
+
+.student-report-block-heading {
+  margin-bottom: 12px;
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.student-report-block-heading span {
+  display: block;
+
+  margin-bottom: 4px;
+
+  color:
+    #967f6e;
+
+  font-size: 8px;
+  font-weight: 850;
+
+  letter-spacing:
+    0.12em;
+}
+
+.student-report-block-heading h3 {
+  margin: 0;
+
+  color:
+    #433329;
+
+  font-size: 16px;
+
+  font-weight: 850;
+}
+
+.student-report-block-heading p {
+  margin: 0;
+
+  color:
+    #968376;
+
+  font-size: 10px;
+  font-weight: 750;
+}
+
+/* ============================================================
+   SUBJECT SUMMARY
+============================================================ */
+
+.student-report-subject-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      auto-fit,
+      minmax(145px, 1fr)
+    );
+
+  gap: 10px;
+}
+
+.student-report-subject-card {
+  padding:
+    13px;
+
+  border:
+    1px solid
+    rgba(102, 74, 54, 0.1);
+
+  border-radius: 13px;
+
+  background:
+    #fff;
+
+  box-shadow:
+    0 5px 18px
+    rgba(65, 44, 32, 0.04);
+}
+
+.student-report-subject-card span {
+  display: block;
+
+  color:
+    #796658;
+
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.student-report-subject-card strong {
+  display: block;
+
+  margin-top: 5px;
+
+  color:
+    #453328;
+
+  font-size: 19px;
+  font-weight: 900;
+}
+
+.student-report-subject-card small {
+  display: block;
+
+  margin-top: 3px;
+
+  color:
+    #a08d7e;
+
+  font-size: 9px;
+  font-weight: 650;
+}
+
+/* ============================================================
+   STUDENT LIST
+============================================================ */
+
+.student-report-list {
+  display: flex;
+  flex-direction: column;
+
+  gap: 10px;
+
+  padding-bottom: 20px;
+}
+
+.student-report-student {
+  overflow: hidden;
+
+  border:
+    1px solid
+    rgba(104, 76, 56, 0.1);
+
+  border-radius: 15px;
+
+  background:
+    #fff;
+
+  box-shadow:
+    0 6px 20px
+    rgba(64, 43, 30, 0.04);
+}
+
+/* ============================================================
+   STUDENT HEADER
+============================================================ */
+
+.student-report-student-head {
+  width: 100%;
+
+  padding:
+    13px 15px;
+
+  border: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+
+  text-align: left;
+
+  background:
+    transparent;
+
+  cursor: pointer;
+}
+
+.student-report-student-info {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+
+  gap: 11px;
+}
+
+.student-report-avatar {
+  width: 41px;
+  height: 41px;
+
+  flex-shrink: 0;
+
+  border-radius: 12px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background:
+    linear-gradient(
+      135deg,
+      #ead8c7,
+      #cba98e
+    );
+
+  color:
+    #533c2c;
+
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.student-report-student-info strong {
+  display: block;
+
+  overflow: hidden;
+
+  color:
+    #3f3027;
+
+  font-size: 12px;
+
+  font-weight: 850;
+
+  text-overflow:
+    ellipsis;
+
+  white-space:
+    nowrap;
+}
+
+.student-report-student-info span {
+  display: block;
+
+  margin-top: 3px;
+
+  overflow: hidden;
+
+  color:
+    #998778;
+
+  font-size: 9px;
+
+  text-overflow:
+    ellipsis;
+
+  white-space:
+    nowrap;
+}
+
+.student-report-student-average {
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  color:
+    #806b5c;
+}
+
+.student-report-student-average > div {
+  text-align: right;
+}
+
+.student-report-student-average span {
+  display: block;
+
+  color:
+    #9d8c80;
+
+  font-size: 7px;
+
+  font-weight: 800;
+
+  text-transform:
+    uppercase;
+}
+
+.student-report-student-average strong {
+  display: block;
+
+  margin-top: 3px;
+
+  color:
+    #473429;
+
+  font-size: 13px;
+
+  font-weight: 900;
+}
+
+/* ============================================================
+   RESULT TABLE
+============================================================ */
+
+.student-report-student-body {
+  padding:
+    0 15px 15px;
+}
+
+.student-report-table-wrap {
+  overflow-x: auto;
+
+  border:
+    1px solid
+    rgba(104, 76, 56, 0.09);
+
+  border-radius: 10px;
+}
+
+.student-report-table {
+  width: 100%;
+
+  min-width:
+    720px;
+
+  border-collapse:
+    collapse;
+
+  background:
+    #fff;
+}
+
+.student-report-table th {
+  padding:
+    9px 10px;
+
+  background:
+    #4b382e;
+
+  border-bottom:
+    1px solid
+    rgba(0, 0, 0, 0.08);
+
+  color:
+    #fff;
+
+  font-size: 8px;
+  font-weight: 850;
+
+  text-align: left;
+}
+
+.student-report-table td {
+  padding:
+    9px 10px;
+
+  border-bottom:
+    1px solid
+    rgba(104, 76, 56, 0.08);
+
+  color:
+    #5a493e;
+
+  font-size: 9px;
+
+  font-weight: 650;
+}
+
+.student-report-table tbody tr:nth-child(even) {
+  background:
+    #fbf8f5;
+}
+
+.student-report-table tbody tr:last-child td {
+  border-bottom:
+    0;
+}
+
+/* ============================================================
+   STATUS
+============================================================ */
+
+.student-report-status {
+  min-width:
+    48px;
+
+  padding:
+    4px 7px;
+
+  border-radius:
+    999px;
+
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  font-size:
+    7px;
+
+  font-weight:
+    850;
+
+  text-transform:
+    uppercase;
+}
+
+.student-report-status.pass {
+  background:
+    #e9f5ec;
+
+  color:
+    #37754b;
+}
+
+.student-report-status.fail {
+  background:
+    #f8e9e5;
+
+  color:
+    #965141;
+}
+
+/* ============================================================
+   EMPTY
+============================================================ */
+
+.student-report-empty-result {
+  min-height: 70px;
+
+  padding: 14px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  color:
+    #978678;
+
+  background:
+    #faf7f4;
+
+  border-radius:
+    10px;
+
+  font-size:
+    10px;
+
+  font-weight:
+    700;
+}
+
+/* ============================================================
+   LOADING
+============================================================ */
+
+.student-report-loading {
+  min-height:
+    280px;
+
+  padding:
+    30px;
+
+  display:
+    flex;
+    flex-direction:
+    column;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  text-align:
+    center;
+
+  color:
+    #806d60;
+}
+
+.student-report-loading h3 {
+  margin:
+    12px 0 5px;
+
+  color:
+    #4a392f;
+
+  font-size:
+    15px;
+}
+
+.student-report-loading p {
+  margin:
+    0;
+
+  max-width:
+    420px;
+
+  color:
+    #998879;
+
+  font-size:
+    10px;
+
+  line-height:
+    1.6;
+}
+
+/* ============================================================
+   ERROR
+============================================================ */
+
+.student-report-error {
+  min-height:
+    280px;
+
+  padding:
+    25px;
+
+  display:
+    flex;
+    flex-direction:
+    column;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  text-align:
+    center;
+
+  color:
+    #8a493b;
+}
+
+.student-report-error h3 {
+  margin:
+    10px 0 5px;
+
+  color:
+    #4b352b;
+
+  font-size:
+    16px;
+}
+
+.student-report-error p {
+  margin:
+    0 0 12px;
+
+  color:
+    #987e71;
+
+  font-size:
+    10px;
+}
+
+.student-report-error button {
+  border:
+    1px solid
+    rgba(120, 78, 58, 0.2);
+
+  border-radius:
+    9px;
+
+  padding:
+    8px 13px;
+
+  background:
+    #fff;
+
+  color:
+    #5d4130;
+
+  font-size:
+    10px;
+
+  font-weight:
+    800;
+
+  cursor:
+    pointer;
+}
+
+/* ============================================================
+   FOOTER
+============================================================ */
+
+.student-report-footer {
+  flex-shrink: 0;
+
+  padding:
+    13px 22px;
+
+  display:
+    flex;
+
+  justify-content:
+    flex-end;
+
+  gap:
+    9px;
+
+  border-top:
+    1px solid
+    rgba(79, 59, 46, 0.09);
+
+  background:
+    rgba(255, 255, 255, 0.95);
+}
+
+.student-report-download,
+.student-report-share {
+  min-height:
+    40px;
+
+  padding:
+    0 15px;
+
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  gap:
+    7px;
+
+  border-radius:
+    10px;
+
+  font-size:
+    10px;
+
+  font-weight:
+    850;
+
+  cursor:
+    pointer;
+
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.student-report-download {
+  border:
+    1px solid
+    rgba(88, 65, 49, 0.15);
+
+  background:
+    #fff;
+
+  color:
+    #5a4334;
+}
+
+.student-report-share {
+  border:
+    1px solid
+    #4c372a;
+
+  background:
+    linear-gradient(
+      135deg,
+      #4b3529,
+      #6c4a37
+    );
+
+  color:
+    #fff;
+}
+
+.student-report-download:hover:not(:disabled),
+.student-report-share:hover:not(:disabled) {
+  transform:
+    translateY(-1px);
+
+  box-shadow:
+    0 8px 18px
+    rgba(67, 45, 32, 0.11);
+}
+
+.student-report-download:disabled,
+.student-report-share:disabled,
+.student-report-close:disabled {
+  opacity:
+    0.55;
+
+  cursor:
+    not-allowed;
+}
+
+/* ============================================================
+   SPINNER
+============================================================ */
+
+.student-report-spin {
+  animation:
+    studentReportSpin
+    0.8s
+    linear
+    infinite;
+}
+
+@keyframes studentReportSpin {
+  from {
+    transform:
+      rotate(0deg);
+  }
+
+  to {
+    transform:
+      rotate(360deg);
+  }
+}
+
+/* ============================================================
+   MOBILE
+============================================================ */
+
+@media (max-width: 760px) {
+  .student-report-overlay {
+    padding:
+      8px;
+  }
+
+  .student-report-modal {
+    max-height:
+      calc(100vh - 16px);
+
+    border-radius:
+      17px;
+  }
+
+  .student-report-header {
+    padding:
+      17px;
+  }
+
+  .student-report-header h2 {
+    font-size:
+      18px;
+  }
+
+  .student-report-summary {
+    padding:
+      11px;
+
+    grid-template-columns:
+      1fr;
+  }
+
+  .student-report-block {
+    padding:
+      15px 12px 0;
+  }
+
+  .student-report-footer {
+    padding:
+      11px;
+
+    display:
+      grid;
+
+    grid-template-columns:
+      1fr 1fr;
+  }
+
+  .student-report-download,
+  .student-report-share {
+    width:
+      100%;
+  }
+}
+
+@media (max-width: 520px) {
+  .student-report-footer {
+    grid-template-columns:
+      1fr;
+  }
+
+  .student-report-student-main span {
+    max-width:
+      170px;
+  }
+
+  .student-report-subject-grid {
+    grid-template-columns:
+      1fr 1fr;
+  }
+}
+

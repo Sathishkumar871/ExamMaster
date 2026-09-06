@@ -1,144 +1,453 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { FlaskConical, BookOpen, ArrowRight } from "lucide-react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
+import {
+  ArrowRight,
+  BookOpen,
+  FlaskConical,
+  LoaderCircle,
+  RefreshCw,
+} from "lucide-react";
+
 import TestInterface from "../../components/TestInterface";
 import "./Chemistry.css";
 
-// ఆటోమేటిక్ డిటెక్షన్ (Local & Render)
-const API_BASE_URL = 
-  window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+// ============================================================
+// API BASE URL
+// ============================================================
+
+const API_BASE_URL =
+  window.location.hostname === "localhost" ||
+  window.location.hostname === "127.0.0.1"
     ? "http://localhost:5000"
     : "https://exammaster-backend-up1y.onrender.com";
 
+// ============================================================
+// TYPES
+// ============================================================
+
 interface Question {
   _id: string;
+
   question?: string;
   questionText?: string;
+
   options: string[];
+
   correctAnswer: string;
+
   subject?: string;
   chapter?: string;
   className?: string;
+
   testCategory?: string;
+
   isPublished?: boolean;
+
+  questionImage?: string;
+  imageUrl?: string;
+
+  tableHeaders?: string[];
+  tableRows?: unknown[][];
 }
 
+interface StudentData {
+  studentId?: string;
+  name?: string;
+  className?: string;
+}
+
+interface Chapter {
+  name: string;
+  count: number;
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+
+function getStoredStudent(): StudentData {
+  try {
+    const userRaw = localStorage.getItem("user");
+    const studentRaw = localStorage.getItem("student");
+
+    const raw =
+      userRaw ||
+      studentRaw ||
+      "{}";
+
+    const parsed = JSON.parse(raw);
+
+    return parsed &&
+      typeof parsed === "object"
+      ? parsed
+      : {};
+  } catch {
+    return {};
+  }
+}
+
+function getInitialStudentData() {
+  const storedStudent =
+    getStoredStudent();
+
+  return {
+    studentId:
+      localStorage.getItem("studentId") ||
+      storedStudent.studentId ||
+      "STU1001",
+
+    studentName:
+      localStorage.getItem("studentName") ||
+      storedStudent.name ||
+      "Student",
+
+    className:
+      localStorage.getItem("className") ||
+      storedStudent.className ||
+      "2nd PUC",
+  };
+}
+
+function getChapterName(
+  question: Question
+): string {
+  const chapter = String(
+    question.chapter || ""
+  ).trim();
+
+  return (
+    chapter ||
+    "General Chemistry"
+  );
+}
+
+function extractResultsList(
+  data: any
+): any[] {
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  if (Array.isArray(data?.results)) {
+    return data.results;
+  }
+
+  if (Array.isArray(data?.data)) {
+    return data.data;
+  }
+
+  return [];
+}
+
+// ============================================================
+// COMPONENT
+// ============================================================
+
 export default function Chemistry() {
-  const navigate = useNavigate();
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  // ==========================================================
+  // INITIAL STUDENT DATA
+  // ==========================================================
 
-  const [studentId, setStudentId] = useState<string>("STU1001");
-  const [studentName, setStudentName] = useState<string>("Student");
-  const [className, setClassName] = useState<string>("2nd PUC");
+  const initialStudent = useMemo(
+    () => getInitialStudentData(),
+    []
+  );
 
-  const [selectedChapter, setSelectedChapter] = useState<string | null>(null);
-  
-  const [chapterUserAnswers, setChapterUserAnswers] = useState<Record<string, Record<string, string>>>({});
-  const [submittedChapters, setSubmittedChapters] = useState<Record<string, boolean>>({});
+  // ==========================================================
+  // STATE
+  // ==========================================================
 
-  useEffect(() => {
-    try {
-      const storedUser = localStorage.getItem("user") || localStorage.getItem("student") || "{}";
-      const parsedUser = JSON.parse(storedUser);
+  const [questions, setQuestions] =
+    useState<Question[]>([]);
 
-      if (parsedUser.className) setClassName(parsedUser.className);
-      if (parsedUser.name) setStudentName(parsedUser.name);
-      if (parsedUser.studentId) setStudentId(parsedUser.studentId);
+  const [questionsLoading, setQuestionsLoading] =
+    useState(true);
 
-      if (localStorage.getItem("className")) setClassName(localStorage.getItem("className")!);
-      if (localStorage.getItem("studentName")) setStudentName(localStorage.getItem("studentName")!);
-      if (localStorage.getItem("studentId")) setStudentId(localStorage.getItem("studentId")!);
-    } catch (e) {
-      console.log("Error reading student data from localStorage", e);
-    }
-  }, []);
+  const [questionsError, setQuestionsError] =
+    useState("");
 
-  useEffect(() => {
-    const loadDataFromDB = async () => {
+  const [studentId] =
+    useState<string>(
+      initialStudent.studentId
+    );
+
+  const [studentName] =
+    useState<string>(
+      initialStudent.studentName
+    );
+
+  const [className] =
+    useState<string>(
+      initialStudent.className
+    );
+
+  const [selectedChapter, setSelectedChapter] =
+    useState<string | null>(null);
+
+  const [
+    chapterUserAnswers,
+    setChapterUserAnswers,
+  ] = useState<
+    Record<
+      string,
+      Record<string, string>
+    >
+  >({});
+
+  const [
+    submittedChapters,
+    setSubmittedChapters,
+  ] = useState<
+    Record<string, boolean>
+  >({});
+
+  const [resultsLoading, setResultsLoading] =
+    useState(true);
+
+  // ==========================================================
+  // LOAD PREVIOUS RESULTS
+  // ==========================================================
+
+  const loadPreviousResults =
+    useCallback(async () => {
+      if (!studentId) {
+        setResultsLoading(false);
+        return;
+      }
+
       try {
-        setLoading(true);
+        setResultsLoading(true);
 
-        // 1. Fetch Chemistry Questions from Backend API
-        const queryParams = new URLSearchParams({
-          className: className,
-          subject: "Chemistry",
-          testCategory: "subject",
-        });
+        const response = await fetch(
+          `${API_BASE_URL}/api/results/student/${encodeURIComponent(
+            studentId
+          )}`
+        );
 
-        const qResponse = await fetch(`${API_BASE_URL}/api/subjects/questions?${queryParams.toString()}`);
-        if (!qResponse.ok) throw new Error("Failed to load Chemistry questions from database");
-        
-        const qData = await qResponse.json();
-        const chemistryQuestions = qData.questions || [];
-        setQuestions(chemistryQuestions);
-
-        // 2. Fetch Student's Previous Results from MongoDB Database
-        const currentStudentId = localStorage.getItem("studentId") || studentId;
-        const resultsResponse = await fetch(`${API_BASE_URL}/api/results/student/${currentStudentId}`);
-        
-        if (resultsResponse.ok) {
-          const resultsData = await resultsResponse.json();
-          const resultsList = Array.isArray(resultsData) ? resultsData : (resultsData.results || resultsData.data || []);
-
-          const loadedSubmittedChapters: Record<string, boolean> = {};
-          const loadedChapterAnswers: Record<string, Record<string, string>> = {};
-
-          resultsList.forEach((res: any) => {
-            if (res.examName && res.examName.includes("Chemistry -")) {
-              const parts = res.examName.split("Chemistry -");
-              const chapName = parts[1]?.trim();
-
-              if (chapName && res.review && Array.isArray(res.review)) {
-                loadedSubmittedChapters[chapName] = true;
-                const ansMap: Record<string, string> = {};
-                res.review.forEach((item: any) => {
-                  if (item.questionId && item.selectedAnswer) {
-                    ansMap[item.questionId] = item.selectedAnswer;
-                  }
-                });
-                loadedChapterAnswers[chapName] = ansMap;
-              }
-            }
-          });
-
-          setSubmittedChapters(loadedSubmittedChapters);
-          setChapterUserAnswers(loadedChapterAnswers);
+        if (!response.ok) {
+          return;
         }
 
-      } catch (err: any) {
-        setError(err.message || "Failed to load data");
+        const data =
+          await response.json();
+
+        const resultsList =
+          extractResultsList(data);
+
+        const loadedSubmittedChapters:
+          Record<string, boolean> = {};
+
+        const loadedChapterAnswers:
+          Record<
+            string,
+            Record<string, string>
+          > = {};
+
+        for (const result of resultsList) {
+          if (
+            !result?.examName ||
+            !result.examName.includes(
+              "Chemistry -"
+            )
+          ) {
+            continue;
+          }
+
+          const parts =
+            result.examName.split(
+              "Chemistry -"
+            );
+
+          const chapterName =
+            parts[1]?.trim();
+
+          if (
+            !chapterName ||
+            !Array.isArray(result.review)
+          ) {
+            continue;
+          }
+
+          loadedSubmittedChapters[
+            chapterName
+          ] = true;
+
+          const answerMap:
+            Record<string, string> = {};
+
+          for (const item of result.review) {
+            if (
+              item?.questionId &&
+              item?.selectedAnswer
+            ) {
+              answerMap[
+                item.questionId
+              ] = item.selectedAnswer;
+            }
+          }
+
+          loadedChapterAnswers[
+            chapterName
+          ] = answerMap;
+        }
+
+        setSubmittedChapters(
+          loadedSubmittedChapters
+        );
+
+        setChapterUserAnswers(
+          loadedChapterAnswers
+        );
+      } catch (error) {
+        console.error(
+          "CHEMISTRY RESULTS LOAD ERROR:",
+          error
+        );
       } finally {
-        setLoading(false);
+        setResultsLoading(false);
       }
-    };
+    }, [studentId]);
 
-    loadDataFromDB();
-  }, [className]);
+  // ==========================================================
+  // LOAD CHEMISTRY QUESTIONS
+  // ==========================================================
 
-  const chaptersList = (() => {
-    const map = new Map<string, number>();
-    questions.forEach((q) => {
-      const chap = String(q.chapter || "General Chemistry").trim();
-      map.set(chap, (map.get(chap) || 0) + 1);
-    });
-    return Array.from(map.entries()).map(([name, count]) => ({ name, count }));
-  })();
+  const loadChemistryQuestions =
+    useCallback(async () => {
+      try {
+        setQuestionsLoading(true);
+        setQuestionsError("");
 
-  const currentChapterQuestions = selectedChapter
-    ? questions.filter((q) => String(q.chapter || "").trim() === selectedChapter)
-    : [];
+        const queryParams =
+          new URLSearchParams({
+            className,
+            subject: "Chemistry",
+            testCategory: "subject",
+          });
 
-  if (loading) {
-    return <div style={{ textAlign: "center", padding: "80px", color: "#64748b", fontSize: "16px" }}>Loading Chemistry data from database...</div>;
-  }
+        const response = await fetch(
+          `${API_BASE_URL}/api/subjects/questions?${queryParams.toString()}`
+        );
 
-  if (error) {
-    return <div style={{ textAlign: "center", padding: "80px", color: "red", fontSize: "16px" }}>{error}</div>;
-  }
+        if (!response.ok) {
+          throw new Error(
+            "Failed to load Chemistry questions from database"
+          );
+        }
 
-  // ================= 1. EXAM / QUESTIONS SCREEN (USING TestInterface) =================
+        const data =
+          await response.json();
+
+        const chemistryQuestions =
+          Array.isArray(data?.questions)
+            ? data.questions
+            : [];
+
+        setQuestions(
+          chemistryQuestions
+        );
+      } catch (error) {
+        console.error(
+          "CHEMISTRY QUESTIONS LOAD ERROR:",
+          error
+        );
+
+        setQuestionsError(
+          error instanceof Error
+            ? error.message
+            : "Failed to load Chemistry data"
+        );
+      } finally {
+        setQuestionsLoading(false);
+      }
+    }, [className]);
+
+  // ==========================================================
+  // INITIAL LOAD
+  // ==========================================================
+
+  useEffect(() => {
+    // Both APIs start together.
+    // Previous results do not block the main page.
+    void loadChemistryQuestions();
+    void loadPreviousResults();
+  }, [
+    loadChemistryQuestions,
+    loadPreviousResults,
+  ]);
+
+  // ==========================================================
+  // CHAPTER LIST
+  // ==========================================================
+
+  const chaptersList =
+    useMemo<Chapter[]>(() => {
+      const chapterMap =
+        new Map<string, number>();
+
+      for (const question of questions) {
+        const chapter =
+          getChapterName(question);
+
+        chapterMap.set(
+          chapter,
+          (chapterMap.get(chapter) || 0) + 1
+        );
+      }
+
+      return Array.from(
+        chapterMap.entries()
+      ).map(([name, count]) => ({
+        name,
+        count,
+      }));
+    }, [questions]);
+
+  // ==========================================================
+  // CURRENT CHAPTER QUESTIONS
+  // ==========================================================
+
+  const currentChapterQuestions =
+    useMemo(() => {
+      if (!selectedChapter) {
+        return [];
+      }
+
+      return questions.filter(
+        (question) =>
+          getChapterName(question) ===
+          selectedChapter
+      );
+    }, [
+      questions,
+      selectedChapter,
+    ]);
+
+  // ==========================================================
+  // RETRY
+  // ==========================================================
+
+  const handleRetry = useCallback(() => {
+    void loadChemistryQuestions();
+  }, [loadChemistryQuestions]);
+
+  // ==========================================================
+  // BACK
+  // ==========================================================
+
+  const handleBack = useCallback(() => {
+    setSelectedChapter(null);
+  }, []);
+
+  // ==========================================================
+  // EXAM SCREEN
+  // ==========================================================
+
   if (selectedChapter) {
     return (
       <TestInterface
@@ -148,42 +457,81 @@ export default function Chemistry() {
         questions={currentChapterQuestions}
         studentId={studentId}
         studentName={studentName}
-        themeColor="#7c3aed" // Chemistry Violet Theme
-        onBack={() => setSelectedChapter(null)}
-        isAlreadySubmitted={submittedChapters[selectedChapter] || false}
-        initialAnswers={chapterUserAnswers[selectedChapter] || {}}
+        themeColor="#7c3aed"
+        onBack={handleBack}
+        isAlreadySubmitted={
+          submittedChapters[
+            selectedChapter
+          ] || false
+        }
+        initialAnswers={
+          chapterUserAnswers[
+            selectedChapter
+          ] || {}
+        }
+        testCategory="subject"
+        examType=""
       />
     );
   }
 
-  // ================= 2. MAIN DASHBOARD VIEW =================
+  // ==========================================================
+  // DASHBOARD
+  // ==========================================================
+
   return (
     <main className="chemistry-page">
       <div className="chemistry-container">
+
+        {/* ==================================================
+            HERO
+        ================================================== */}
+
         <section className="chemistry-hero">
           <div className="chemistry-hero-content">
+
             <div className="chemistry-badge">
-              <FlaskConical size={15} />
-              JEE / NEET • {className.toUpperCase()} CHEMISTRY
+              <FlaskConical
+                size={15}
+                aria-hidden="true"
+              />
+
+              <span>
+                JEE / NEET •{" "}
+                {className.toUpperCase()}{" "}
+                CHEMISTRY
+              </span>
             </div>
 
             <h1 className="chemistry-title">
               Chemistry
+
               <span>
                 Master Reactions. Crack Exams.
               </span>
             </h1>
 
             <p className="chemistry-description">
-              Welcome back, <strong>{studentName}</strong>! Practice {className} Chemistry chapter-wise with focused
-              chemical equations, formulas, and exam-oriented tests.
+              Welcome back,{" "}
+              <strong>
+                {studentName}
+              </strong>
+              ! Practice{" "}
+              {className} Chemistry
+              chapter-wise with focused
+              chemical equations, formulas,
+              and exam-oriented tests.
             </p>
 
             <div className="chemistry-stats">
+
               <div className="chemistry-stat">
                 <span className="chemistry-stat-value">
-                  {questions.length}+
+                  {questionsLoading
+                    ? "—"
+                    : `${questions.length}+`}
                 </span>
+
                 <span className="chemistry-stat-label">
                   {className} Questions
                 </span>
@@ -191,8 +539,11 @@ export default function Chemistry() {
 
               <div className="chemistry-stat">
                 <span className="chemistry-stat-value">
-                  {chaptersList.length}
+                  {questionsLoading
+                    ? "—"
+                    : chaptersList.length}
                 </span>
+
                 <span className="chemistry-stat-label">
                   Chapters
                 </span>
@@ -202,73 +553,253 @@ export default function Chemistry() {
                 <span className="chemistry-stat-value">
                   JEE / NEET
                 </span>
+
                 <span className="chemistry-stat-label">
                   Exam Standard
                 </span>
               </div>
+
             </div>
           </div>
         </section>
 
-        <section>
+        {/* ==================================================
+            CHAPTER SECTION
+        ================================================== */}
+
+        <section
+          aria-labelledby="chemistry-chapters-title"
+        >
           <div className="chemistry-section-header">
             <div>
-              <h2 className="chemistry-section-title">
+
+              <h2
+                id="chemistry-chapters-title"
+                className="chemistry-section-title"
+              >
                 {className} Chemistry Chapters
               </h2>
+
               <p className="chemistry-section-subtitle">
-                Select a chapter and start your practice. (Student ID: {studentId})
+                Select a chapter and start
+                your practice.
               </p>
+
             </div>
           </div>
 
-          {chaptersList.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "40px", color: "#64748b", background: "#fff", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
-              No Chemistry chapters found for {className}.
+          {/* ==================================================
+              ERROR
+          ================================================== */}
+
+          {questionsError ? (
+            <div className="chemistry-state-card">
+
+              <div
+                className="chemistry-state-icon error"
+                aria-hidden="true"
+              >
+                !
+              </div>
+
+              <h3>
+                Unable to load Chemistry
+              </h3>
+
+              <p>
+                {questionsError}
+              </p>
+
+              <button
+                type="button"
+                className="chemistry-retry-button"
+                onClick={handleRetry}
+              >
+                <RefreshCw
+                  size={15}
+                  aria-hidden="true"
+                />
+
+                Retry
+              </button>
+
+            </div>
+          ) : questionsLoading ? (
+            <div
+              className="chemistry-state-card"
+              aria-live="polite"
+            >
+              <div
+                className="chemistry-state-icon"
+                aria-hidden="true"
+              >
+                <LoaderCircle
+                  size={24}
+                  className="chemistry-spinner"
+                />
+              </div>
+
+              <h3>
+                Loading Chemistry Chapters
+              </h3>
+
+              <p>
+                Preparing your chapter-wise
+                practice questions...
+              </p>
+            </div>
+          ) : chaptersList.length === 0 ? (
+            <div className="chemistry-state-card">
+
+              <div
+                className="chemistry-state-icon"
+                aria-hidden="true"
+              >
+                📚
+              </div>
+
+              <h3>
+                No Chemistry Chapters Found
+              </h3>
+
+              <p>
+                No Chemistry chapters are
+                currently available for{" "}
+                {className}.
+              </p>
+
             </div>
           ) : (
             <div className="chemistry-chapter-grid">
-              {chaptersList.map((chap, idx) => {
-                const isCompleted = submittedChapters[chap.name];
 
-                return (
-                  <div className="chemistry-chapter-card" key={idx}>
-                    <div className="chemistry-card-top">
-                      <div className="chemistry-chapter-icon">
-                        <FlaskConical size={24} />
+              {chaptersList.map(
+                (chapter, index) => {
+                  const isCompleted =
+                    submittedChapters[
+                      chapter.name
+                    ];
+
+                  return (
+                    <article
+                      className="chemistry-chapter-card"
+                      key={chapter.name}
+                    >
+
+                      <div className="chemistry-card-top">
+
+                        <div
+                          className="chemistry-chapter-icon"
+                          aria-hidden="true"
+                        >
+                          <FlaskConical
+                            size={24}
+                          />
+                        </div>
+
+                        <span className="chemistry-chapter-number">
+                          {String(
+                            index + 1
+                          ).padStart(2, "0")}
+                        </span>
+
                       </div>
-                      <span className="chemistry-chapter-number">
-                        {String(idx + 1).padStart(2, "0")}
-                      </span>
-                    </div>
 
-                    <div className="chemistry-card-content">
-                      <h3>
-                        {chap.name} {isCompleted && " ✅"}
-                      </h3>
-                      <p>
-                        Practice important multiple-choice questions and reaction-based problems from this chapter.
-                      </p>
+                      <div className="chemistry-card-content">
 
-                      <div style={{ fontSize: "13px", fontWeight: "600", color: "#7c3aed", marginBottom: "12px" }}>
-                        {chap.count} Questions Available {isCompleted && "• Saved in DB"}
+                        <h3>
+                          {chapter.name}
+
+                          {isCompleted && (
+                            <span
+                              className="chemistry-completed-mark"
+                              aria-label="Completed"
+                              title="Completed"
+                            >
+                              ✓
+                            </span>
+                          )}
+                        </h3>
+
+                        <p>
+                          Practice important
+                          multiple-choice
+                          questions and
+                          reaction-based
+                          problems from
+                          this chapter.
+                        </p>
+
+                        <div className="chemistry-question-count">
+                          {chapter.count} Questions
+                          Available
+
+                          {isCompleted && (
+                            <span>
+                              {" "}
+                              • Saved in DB
+                            </span>
+                          )}
+                        </div>
+
+                        <button
+                          type="button"
+                          className="chemistry-test-button"
+                          onClick={() =>
+                            setSelectedChapter(
+                              chapter.name
+                            )
+                          }
+                        >
+                          <BookOpen
+                            size={16}
+                            aria-hidden="true"
+                          />
+
+                          <span>
+                            {isCompleted
+                              ? "View DB History"
+                              : "Start Practice"}
+                          </span>
+
+                          <ArrowRight
+                            size={15}
+                            aria-hidden="true"
+                          />
+                        </button>
+
                       </div>
+                    </article>
+                  );
+                }
+              )}
 
-                      <button
-                        type="button"
-                        className="chemistry-test-button"
-                        onClick={() => setSelectedChapter(chap.name)}
-                      >
-                        <BookOpen size={16} />
-                        {isCompleted ? "View DB History" : "Start Practice"}
-                        <ArrowRight size={15} />
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
             </div>
           )}
+
+          {/* ==================================================
+              RESULTS SYNC
+          ================================================== */}
+
+          {!questionsLoading &&
+            !questionsError &&
+            resultsLoading && (
+              <div
+                className="chemistry-history-sync"
+                aria-live="polite"
+              >
+                <LoaderCircle
+                  size={13}
+                  className="chemistry-spinner"
+                  aria-hidden="true"
+                />
+
+                <span>
+                  Syncing your previous
+                  chapter history...
+                </span>
+              </div>
+            )}
+
         </section>
       </div>
     </main>

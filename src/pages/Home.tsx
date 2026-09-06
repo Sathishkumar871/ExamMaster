@@ -66,12 +66,19 @@ export default function Home() {
 
         <div className="hero-bg-wrapper">
 
-          <img
-            src="https://res.cloudinary.com/dlkborjdl/image/upload/v1785383712/IMG_20260730_091436_lkmtde.jpg"
-            alt="NEET Exam Background"
-            className="hero-custom-img"
-            draggable={false}
-          />
+     
+<img
+  src="https://res.cloudinary.com/dlkborjdl/image/upload/f_auto,q_auto,w_1200/v1785383712/IMG_20260730_091436_lkmtde.jpg"
+  alt="NEET Exam Background"
+  className="hero-custom-img"
+  loading="eager"
+  fetchPriority="high"
+  decoding="async"
+  draggable={false}
+/>
+
+
+
 
           <div className="hero-gradient-overlay"></div>
 

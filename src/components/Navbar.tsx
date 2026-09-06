@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -92,7 +93,7 @@ export default function Navbar() {
       }
     }
 
-    // ================= HEAD =================
+    // ================= HEAD / DIRECTOR =================
 
     if (role === "head" && staff) {
       try {
@@ -237,22 +238,18 @@ export default function Navbar() {
       return "/login";
     }
 
-    // STUDENT
     if (user.role === "student") {
       return "/dashboard";
     }
 
-    // MANAGEMENT
     if (user.role === "teacher") {
       return "/teacher/dashboard";
     }
 
-    // STAFF / MENTOR
     if (user.role === "staff") {
       return "/mentor/dashboard";
     }
 
-    // DIRECTOR
     if (user.role === "head") {
       return "/head/dashboard";
     }
@@ -299,13 +296,12 @@ export default function Navbar() {
   };
 
   // ============================================================
-  // FLAGS
+  // ROLE FLAGS
   // ============================================================
 
   const isStudent = user?.role === "student";
-
   const isStaff = user?.role === "staff";
-
+  const isHead = user?.role === "head";
   const isLoggedIn = !!user;
 
   // ============================================================
@@ -314,7 +310,6 @@ export default function Navbar() {
 
   return (
     <nav className="navbar">
-
       {/* ========================================================
           BRAND
       ======================================================== */}
@@ -323,17 +318,32 @@ export default function Navbar() {
         <Link
           to={isLoggedIn ? getDashboardRoute() : "/"}
           className="brand-link"
-          onClick={() => setMobileMenuOpen(false)}
+          onClick={() => {
+            setMobileMenuOpen(false);
+            setLoginMenuOpen(false);
+            setUserMenuOpen(false);
+          }}
+          aria-label="STG PU College"
         >
           <img
-            src="https://res.cloudinary.com/dlkborjdl/image/upload/v1787452197/IMG_20260823_075544_rbgexi.jpg"
+            src="https://res.cloudinary.com/dlkborjdl/image/upload/f_auto,q_auto,w_88/v1787452197/IMG_20260823_075544_rbgexi.jpg"
             alt="STG PU College"
             className="college-logo"
+            width={44}
+            height={44}
+            loading="eager"
+            decoding="async"
           />
 
           <div className="college-brand">
-            <h2>STG PU COLLEGE</h2>
-            <p>Smart Examination Platform</p>
+            <h2 className="college-brand-title">
+              <span className="brand-stg">STG</span>
+              <span className="brand-pu">PU COLLEGE</span>
+            </h2>
+
+            <p className="college-brand-tagline">
+              Smart Examination Platform
+            </p>
           </div>
         </Link>
       </div>
@@ -345,15 +355,20 @@ export default function Navbar() {
       <div className="learning-animation">
         <div className="student-run">
           <video
-            src="https://res.cloudinary.com/dlkborjdl/video/upload/v1785385746/12743779_xrqvvv.mp4"
+            src="https://res.cloudinary.com/dlkborjdl/video/upload/f_auto,q_auto/v1785385746/12743779_xrqvvv.mp4"
             autoPlay
             loop
             muted
             playsInline
+            preload="metadata"
             className="running-icon-video"
+            aria-label="Learning animation"
           />
         </div>
-        <p>Learn • Practice • Win</p>
+
+        <p className="learning-animation-text">
+          Learn <span>•</span> Practice <span>•</span> Win
+        </p>
       </div>
 
       {/* ========================================================
@@ -361,16 +376,13 @@ export default function Navbar() {
       ======================================================== */}
 
       <div className="nav-links">
-
         {/* ======================================================
-            LOGGED IN (SUBJECTS & DAILY TESTS ONLY)
+            LOGGED IN NAV
         ====================================================== */}
 
         {isLoggedIn && (
           <>
-           
-            
-            {/* DAILY TESTS */}
+            {/* DAILY TESTS — STUDENT ONLY */}
             {isStudent && (
               <button
                 type="button"
@@ -397,20 +409,29 @@ export default function Navbar() {
               type="button"
               className="user-card"
               onClick={() => setUserMenuOpen((prev) => !prev)}
+              aria-expanded={userMenuOpen}
+              aria-haspopup="menu"
             >
               <UserCircle size={25} />
+
               <div>
                 <b>{user.name}</b>
                 <small>{getDisplayRole()}</small>
               </div>
+
               <ChevronDown
                 size={16}
-                className={`user-chevron ${userMenuOpen ? "rotate" : ""}`}
+                className={`user-chevron ${
+                  userMenuOpen ? "rotate" : ""
+                }`}
               />
             </button>
 
-            {/* USER DROPDOWN */}
-            <div className={`dropdown ${userMenuOpen ? "dropdown-visible" : ""}`}>
+            <div
+              className={`dropdown ${
+                userMenuOpen ? "dropdown-visible" : ""
+              }`}
+            >
               <Link
                 to={getDashboardRoute()}
                 onClick={() => setUserMenuOpen(false)}
@@ -419,7 +440,6 @@ export default function Navbar() {
                 Dashboard
               </Link>
 
-              
               <button
                 type="button"
                 className="logout"
@@ -431,9 +451,8 @@ export default function Navbar() {
             </div>
           </div>
         ) : (
-
           /* ====================================================
-              LOGIN DROPDOWN
+             LOGIN DROPDOWN
           ==================================================== */
 
           <div className="login-dropdown">
@@ -441,15 +460,22 @@ export default function Navbar() {
               type="button"
               className="login-btn"
               onClick={() => setLoginMenuOpen((prev) => !prev)}
+              aria-expanded={loginMenuOpen}
+              aria-haspopup="menu"
             >
               Login
+
               <ChevronDown
                 size={16}
                 className={loginMenuOpen ? "rotate" : ""}
               />
             </button>
 
-            <div className={`login-menu ${loginMenuOpen ? "login-menu-visible" : ""}`}>
+            <div
+              className={`login-menu ${
+                loginMenuOpen ? "login-menu-visible" : ""
+              }`}
+            >
               {/* STUDENT */}
               <button
                 type="button"
@@ -458,6 +484,7 @@ export default function Navbar() {
                 <span className="login-option-icon student-icon">
                   <GraduationCap size={20} />
                 </span>
+
                 <span>
                   <strong>Student Login</strong>
                   <small>Access your learning dashboard</small>
@@ -467,11 +494,14 @@ export default function Navbar() {
               {/* MANAGEMENT */}
               <button
                 type="button"
-                onClick={() => handleLoginNavigation("/teacher/login")}
+                onClick={() =>
+                  handleLoginNavigation("/teacher/login")
+                }
               >
                 <span className="login-option-icon management-icon">
                   <Users size={20} />
                 </span>
+
                 <span>
                   <strong>Management Login</strong>
                   <small>Teachers & management team</small>
@@ -481,11 +511,14 @@ export default function Navbar() {
               {/* STAFF */}
               <button
                 type="button"
-                onClick={() => handleLoginNavigation("/staff/login")}
+                onClick={() =>
+                  handleLoginNavigation("/staff/login")
+                }
               >
                 <span className="login-option-icon staff-icon">
                   <ShieldCheck size={20} />
                 </span>
+
                 <span>
                   <strong>Staff Login</strong>
                   <small>Staff & administration access</small>
@@ -502,9 +535,21 @@ export default function Navbar() {
 
       <button
         type="button"
-        className="mobile-menu-btn"
-        onClick={() => setMobileMenuOpen((prev) => !prev)}
-        aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+        className={`mobile-menu-btn ${
+          mobileMenuOpen ? "is-open" : ""
+        }`}
+        onClick={() => {
+          setMobileMenuOpen((prev) => !prev);
+          setLoginMenuOpen(false);
+          setUserMenuOpen(false);
+        }}
+        aria-label={
+          mobileMenuOpen
+            ? "Close navigation menu"
+            : "Open navigation menu"
+        }
+        aria-expanded={mobileMenuOpen}
+        aria-controls="mobile-navigation"
       >
         {mobileMenuOpen ? <X size={23} /> : <Menu size={23} />}
       </button>
@@ -513,15 +558,24 @@ export default function Navbar() {
           MOBILE MENU
       ======================================================== */}
 
-      <div className={`mobile-menu ${mobileMenuOpen ? "mobile-menu-open" : ""}`}>
+      <div
+        id="mobile-navigation"
+        className={`mobile-menu ${
+          mobileMenuOpen ? "mobile-menu-open" : ""
+        }`}
+        aria-hidden={!mobileMenuOpen}
+      >
+        {/* ======================================================
+            MOBILE PROFILE
+        ====================================================== */}
 
-        {/* MOBILE PROFILE */}
         <div className="mobile-menu-header">
           {user && (
             <div className="mobile-profile">
               <div className="mobile-avatar">
                 <UserCircle size={26} />
               </div>
+
               <div>
                 <strong>{user.name}</strong>
                 <span>{getDisplayRole()}</span>
@@ -532,33 +586,42 @@ export default function Navbar() {
 
         {/* ======================================================
             LOGGED IN MOBILE
-        ======================================================== */}
+        ====================================================== */}
 
         {isLoggedIn ? (
           <div className="mobile-nav-items">
-            {/* DASHBOARD */}
+            {/* DASHBOARD — EVERY ROLE */}
             <button
               type="button"
-              onClick={() => handleMobileNavigation(getDashboardRoute())}
+              onClick={() =>
+                handleMobileNavigation(getDashboardRoute())
+              }
             >
               <span className="mobile-nav-icon dashboard-mobile">
                 <LayoutDashboard size={20} />
               </span>
+
               <span className="mobile-nav-text">
                 <strong>Dashboard</strong>
                 <small>View your dashboard</small>
               </span>
             </button>
 
-            {/* SUBJECTS */}
-            {!isStaff && user?.role !== "head" && (
+            {/* ==================================================
+                SUBJECTS — STUDENT ONLY
+            ================================================== */}
+
+            {isStudent && (
               <button
                 type="button"
-                onClick={() => handleMobileNavigation("/subjects")}
+                onClick={() =>
+                  handleMobileNavigation("/subjects")
+                }
               >
                 <span className="mobile-nav-icon subjects-mobile">
                   <BookOpen size={20} />
                 </span>
+
                 <span className="mobile-nav-text">
                   <strong>Subjects</strong>
                   <small>Explore your subjects</small>
@@ -566,7 +629,10 @@ export default function Navbar() {
               </button>
             )}
 
-            {/* DAILY TESTS */}
+            {/* ==================================================
+                DAILY TESTS — STUDENT ONLY
+            ================================================== */}
+
             {isStudent && (
               <button
                 type="button"
@@ -575,6 +641,7 @@ export default function Navbar() {
                 <span className="mobile-nav-icon tests-mobile">
                   <ClipboardCheck size={20} />
                 </span>
+
                 <span className="mobile-nav-text">
                   <strong>Daily Tests</strong>
                   <small>Practice today's test</small>
@@ -582,21 +649,32 @@ export default function Navbar() {
               </button>
             )}
 
-            {/* PROFILE */}
-            <button
-              type="button"
-              onClick={() => handleMobileNavigation("/profile")}
-            >
-              <span className="mobile-nav-icon profile-mobile">
-                <UserCircle size={20} />
-              </span>
-              <span className="mobile-nav-text">
-                <strong>Profile</strong>
-                <small>Manage your account</small>
-              </span>
-            </button>
+            {/* ==================================================
+                PROFILE — STUDENT ONLY
+            ================================================== */}
 
-            {/* LOGOUT */}
+            {isStudent && (
+              <button
+                type="button"
+                onClick={() =>
+                  handleMobileNavigation("/profile")
+                }
+              >
+                <span className="mobile-nav-icon profile-mobile">
+                  <UserCircle size={20} />
+                </span>
+
+                <span className="mobile-nav-text">
+                  <strong>Profile</strong>
+                  <small>Manage your account</small>
+                </span>
+              </button>
+            )}
+
+            {/* ==================================================
+                LOGOUT — EVERY ROLE
+            ================================================== */}
+
             <button
               type="button"
               className="mobile-logout"
@@ -605,6 +683,7 @@ export default function Navbar() {
               <span className="mobile-nav-icon logout-mobile">
                 <LogOut size={20} />
               </span>
+
               <span className="mobile-nav-text">
                 <strong>Logout</strong>
                 <small>Sign out securely</small>
@@ -612,15 +691,16 @@ export default function Navbar() {
             </button>
           </div>
         ) : (
-
           /* ====================================================
-              BEFORE LOGIN MOBILE
+             BEFORE LOGIN MOBILE
           ==================================================== */
 
           <div className="mobile-login-section">
             <div className="mobile-login-heading">
               <span>Welcome to STG</span>
+
               <h3>Choose your login</h3>
+
               <p>Select your account type to continue.</p>
             </div>
 
@@ -633,6 +713,7 @@ export default function Navbar() {
               <span className="mobile-login-icon student-icon">
                 <GraduationCap size={22} />
               </span>
+
               <span>
                 <strong>Student Login</strong>
                 <small>Learning & exam access</small>
@@ -643,11 +724,14 @@ export default function Navbar() {
             <button
               type="button"
               className="mobile-login-option"
-              onClick={() => handleLoginNavigation("/teacher/login")}
+              onClick={() =>
+                handleLoginNavigation("/teacher/login")
+              }
             >
               <span className="mobile-login-icon management-icon">
                 <Users size={22} />
               </span>
+
               <span>
                 <strong>Management Login</strong>
                 <small>Teachers & management team</small>
@@ -658,11 +742,14 @@ export default function Navbar() {
             <button
               type="button"
               className="mobile-login-option"
-              onClick={() => handleLoginNavigation("/staff/login")}
+              onClick={() =>
+                handleLoginNavigation("/staff/login")
+              }
             >
               <span className="mobile-login-icon staff-icon">
                 <ShieldCheck size={22} />
               </span>
+
               <span>
                 <strong>Staff Login</strong>
                 <small>Administration & staff access</small>
@@ -674,3 +761,4 @@ export default function Navbar() {
     </nav>
   );
 }
+

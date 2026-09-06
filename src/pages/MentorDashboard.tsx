@@ -1,15 +1,41 @@
-import { useEffect, useMemo, useState } from "react";
+
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
 import axios from "axios";
+
 import {
   ArrowRight,
   BookOpen,
+  FileText,
   GraduationCap,
   RefreshCw,
   Search,
   Users,
 } from "lucide-react";
+
 import { useNavigate } from "react-router-dom";
+
+import StudentReport from "../components/StudentReport/StudentReport";
+
 import "./MentorDashboard.css";
+
+// ============================================================
+// API
+// ============================================================
+
+const API_BASE_URL =
+  window.location.hostname === "localhost" ||
+  window.location.hostname === "127.0.0.1"
+    ? "http://localhost:5000"
+    : "https://exammaster-backend-up1y.onrender.com";
+
+// ============================================================
+// TYPES
+// ============================================================
 
 interface Student {
   studentId: string;
@@ -25,18 +51,6 @@ interface MentorData {
   email?: string;
 }
 
-
-// ============================================================
-// API
-// ============================================================
-
-const API_BASE_URL =
-  window.location.hostname === "localhost" ||
-  window.location.hostname === "127.0.0.1"
-    ? "http://localhost:5000"
-    : "https://exammaster-backend-up1y.onrender.com";
-
-
 // ============================================================
 // COMPONENT
 // ============================================================
@@ -48,18 +62,36 @@ export default function MentorDashboard() {
   // STATES
   // ==========================================================
 
-  const [students, setStudents] = useState<Student[]>([]);
-  const [mentor, setMentor] = useState<MentorData>({});
-  const [search, setSearch] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [students, setStudents] =
+    useState<Student[]>([]);
+
+  const [mentor, setMentor] =
+    useState<MentorData>({});
+
+  const [search, setSearch] =
+    useState("");
+
+  const [loading, setLoading] =
+    useState(false);
+
+  const [error, setError] =
+    useState("");
+
+  // ==========================================================
+  // REPORT
+  // ==========================================================
+
+  const [showStudentReport, setShowStudentReport] =
+    useState(false);
 
   // ==========================================================
   // TOKEN
   // ==========================================================
 
   const token =
-    localStorage.getItem("staffToken") || "";
+    localStorage.getItem(
+      "staffToken"
+    ) || "";
 
   // ==========================================================
   // GET STUDENTS
@@ -78,14 +110,16 @@ export default function MentorDashboard() {
         return;
       }
 
-      const response = await axios.get(
-        `${API_BASE_URL}/api/mentor/dashboard`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response =
+        await axios.get(
+          `${API_BASE_URL}/api/mentor/dashboard`,
+          {
+            headers: {
+              Authorization:
+                `Bearer ${token}`,
+            },
+          }
+        );
 
       console.log(
         "Mentor Dashboard Response:",
@@ -93,7 +127,8 @@ export default function MentorDashboard() {
       );
 
       const mentorData =
-        response.data?.mentor || {};
+        response.data?.mentor ||
+        {};
 
       const studentData =
         Array.isArray(
@@ -102,26 +137,43 @@ export default function MentorDashboard() {
           ? response.data.students
           : [];
 
-      const sortedStudents = [
-        ...studentData,
-      ].sort(
-        (a: Student, b: Student) =>
-          (a.name || "").localeCompare(
-            b.name || ""
-          )
+      // ========================================================
+      // SORT STUDENTS
+      // ========================================================
+
+      const sortedStudents =
+        [...studentData].sort(
+          (
+            a: Student,
+            b: Student
+          ) =>
+            (a.name || "")
+              .localeCompare(
+                b.name || ""
+              )
+        );
+
+      setMentor(
+        mentorData
       );
 
-      setMentor(mentorData);
-      setStudents(sortedStudents);
-    } catch (error: any) {
+      setStudents(
+        sortedStudents
+      );
+    } catch (
+      error: any
+    ) {
       console.error(
         "Mentor Dashboard Error:",
-        error?.response?.data ||
+        error?.response
+          ?.data ||
           error?.message
       );
 
       setError(
-        error?.response?.data?.message ||
+        error?.response
+          ?.data
+          ?.message ||
           "Unable to load students."
       );
     } finally {
@@ -143,27 +195,33 @@ export default function MentorDashboard() {
   // FILTER
   // ==========================================================
 
-  const filteredStudents = useMemo(() => {
-    const value =
-      search.trim().toLowerCase();
+  const filteredStudents =
+    useMemo(() => {
+      const value =
+        search
+          .trim()
+          .toLowerCase();
 
-    if (!value) {
-      return students;
-    }
+      if (!value) {
+        return students;
+      }
 
-    return students.filter(
-      (student) =>
-        student.name
-          ?.toLowerCase()
-          .includes(value) ||
-        student.studentId
-          ?.toLowerCase()
-          .includes(value) ||
-        student.className
-          ?.toLowerCase()
-          .includes(value)
-    );
-  }, [students, search]);
+      return students.filter(
+        (student) =>
+          student.name
+            ?.toLowerCase()
+            .includes(value) ||
+          student.studentId
+            ?.toLowerCase()
+            .includes(value) ||
+          student.className
+            ?.toLowerCase()
+            .includes(value)
+      );
+    }, [
+      students,
+      search,
+    ]);
 
   // ==========================================================
   // INITIALS
@@ -177,16 +235,27 @@ export default function MentorDashboard() {
     }
 
     const parts =
-      name.trim().split(/\s+/);
+      name
+        .trim()
+        .split(
+          /\s+/
+        );
 
-    if (parts.length === 1) {
+    if (
+      parts.length === 1
+    ) {
       return parts[0]
-        .slice(0, 2)
+        .slice(
+          0,
+          2
+        )
         .toUpperCase();
     }
 
     return `${parts[0][0]}${
-      parts[parts.length - 1][0]
+      parts[
+        parts.length - 1
+      ][0]
     }`.toUpperCase();
   };
 
@@ -197,6 +266,24 @@ export default function MentorDashboard() {
   const mentorName =
     mentor.name?.trim() ||
     "Mentor";
+
+  // ==========================================================
+  // OPEN REPORT
+  // ==========================================================
+
+  const handleOpenStudentReport =
+    () => {
+      if (
+        students.length ===
+        0
+      ) {
+        return;
+      }
+
+      setShowStudentReport(
+        true
+      );
+    };
 
   // ==========================================================
   // RETURN
@@ -210,6 +297,7 @@ export default function MentorDashboard() {
       ===================================================== */}
 
       <div className="mentor-bg-glow mentor-bg-glow-one" />
+
       <div className="mentor-bg-glow mentor-bg-glow-two" />
 
       <div className="mentor-container">
@@ -233,7 +321,8 @@ export default function MentorDashboard() {
               </span>
 
               <h1>
-                Welcome back, {mentorName}
+                Welcome back,{" "}
+                {mentorName}
               </h1>
 
               <p>
@@ -248,9 +337,14 @@ export default function MentorDashboard() {
           <button
             type="button"
             className="mentor-refresh-btn"
-            onClick={getStudents}
-            disabled={loading}
+            onClick={
+              getStudents
+            }
+            disabled={
+              loading
+            }
           >
+
             <RefreshCw
               size={16}
               className={
@@ -265,10 +359,10 @@ export default function MentorDashboard() {
                 ? "Refreshing"
                 : "Refresh"}
             </span>
+
           </button>
 
         </header>
-
 
         {/* ===================================================
             OVERVIEW
@@ -276,13 +370,18 @@ export default function MentorDashboard() {
 
         <section className="mentor-overview-grid">
 
-          <div className="mentor-stat-card">
+          {/* ==================================================
+              TOTAL STUDENTS
+          ================================================== */}
+
+          <div className="mentor-stat-card mentor-total-students-card">
 
             <div className="mentor-stat-icon students">
               <Users size={19} />
             </div>
 
-            <div>
+            <div className="mentor-stat-content">
+
               <span>
                 Total Students
               </span>
@@ -290,50 +389,99 @@ export default function MentorDashboard() {
               <strong>
                 {students.length}
               </strong>
+
+              {/* ==================================================
+                  REPORT BUTTON
+              ================================================== */}
+
+              <button
+                type="button"
+                className="mentor-total-students-btn"
+                onClick={
+                  handleOpenStudentReport
+                }
+                disabled={
+                  students.length ===
+                  0
+                }
+              >
+
+                <FileText
+                  size={13}
+                />
+
+                <span>
+                  Total Students Data
+                </span>
+
+              </button>
+
             </div>
 
           </div>
 
+          {/* ==================================================
+              SECTION
+          ================================================== */}
 
           <div className="mentor-stat-card">
 
             <div className="mentor-stat-icon section">
-              <BookOpen size={19} />
+
+              <BookOpen
+                size={19}
+              />
+
             </div>
 
             <div>
+
               <span>
                 Section
               </span>
 
               <strong>
-                {mentor.section || "N/A"}
+                {
+                  mentor.section ||
+                  "N/A"
+                }
               </strong>
+
             </div>
 
           </div>
 
+          {/* ==================================================
+              SHOWING
+          ================================================== */}
 
           <div className="mentor-stat-card">
 
             <div className="mentor-stat-icon visible">
-              <Search size={19} />
+
+              <Search
+                size={19}
+              />
+
             </div>
 
             <div>
+
               <span>
                 Showing
               </span>
 
               <strong>
-                {filteredStudents.length}
+                {
+                  filteredStudents.length
+                }
               </strong>
+
             </div>
 
           </div>
 
         </section>
-
 
         {/* ===================================================
             SEARCH PANEL
@@ -344,6 +492,7 @@ export default function MentorDashboard() {
           <div className="mentor-control-heading">
 
             <div>
+
               <span>
                 STUDENT DIRECTORY
               </span>
@@ -351,26 +500,38 @@ export default function MentorDashboard() {
               <h2>
                 My Section Students
               </h2>
+
             </div>
 
             <div className="mentor-section-pill">
+
               Section{" "}
-              {mentor.section || "N/A"}
+
+              {
+                mentor.section ||
+                "N/A"
+              }
+
             </div>
 
           </div>
 
-
           <div className="mentor-search-wrapper">
 
-            <Search size={18} />
+            <Search
+              size={18}
+            />
 
             <input
               type="text"
               placeholder="Search by student name, ID or class..."
               value={search}
-              onChange={(e) =>
-                setSearch(e.target.value)
+              onChange={(
+                e
+              ) =>
+                setSearch(
+                  e.target.value
+                )
               }
               autoComplete="off"
             />
@@ -392,13 +553,14 @@ export default function MentorDashboard() {
 
         </section>
 
-
         {/* ===================================================
             ERROR
         =================================================== */}
 
         {error && (
+
           <section className="mentor-error-card">
+
             <strong>
               Unable to load students
             </strong>
@@ -409,24 +571,29 @@ export default function MentorDashboard() {
 
             <button
               type="button"
-              onClick={getStudents}
+              onClick={
+                getStudents
+              }
             >
               Try Again
             </button>
-          </section>
-        )}
 
+          </section>
+
+        )}
 
         {/* ===================================================
             STUDENT GRID
         =================================================== */}
 
         {!error && (
+
           <section className="mentor-student-section">
 
             <div className="mentor-grid-header">
 
               <div>
+
                 <span>
                   STUDENT DIRECTORY
                 </span>
@@ -434,45 +601,87 @@ export default function MentorDashboard() {
                 <h2>
                   Students
                 </h2>
+
               </div>
 
               <p>
-                {filteredStudents.length}{" "}
+
+                {
+                  filteredStudents.length
+                }{" "}
+
                 student
-                {filteredStudents.length !== 1
-                  ? "s"
-                  : ""}
+
+                {
+                  filteredStudents.length !==
+                  1
+                    ? "s"
+                    : ""
+                }
+
               </p>
 
             </div>
 
+            {/* =================================================
+                LOADING
+            ================================================= */}
 
-            {loading && students.length === 0 ? (
+            {loading &&
+            students.length ===
+              0 ? (
+
               <div className="mentor-loading-grid">
 
-                {[1, 2, 3, 4].map(
-                  (item) => (
+                {[
+                  1,
+                  2,
+                  3,
+                  4,
+                ].map(
+                  (
+                    item
+                  ) => (
+
                     <div
-                      key={item}
+                      key={
+                        item
+                      }
                       className="mentor-skeleton-card"
                     >
+
                       <div className="mentor-skeleton-avatar" />
 
                       <div className="mentor-skeleton-lines">
+
                         <span />
                         <span />
                         <span />
+
                       </div>
+
                     </div>
+
                   )
                 )}
 
               </div>
-            ) : filteredStudents.length === 0 ? (
+
+            ) : filteredStudents.length ===
+              0 ? (
+
+              /* =================================================
+                 EMPTY
+              ================================================= */
+
               <div className="mentor-empty-state">
 
                 <div className="mentor-empty-icon">
-                  <Search size={25} />
+
+                  <Search
+                    size={25}
+                  />
+
                 </div>
 
                 <h3>
@@ -480,28 +689,44 @@ export default function MentorDashboard() {
                 </h3>
 
                 <p>
+
                   {search
                     ? `No student matches "${search}".`
                     : "There are no students available in this section yet."}
+
                 </p>
 
                 {search && (
+
                   <button
                     type="button"
                     onClick={() =>
-                      setSearch("")
+                      setSearch(
+                        ""
+                      )
                     }
                   >
                     Clear Search
                   </button>
+
                 )}
 
               </div>
+
             ) : (
+
+              /* =================================================
+                 STUDENT CARDS
+              ================================================= */
+
               <div className="mentor-student-grid">
 
                 {filteredStudents.map(
-                  (student, index) => (
+                  (
+                    student,
+                    index
+                  ) => (
+
                     <article
                       key={
                         student.studentId ||
@@ -520,30 +745,40 @@ export default function MentorDashboard() {
                       <div className="mentor-card-top">
 
                         <div className="mentor-student-avatar">
-                          {getInitials(
-                            student.name
-                          )}
+
+                          {
+                            getInitials(
+                              student.name
+                            )
+                          }
+
                         </div>
 
                         <span className="mentor-card-number">
+
                           {String(
-                            index + 1
+                            index +
+                              1
                           ).padStart(
                             2,
                             "0"
                           )}
+
                         </span>
 
                       </div>
-
 
                       {/* STUDENT INFO */}
 
                       <div className="mentor-student-info">
 
                         <h3>
-                          {student.name ||
-                            "Student"}
+
+                          {
+                            student.name ||
+                            "Student"
+                          }
+
                         </h3>
 
                         <p>
@@ -552,51 +787,65 @@ export default function MentorDashboard() {
 
                       </div>
 
-
                       {/* DETAILS */}
 
                       <div className="mentor-student-details">
 
                         <div>
+
                           <span>
                             STUDENT ID
                           </span>
 
                           <strong>
-                            {student.studentId ||
-                              "N/A"}
+
+                            {
+                              student.studentId ||
+                              "N/A"
+                            }
+
                           </strong>
+
                         </div>
 
-
                         <div>
+
                           <span>
                             CLASS
                           </span>
 
                           <strong>
-                            {student.className ||
-                              "N/A"}
+
+                            {
+                              student.className ||
+                              "N/A"
+                            }
+
                           </strong>
+
                         </div>
 
-
                         <div>
+
                           <span>
                             SECTION
                           </span>
 
                           <strong>
-                            {student.section ||
+
+                            {
+                              student.section ||
                               mentor.section ||
-                              "N/A"}
+                              "N/A"
+                            }
+
                           </strong>
+
                         </div>
 
                       </div>
 
-
-                      {/* BUTTON */}
+                      {/* PROFILE */}
 
                       <div className="mentor-view-profile">
 
@@ -605,22 +854,54 @@ export default function MentorDashboard() {
                         </span>
 
                         <div className="mentor-arrow">
-                          <ArrowRight size={16} />
+
+                          <ArrowRight
+                            size={16}
+                          />
+
                         </div>
 
                       </div>
 
                     </article>
+
                   )
                 )}
 
               </div>
+
             )}
 
           </section>
+
         )}
 
       </div>
+
+      {/* =====================================================
+          REUSABLE STUDENT REPORT
+      ===================================================== */}
+
+      <StudentReport
+        students={
+          students
+        }
+        owner={
+          mentor
+        }
+        apiBaseUrl={
+          API_BASE_URL
+        }
+        open={
+          showStudentReport
+        }
+        onOpenChange={
+          setShowStudentReport
+        }
+        title="Mentor Section Performance Report"
+      />
+
     </div>
   );
 }
+

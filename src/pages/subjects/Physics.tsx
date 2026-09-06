@@ -1,5 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
-import { Zap, BookOpen, ArrowRight } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  ArrowRight,
+  BookOpen,
+  LoaderCircle,
+  RefreshCw,
+  Zap,
+} from "lucide-react";
+
 import TestInterface from "../../components/TestInterface";
 import "./Physics.css";
 
@@ -14,7 +21,7 @@ const API_BASE_URL =
     : "https://exammaster-backend-up1y.onrender.com";
 
 // ============================================================
-// QUESTION TYPE
+// TYPES
 // ============================================================
 
 interface Question {
@@ -39,7 +46,87 @@ interface Question {
   imageUrl?: string;
 
   tableHeaders?: string[];
-  tableRows?: any[][];
+  tableRows?: unknown[][];
+}
+
+interface StudentData {
+  studentId?: string;
+  name?: string;
+  className?: string;
+}
+
+interface Chapter {
+  name: string;
+  count: number;
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+
+function getStoredStudent(): StudentData {
+  try {
+    const userRaw = localStorage.getItem("user");
+    const studentRaw = localStorage.getItem("student");
+
+    const raw =
+      userRaw ||
+      studentRaw ||
+      "{}";
+
+    const parsed = JSON.parse(raw);
+
+    return parsed && typeof parsed === "object"
+      ? parsed
+      : {};
+  } catch {
+    return {};
+  }
+}
+
+function getInitialStudentData() {
+  const storedStudent = getStoredStudent();
+
+  return {
+    studentId:
+      localStorage.getItem("studentId") ||
+      storedStudent.studentId ||
+      "STU1001",
+
+    studentName:
+      localStorage.getItem("studentName") ||
+      storedStudent.name ||
+      "Student",
+
+    className:
+      localStorage.getItem("className") ||
+      storedStudent.className ||
+      "2nd PUC",
+  };
+}
+
+function getChapterName(question: Question): string {
+  const chapter = String(
+    question.chapter || ""
+  ).trim();
+
+  return chapter || "General Physics";
+}
+
+function extractResultsList(data: any): any[] {
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  if (Array.isArray(data?.results)) {
+    return data.results;
+  }
+
+  if (Array.isArray(data?.data)) {
+    return data.data;
+  }
+
+  return [];
 }
 
 // ============================================================
@@ -48,26 +135,35 @@ interface Question {
 
 export default function Physics() {
   // ==========================================================
+  // INITIAL STUDENT DATA
+  // ==========================================================
+
+  const initialStudent = useMemo(
+    () => getInitialStudentData(),
+    []
+  );
+
+  // ==========================================================
   // STATE
   // ==========================================================
 
   const [questions, setQuestions] =
     useState<Question[]>([]);
 
-  const [loading, setLoading] =
+  const [questionsLoading, setQuestionsLoading] =
     useState(true);
 
-  const [error, setError] =
+  const [questionsError, setQuestionsError] =
     useState("");
 
-  const [studentId, setStudentId] =
-    useState<string>("STU1001");
+  const [studentId] =
+    useState<string>(initialStudent.studentId);
 
-  const [studentName, setStudentName] =
-    useState<string>("Student");
+  const [studentName] =
+    useState<string>(initialStudent.studentName);
 
-  const [className, setClassName] =
-    useState<string>("2nd PUC");
+  const [className] =
+    useState<string>(initialStudent.className);
 
   const [selectedChapter, setSelectedChapter] =
     useState<string | null>(null);
@@ -80,325 +176,202 @@ export default function Physics() {
   const [submittedChapters, setSubmittedChapters] =
     useState<Record<string, boolean>>({});
 
+  const [resultsLoading, setResultsLoading] =
+    useState(true);
+
   // ==========================================================
-  // LOAD STUDENT DATA
+  // LOAD RESULTS
   // ==========================================================
 
-  useEffect(() => {
+  const loadPreviousResults = useCallback(async () => {
+    if (!studentId) {
+      setResultsLoading(false);
+      return;
+    }
+
     try {
-      const storedUser =
-        localStorage.getItem("user") ||
-        localStorage.getItem("student") ||
-        "{}";
+      setResultsLoading(true);
 
-      const parsedUser =
-        JSON.parse(storedUser);
+      const resultsResponse = await fetch(
+        `${API_BASE_URL}/api/results/student/${encodeURIComponent(
+          studentId
+        )}`
+      );
 
-      if (parsedUser.className) {
-        setClassName(
-          parsedUser.className
-        );
+      if (!resultsResponse.ok) {
+        setResultsLoading(false);
+        return;
       }
 
-      if (parsedUser.name) {
-        setStudentName(
-          parsedUser.name
-        );
+      const resultsData =
+        await resultsResponse.json();
+
+      const resultsList =
+        extractResultsList(resultsData);
+
+      const loadedSubmittedChapters: Record<
+        string,
+        boolean
+      > = {};
+
+      const loadedChapterAnswers: Record<
+        string,
+        Record<string, string>
+      > = {};
+
+      for (const result of resultsList) {
+        if (
+          !result?.examName ||
+          !result.examName.includes("Physics -")
+        ) {
+          continue;
+        }
+
+        const parts =
+          result.examName.split("Physics -");
+
+        const chapterName =
+          parts[1]?.trim();
+
+        if (
+          !chapterName ||
+          !Array.isArray(result.review)
+        ) {
+          continue;
+        }
+
+        loadedSubmittedChapters[chapterName] =
+          true;
+
+        const answerMap: Record<
+          string,
+          string
+        > = {};
+
+        for (const item of result.review) {
+          if (
+            item?.questionId &&
+            item?.selectedAnswer
+          ) {
+            answerMap[item.questionId] =
+              item.selectedAnswer;
+          }
+        }
+
+        loadedChapterAnswers[chapterName] =
+          answerMap;
       }
 
-      if (parsedUser.studentId) {
-        setStudentId(
-          parsedUser.studentId
-        );
-      }
+      setSubmittedChapters(
+        loadedSubmittedChapters
+      );
 
-      const storedClassName =
-        localStorage.getItem("className");
-
-      const storedStudentName =
-        localStorage.getItem("studentName");
-
-      const storedStudentId =
-        localStorage.getItem("studentId");
-
-      if (storedClassName) {
-        setClassName(
-          storedClassName
-        );
-      }
-
-      if (storedStudentName) {
-        setStudentName(
-          storedStudentName
-        );
-      }
-
-      if (storedStudentId) {
-        setStudentId(
-          storedStudentId
-        );
-      }
+      setChapterUserAnswers(
+        loadedChapterAnswers
+      );
     } catch (error) {
       console.error(
-        "Error reading student data from localStorage:",
+        "PHYSICS RESULTS LOAD ERROR:",
         error
       );
+    } finally {
+      setResultsLoading(false);
     }
-  }, []);
+  }, [studentId]);
 
   // ==========================================================
-  // FETCH PHYSICS SUBJECT TEST QUESTIONS
+  // LOAD PHYSICS QUESTIONS
+  // ==========================================================
+
+  const loadPhysicsQuestions =
+    useCallback(async () => {
+      try {
+        setQuestionsLoading(true);
+        setQuestionsError("");
+
+        const queryParams =
+          new URLSearchParams({
+            className,
+            subject: "Physics",
+            testCategory: "subject",
+          });
+
+        const response = await fetch(
+          `${API_BASE_URL}/api/subjects/questions?${queryParams.toString()}`
+        );
+
+        if (!response.ok) {
+          throw new Error(
+            "Failed to load Physics questions from database"
+          );
+        }
+
+        const data =
+          await response.json();
+
+        const physicsQuestions =
+          Array.isArray(data?.questions)
+            ? data.questions
+            : [];
+
+        setQuestions(
+          physicsQuestions
+        );
+      } catch (error) {
+        console.error(
+          "PHYSICS QUESTIONS LOAD ERROR:",
+          error
+        );
+
+        setQuestionsError(
+          error instanceof Error
+            ? error.message
+            : "Failed to load Physics data"
+        );
+      } finally {
+        setQuestionsLoading(false);
+      }
+    }, [className]);
+
+  // ==========================================================
+  // INITIAL LOAD
   // ==========================================================
 
   useEffect(() => {
-    const loadDataFromDB =
-      async () => {
-        try {
-          setLoading(true);
-          setError("");
-
-          // --------------------------------------------------
-          // FETCH QUESTIONS
-          // --------------------------------------------------
-
-          const queryParams =
-            new URLSearchParams({
-              className: className,
-              subject: "Physics",
-              testCategory: "subject",
-            });
-
-          const qResponse =
-            await fetch(
-              `${API_BASE_URL}/api/subjects/questions?${queryParams.toString()}`
-            );
-
-          if (!qResponse.ok) {
-            throw new Error(
-              "Failed to load Physics questions from database"
-            );
-          }
-
-          const qData =
-            await qResponse.json();
-
-          const physicsQuestions =
-            Array.isArray(
-              qData?.questions
-            )
-              ? qData.questions
-              : [];
-
-          console.log(
-            "===================================="
-          );
-          console.log(
-            "PHYSICS SUBJECT TEST"
-          );
-          console.log(
-            "CLASS:",
-            className
-          );
-          console.log(
-            "SUBJECT:",
-            "Physics"
-          );
-          console.log(
-            "TEST CATEGORY:",
-            "subject"
-          );
-          console.log(
-            "QUESTION COUNT:",
-            physicsQuestions.length
-          );
-          console.log(
-            "QUESTIONS:",
-            physicsQuestions
-          );
-          console.log(
-            "===================================="
-          );
-
-          setQuestions(
-            physicsQuestions
-          );
-
-          // --------------------------------------------------
-          // FETCH PREVIOUS RESULTS
-          // --------------------------------------------------
-
-          const currentStudentId =
-            localStorage.getItem(
-              "studentId"
-            ) ||
-            studentId;
-
-          const resultsResponse =
-            await fetch(
-              `${API_BASE_URL}/api/results/student/${currentStudentId}`
-            );
-
-          if (
-            resultsResponse.ok
-          ) {
-            const resultsData =
-              await resultsResponse.json();
-
-            const resultsList =
-              Array.isArray(
-                resultsData
-              )
-                ? resultsData
-                : (
-                    resultsData?.results ||
-                    resultsData?.data ||
-                    []
-                  );
-
-            const loadedSubmittedChapters:
-              Record<string, boolean> =
-              {};
-
-            const loadedChapterAnswers:
-              Record<
-                string,
-                Record<string, string>
-              > = {};
-
-            resultsList.forEach(
-              (result: any) => {
-                if (
-                  result?.examName &&
-                  result.examName.includes(
-                    "Physics -"
-                  )
-                ) {
-                  const parts =
-                    result.examName.split(
-                      "Physics -"
-                    );
-
-                  const chapName =
-                    parts[1]?.trim();
-
-                  if (
-                    chapName &&
-                    Array.isArray(
-                      result.review
-                    )
-                  ) {
-                    loadedSubmittedChapters[
-                      chapName
-                    ] = true;
-
-                    const answerMap:
-                      Record<
-                        string,
-                        string
-                      > = {};
-
-                    result.review.forEach(
-                      (item: any) => {
-                        if (
-                          item?.questionId &&
-                          item?.selectedAnswer
-                        ) {
-                          answerMap[
-                            item.questionId
-                          ] =
-                            item.selectedAnswer;
-                        }
-                      }
-                    );
-
-                    loadedChapterAnswers[
-                      chapName
-                    ] = answerMap;
-                  }
-                }
-              }
-            );
-
-            setSubmittedChapters(
-              loadedSubmittedChapters
-            );
-
-            setChapterUserAnswers(
-              loadedChapterAnswers
-            );
-          }
-        } catch (
-          err: any
-        ) {
-          console.error(
-            "PHYSICS DATA LOAD ERROR:",
-            err
-          );
-
-          setError(
-            err?.message ||
-              "Failed to load Physics data"
-          );
-        } finally {
-          setLoading(false);
-        }
-      };
-
-    loadDataFromDB();
-  }, [className]);
+    // Start both requests together.
+    // Results are not required to render the main page.
+    void loadPhysicsQuestions();
+    void loadPreviousResults();
+  }, [
+    loadPhysicsQuestions,
+    loadPreviousResults,
+  ]);
 
   // ==========================================================
-  // NORMALIZE CHAPTER NAME
+  // CHAPTER LIST
   // ==========================================================
 
-  const getChapterName = (
-    question: Question
-  ) => {
-    const chapter =
-      String(
-        question.chapter || ""
-      ).trim();
+  const chaptersList = useMemo<Chapter[]>(() => {
+    const chapterMap =
+      new Map<string, number>();
 
-    return (
-      chapter ||
-      "General Physics"
-    );
-  };
+    for (const question of questions) {
+      const chapter =
+        getChapterName(question);
 
-  // ==========================================================
-  // BUILD CHAPTER LIST
-  // ==========================================================
-
-  const chaptersList =
-    useMemo(() => {
-      const map =
-        new Map<string, number>();
-
-      questions.forEach(
-        (question) => {
-          const chapter =
-            getChapterName(
-              question
-            );
-
-          map.set(
-            chapter,
-            (map.get(
-              chapter
-            ) || 0) + 1
-          );
-        }
+      chapterMap.set(
+        chapter,
+        (chapterMap.get(chapter) || 0) + 1
       );
+    }
 
-      return Array.from(
-        map.entries()
-      ).map(
-        ([name, count]) => ({
-          name,
-          count,
-        })
-      );
-    }, [questions]);
+    return Array.from(
+      chapterMap.entries()
+    ).map(([name, count]) => ({
+      name,
+      count,
+    }));
+  }, [questions]);
 
   // ==========================================================
   // CURRENT CHAPTER QUESTIONS
@@ -411,17 +384,9 @@ export default function Physics() {
       }
 
       return questions.filter(
-        (question) => {
-          const chapter =
-            getChapterName(
-              question
-            );
-
-          return (
-            chapter ===
-            selectedChapter
-          );
-        }
+        (question) =>
+          getChapterName(question) ===
+          selectedChapter
       );
     }, [
       questions,
@@ -429,42 +394,20 @@ export default function Physics() {
     ]);
 
   // ==========================================================
-  // LOADING
+  // RETRY QUESTIONS
   // ==========================================================
 
-  if (loading) {
-    return (
-      <div
-        style={{
-          textAlign: "center",
-          padding: "80px",
-          color: "#64748b",
-          fontSize: "16px",
-        }}
-      >
-        Loading Physics data from database...
-      </div>
-    );
-  }
+  const handleRetry = useCallback(() => {
+    void loadPhysicsQuestions();
+  }, [loadPhysicsQuestions]);
 
   // ==========================================================
-  // ERROR
+  // BACK TO CHAPTERS
   // ==========================================================
 
-  if (error) {
-    return (
-      <div
-        style={{
-          textAlign: "center",
-          padding: "80px",
-          color: "red",
-          fontSize: "16px",
-        }}
-      >
-        {error}
-      </div>
-    );
-  }
+  const handleBack = useCallback(() => {
+    setSelectedChapter(null);
+  }, []);
 
   // ==========================================================
   // EXAM SCREEN
@@ -480,28 +423,18 @@ export default function Physics() {
         studentId={studentId}
         studentName={studentName}
         themeColor="#2563eb"
-
-        onBack={() =>
-          setSelectedChapter(null)
-        }
-
+        onBack={handleBack}
         isAlreadySubmitted={
           submittedChapters[
             selectedChapter
           ] || false
         }
-
         initialAnswers={
           chapterUserAnswers[
             selectedChapter
           ] || {}
         }
-
-        // IMPORTANT:
-        // Physics page is Subject Test
         testCategory="subject"
-
-        // Subject Test has no JEE / NEET
         examType=""
       />
     );
@@ -513,23 +446,24 @@ export default function Physics() {
 
   return (
     <main className="physics-page">
-
       <div className="physics-container">
-
-        {/* ==================================================
+        {/* ====================================================
             HERO
-        ================================================== */}
+        ==================================================== */}
 
         <section className="physics-hero">
-
           <div className="physics-hero-content">
-
             <div className="physics-badge">
-              <Zap size={15} />
+              <Zap
+                size={15}
+                aria-hidden="true"
+              />
 
-              JEE / NEET •{" "}
-              {className.toUpperCase()}{" "}
-              PHYSICS
+              <span>
+                JEE / NEET •{" "}
+                {className.toUpperCase()}{" "}
+                PHYSICS
+              </span>
             </div>
 
             <h1 className="physics-title">
@@ -542,44 +476,39 @@ export default function Physics() {
 
             <p className="physics-description">
               Welcome back,{" "}
-              <strong>
-                {studentName}
-              </strong>
-              ! Practice{" "}
-              {className} Physics
+              <strong>{studentName}</strong>!
+              Practice {className} Physics
               chapter-wise with focused
               numerical problems, laws,
               and exam-oriented tests.
             </p>
 
             <div className="physics-stats">
-
               <div className="physics-stat">
-
                 <span className="physics-stat-value">
-                  {questions.length}+
+                  {questionsLoading
+                    ? "—"
+                    : `${questions.length}+`}
                 </span>
 
                 <span className="physics-stat-label">
                   {className} Questions
                 </span>
-
               </div>
 
               <div className="physics-stat">
-
                 <span className="physics-stat-value">
-                  {chaptersList.length}
+                  {questionsLoading
+                    ? "—"
+                    : chaptersList.length}
                 </span>
 
                 <span className="physics-stat-label">
                   Chapters
                 </span>
-
               </div>
 
               <div className="physics-stat">
-
                 <span className="physics-stat-value">
                   JEE / NEET
                 </span>
@@ -587,107 +516,150 @@ export default function Physics() {
                 <span className="physics-stat-label">
                   Exam Standard
                 </span>
-
               </div>
-
             </div>
-
           </div>
-
         </section>
 
-
-        {/* ==================================================
+        {/* ====================================================
             CHAPTER SECTION
-        ================================================== */}
+        ==================================================== */}
 
-        <section>
-
+        <section aria-labelledby="physics-chapters-title">
           <div className="physics-section-header">
-
             <div>
-
-              <h2 className="physics-section-title">
+              <h2
+                id="physics-chapters-title"
+                className="physics-section-title"
+              >
                 {className} Physics Chapters
               </h2>
 
               <p className="physics-section-subtitle">
                 Select a chapter and start
-                your practice. (Student ID:{" "}
-                {studentId})
+                your practice.
               </p>
-
             </div>
-
           </div>
 
-
           {/* ==================================================
-              NO CHAPTERS
+              ERROR
           ================================================== */}
 
-          {chaptersList.length === 0 ? (
+          {questionsError ? (
+            <div className="physics-state-card">
+              <div
+                className="physics-state-icon error"
+                aria-hidden="true"
+              >
+                !
+              </div>
 
-            <div
-              style={{
-                textAlign: "center",
-                padding: "40px",
-                color: "#64748b",
-                background: "#fff",
-                borderRadius: "12px",
-                border:
-                  "1px solid #e2e8f0",
-              }}
-            >
-              No Physics chapters found
-              for {className}.
+              <h3>
+                Unable to load Physics
+              </h3>
+
+              <p>{questionsError}</p>
+
+              <button
+                type="button"
+                className="physics-retry-button"
+                onClick={handleRetry}
+              >
+                <RefreshCw
+                  size={15}
+                  aria-hidden="true"
+                />
+
+                Retry
+              </button>
             </div>
+          ) : questionsLoading ? (
+            <div
+              className="physics-state-card"
+              aria-live="polite"
+            >
+              <div
+                className="physics-state-icon"
+                aria-hidden="true"
+              >
+                <LoaderCircle
+                  size={24}
+                  className="physics-spinner"
+                />
+              </div>
 
+              <h3>
+                Loading Physics Chapters
+              </h3>
+
+              <p>
+                Preparing your chapter-wise
+                practice questions...
+              </p>
+            </div>
+          ) : chaptersList.length === 0 ? (
+            <div className="physics-state-card">
+              <div
+                className="physics-state-icon"
+                aria-hidden="true"
+              >
+                📚
+              </div>
+
+              <h3>
+                No Physics Chapters Found
+              </h3>
+
+              <p>
+                No Physics chapters are
+                currently available for{" "}
+                {className}.
+              </p>
+            </div>
           ) : (
-
             <div className="physics-chapter-grid">
-
               {chaptersList.map(
-                (
-                  chapter,
-                  index
-                ) => {
-
+                (chapter, index) => {
                   const isCompleted =
                     submittedChapters[
                       chapter.name
                     ];
 
                   return (
-                    <div
+                    <article
                       className="physics-chapter-card"
                       key={chapter.name}
                     >
-
                       <div className="physics-card-top">
-
-                        <div className="physics-chapter-icon">
+                        <div
+                          className="physics-chapter-icon"
+                          aria-hidden="true"
+                        >
                           <Zap size={24} />
                         </div>
 
                         <span className="physics-chapter-number">
-                          {String(
-                            index + 1
-                          ).padStart(
+                          {String(index + 1).padStart(
                             2,
                             "0"
                           )}
                         </span>
-
                       </div>
 
-
                       <div className="physics-card-content">
-
                         <h3>
-                          {chapter.name}{" "}
-                          {isCompleted &&
-                            "✅"}
+                          {chapter.name}
+
+                          {isCompleted && (
+                            <span
+                              className="physics-completed-mark"
+                              aria-label="Completed"
+                              title="Completed"
+                            >
+                              ✓
+                            </span>
+                          )}
                         </h3>
 
                         <p>
@@ -698,22 +670,16 @@ export default function Physics() {
                           from this chapter.
                         </p>
 
-                        <div
-                          style={{
-                            fontSize:
-                              "13px",
-                            fontWeight:
-                              "600",
-                            color:
-                              "#2563eb",
-                            marginBottom:
-                              "12px",
-                          }}
-                        >
-                          {chapter.count}{" "}
-                          Questions Available{" "}
-                          {isCompleted &&
-                            "• Saved in DB"}
+                        <div className="physics-question-count">
+                          {chapter.count} Questions
+                          Available
+
+                          {isCompleted && (
+                            <span>
+                              {" "}
+                              • Saved in DB
+                            </span>
+                          )}
                         </div>
 
                         <button
@@ -725,32 +691,55 @@ export default function Physics() {
                             )
                           }
                         >
-                          <BookOpen size={16} />
+                          <BookOpen
+                            size={16}
+                            aria-hidden="true"
+                          />
 
-                          {isCompleted
-                            ? "View DB History"
-                            : "Start Practice"}
+                          <span>
+                            {isCompleted
+                              ? "View DB History"
+                              : "Start Practice"}
+                          </span>
 
                           <ArrowRight
                             size={15}
+                            aria-hidden="true"
                           />
                         </button>
-
                       </div>
-
-                    </div>
+                    </article>
                   );
                 }
               )}
-
             </div>
-
           )}
 
+          {/* ==================================================
+              RESULTS SYNC INDICATOR
+          ================================================== */}
+
+          {!questionsLoading &&
+            !questionsError &&
+            resultsLoading && (
+              <div
+                className="physics-history-sync"
+                aria-live="polite"
+              >
+                <LoaderCircle
+                  size={13}
+                  className="physics-spinner"
+                  aria-hidden="true"
+                />
+
+                <span>
+                  Syncing your previous
+                  chapter history...
+                </span>
+              </div>
+            )}
         </section>
-
       </div>
-
     </main>
   );
 }
