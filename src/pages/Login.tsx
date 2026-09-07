@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import {
   ArrowRight,
   Eye,
@@ -8,85 +9,139 @@ import {
   KeyRound,
   LockKeyhole,
   ShieldCheck,
-  Sparkles,
   UserRound,
 } from "lucide-react";
 
 import { loginStudent } from "../services/api";
+
 import "./Login.css";
 
 export default function Login() {
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState("");
+  // =========================================
+  // STATES
+  // =========================================
+  const [studentId, setStudentId] = useState("");
   const [password, setPassword] = useState("");
 
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [showPassword, setShowPassword] =
+    useState(false);
 
-  const submit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const [loading, setLoading] =
+    useState(false);
+
+  const [error, setError] =
+    useState("");
+
+  // =========================================
+  // LOGIN SUBMIT
+  // =========================================
+  const submit = async (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
     e.preventDefault();
 
     if (loading) return;
 
     setError("");
 
-    const cleanEmail = email.trim().toLowerCase();
+    // =========================================
+    // CLEAN STUDENT ID
+    // =========================================
+    const cleanStudentId =
+      studentId.trim().toUpperCase();
 
-    if (!cleanEmail || !password) {
-      setError("Please enter your email and password.");
-      return;
-    }
-
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
-      setError("Please enter a valid email address.");
+    // =========================================
+    // VALIDATION
+    // =========================================
+    if (!cleanStudentId || !password) {
+      setError(
+        "Please enter your Student ID and password."
+      );
       return;
     }
 
     try {
       setLoading(true);
 
+      // =========================================
+      // LOGIN API
+      // =========================================
       const data = await loginStudent({
-        email: cleanEmail,
+        studentId: cleanStudentId,
         password,
       });
 
-      if (data?.success && data?.token) {
+      console.log(
+        "STUDENT LOGIN RESPONSE:",
+        data
+      );
+
+      // =========================================
+      // LOGIN SUCCESS
+      // =========================================
+      if (
+        data?.success &&
+        data?.token
+      ) {
         // =========================================
         // CLEAR OLD MANAGEMENT / STAFF SESSION
         // =========================================
+        localStorage.removeItem(
+          "teacher"
+        );
 
-        localStorage.removeItem("teacher");
-        localStorage.removeItem("teacherToken");
+        localStorage.removeItem(
+          "teacherToken"
+        );
 
-        localStorage.removeItem("staff");
-        localStorage.removeItem("staffToken");
+        localStorage.removeItem(
+          "staff"
+        );
+
+        localStorage.removeItem(
+          "staffToken"
+        );
 
         // =========================================
         // SAVE STUDENT TOKEN
         // =========================================
+        localStorage.setItem(
+          "token",
+          data.token
+        );
 
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("studentToken", data.token);
+        localStorage.setItem(
+          "studentToken",
+          data.token
+        );
 
         // =========================================
         // SAVE ROLE
         // =========================================
-
-        localStorage.setItem("role", "student");
+        localStorage.setItem(
+          "role",
+          "student"
+        );
 
         // =========================================
         // SAVE STUDENT DATA
         // =========================================
-
         if (data.student) {
           localStorage.setItem(
             "student",
-            JSON.stringify(data.student)
+            JSON.stringify(
+              data.student
+            )
           );
 
-          if (data.student.studentId) {
+          // =========================================
+          // SAVE STUDENT ID
+          // =========================================
+          if (
+            data.student.studentId
+          ) {
             localStorage.setItem(
               "studentId",
               data.student.studentId
@@ -95,9 +150,8 @@ export default function Login() {
         }
 
         // =========================================
-        // STUDENT DASHBOARD
+        // GO TO DASHBOARD
         // =========================================
-
         navigate("/dashboard", {
           replace: true,
         });
@@ -108,7 +162,10 @@ export default function Login() {
         );
       }
     } catch (err) {
-      console.error("Student login error:", err);
+      console.error(
+        "Student login error:",
+        err
+      );
 
       setError(
         "Unable to connect to the server. Please try again."
@@ -120,20 +177,26 @@ export default function Login() {
 
   return (
     <main className="auth-page">
-      {/* Background */}
+      {/* =========================================
+          BACKGROUND
+      ========================================= */}
       <div className="auth-grid" />
+
       <div className="auth-orb auth-orb-one" />
+
       <div className="auth-orb auth-orb-two" />
 
       <section className="student-login-shell">
+
         {/* =========================================
             LEFT BRAND PANEL
         ========================================= */}
-
         <aside className="student-brand-panel">
+
           <div className="brand-glow" />
 
           <div className="student-brand-top">
+
             <div className="student-brand-logo">
               <GraduationCap
                 size={29}
@@ -146,13 +209,16 @@ export default function Login() {
                 STG COLLEGE
               </span>
 
-              <h2>PRE-UNIVERSITY</h2>
+              <h2>
+                PRE-UNIVERSITY
+              </h2>
             </div>
+
           </div>
 
           <div className="student-brand-content">
+
             <span className="student-brand-pill">
-              
               Student Learning Platform
             </span>
 
@@ -163,26 +229,32 @@ export default function Login() {
             </h1>
 
             <p>
-              Access examinations, results, academic
-              progress and your complete student
-              learning experience from one secure
+              Access examinations, results,
+              academic progress and your
+              complete student learning
+              experience from one secure
               platform.
             </p>
+
           </div>
 
-          {/* Security */}
+          {/* SECURITY */}
           <div className="student-security">
+
             <div className="student-security-icon">
               <ShieldCheck size={20} />
             </div>
 
             <div>
-              <strong>Secure Student Access</strong>
+              <strong>
+                Secure Student Access
+              </strong>
 
               <span>
                 Protected academic environment
               </span>
             </div>
+
           </div>
 
           <div className="student-brand-footer">
@@ -192,60 +264,80 @@ export default function Login() {
 
             <span>EDU DESK</span>
           </div>
+
         </aside>
 
         {/* =========================================
             RIGHT LOGIN PANEL
         ========================================= */}
-
         <section className="student-login-panel">
-          {/* Mobile Branding */}
+
+          {/* MOBILE BRANDING */}
           <div className="student-mobile-brand">
+
             <div className="student-mobile-logo">
               <GraduationCap size={24} />
             </div>
 
             <div>
-              <strong>STG COLLEGE</strong>
-              <span>PRE UNIVERSITY</span>
+              <strong>
+                STG COLLEGE
+              </strong>
+
+              <span>
+                PRE UNIVERSITY
+              </span>
             </div>
+
           </div>
 
-          {/* Header */}
+          {/* HEADER */}
           <div className="student-login-header">
+
             <span className="student-welcome">
               WELCOME BACK
             </span>
 
-            <h1>STUDENT LOGIN</h1>
+            <h1>
+              STUDENT LOGIN
+            </h1>
 
             <p>
-              Sign in to continue your academic journey.
+              Sign in using your Student ID
+              to continue your academic journey.
             </p>
+
           </div>
 
-          {/* Form */}
+          {/* FORM */}
           <form
             className="student-login-form"
             onSubmit={submit}
             autoComplete="on"
           >
-            {/* Email */}
+
+            {/* =========================================
+                STUDENT ID
+            ========================================= */}
             <div className="student-field">
-              <label htmlFor="student-email">
-                Email Address
+
+              <label htmlFor="student-id">
+                Student ID
               </label>
 
               <div className="student-input">
+
                 <UserRound size={18} />
 
                 <input
-                  id="student-email"
-                  type="email"
-                  placeholder="Enter your Gmail address"
-                  value={email}
+                  id="student-id"
+                  type="text"
+                  placeholder="Enter your Student ID"
+                  value={studentId}
                   onChange={(e) => {
-                    setEmail(e.target.value);
+                    setStudentId(
+                      e.target.value.toUpperCase()
+                    );
 
                     if (error) {
                       setError("");
@@ -254,16 +346,22 @@ export default function Login() {
                   autoComplete="username"
                   disabled={loading}
                 />
+
               </div>
+
             </div>
 
-            {/* Password */}
+            {/* =========================================
+                PASSWORD
+            ========================================= */}
             <div className="student-field">
+
               <label htmlFor="student-password">
                 Password
               </label>
 
               <div className="student-input">
+
                 <KeyRound size={18} />
 
                 <input
@@ -276,7 +374,9 @@ export default function Login() {
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => {
-                    setPassword(e.target.value);
+                    setPassword(
+                      e.target.value
+                    );
 
                     if (error) {
                       setError("");
@@ -290,7 +390,9 @@ export default function Login() {
                   type="button"
                   className="student-password-toggle"
                   onClick={() =>
-                    setShowPassword((prev) => !prev)
+                    setShowPassword(
+                      (prev) => !prev
+                    )
                   }
                   disabled={loading}
                   aria-label={
@@ -305,10 +407,49 @@ export default function Login() {
                     <Eye size={18} />
                   )}
                 </button>
+
               </div>
+
             </div>
 
-            {/* Error */}
+            {/* =========================================
+                FORGOT PASSWORD
+            ========================================= */}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                marginTop: "-4px",
+                marginBottom: "8px",
+              }}
+            >
+              <button
+                type="button"
+                onClick={() =>
+                  navigate(
+                    "/student/forgot-password"
+                  )
+                }
+                disabled={loading}
+                style={{
+                  border: "none",
+                  background: "transparent",
+                  cursor: loading
+                    ? "not-allowed"
+                    : "pointer",
+                  padding: 0,
+                  fontSize: "13px",
+                  color: "#2563eb",
+                  fontWeight: 600,
+                }}
+              >
+                Forgot Password?
+              </button>
+            </div>
+
+            {/* =========================================
+                ERROR
+            ========================================= */}
             {error && (
               <div
                 className="student-login-error"
@@ -318,11 +459,15 @@ export default function Login() {
                   !
                 </span>
 
-                <span>{error}</span>
+                <span>
+                  {error}
+                </span>
               </div>
             )}
 
-            {/* Login Button */}
+            {/* =========================================
+                LOGIN BUTTON
+            ========================================= */}
             <button
               type="submit"
               className="student-login-button"
@@ -331,53 +476,86 @@ export default function Login() {
               {loading ? (
                 <>
                   <span className="student-spinner" />
-                  <span>Authenticating...</span>
+
+                  <span>
+                    Authenticating...
+                  </span>
                 </>
               ) : (
                 <>
-                  <LockKeyhole size={18} />
-                  <span>Secure Login</span>
-                  <ArrowRight size={18} />
+                  <LockKeyhole
+                    size={18}
+                  />
+
+                  <span>
+                    Secure Login
+                  </span>
+
+                  <ArrowRight
+                    size={18}
+                  />
                 </>
               )}
             </button>
+
           </form>
 
-          {/* Register */}
+          {/* =========================================
+              REGISTER
+          ========================================= */}
           <div className="student-register">
-            <span>New student?</span>
+
+            <span>
+              New student?
+            </span>
 
             <button
               type="button"
               onClick={() =>
-                navigate("/student/register")
+                navigate(
+                  "/student/register"
+                )
               }
               disabled={loading}
             >
               Create your account
+
               <ArrowRight size={14} />
             </button>
+
           </div>
 
-          {/* Security */}
+          {/* =========================================
+              SECURITY
+          ========================================= */}
           <div className="student-security-note">
+
             <ShieldCheck size={15} />
 
             <span>
-              Your academic credentials are protected
-              with secure authentication.
+              Your academic credentials are
+              protected with secure authentication.
             </span>
+
           </div>
 
-          {/* Footer */}
+          {/* =========================================
+              FOOTER
+          ========================================= */}
           <div className="student-login-footer">
-            <span>© 2026 STG NEXUS</span>
+
+            <span>
+              © 2026 STG NEXUS
+            </span>
 
             <span>
               STG COLLEGE • STUDENT ACCESS
             </span>
+
           </div>
+
         </section>
+
       </section>
     </main>
   );

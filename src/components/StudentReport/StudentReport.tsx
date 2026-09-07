@@ -1,4 +1,3 @@
-
 import {
   useEffect,
   useMemo,
@@ -46,12 +45,14 @@ export interface StudentResult {
   studentName?: string;
 
   examName?: string;
+
   subject?: string;
   chapter?: string;
 
   totalQuestions?: number;
   attemptedQuestions?: number;
   unansweredQuestions?: number;
+
   correctAnswers?: number;
   wrongAnswers?: number;
 
@@ -64,6 +65,7 @@ export interface StudentResult {
   timeTaken?: number;
 
   testCategory?: string;
+  examType?: string;
 
   createdAt?: string;
   submittedAt?: string;
@@ -96,8 +98,26 @@ interface StudentReportProps {
 interface StudentReportData
   extends StudentReportStudent {
   results: StudentResult[];
+
   loading: boolean;
+
   error?: string;
+}
+
+// ============================================================
+// SUBJECT SUMMARY TYPE
+// ============================================================
+
+interface SubjectSummaryItem {
+  subject: string;
+
+  exams: number;
+
+  totalMarks: number;
+
+  averageMarks: number;
+
+  averagePercentage: number;
 }
 
 // ============================================================
@@ -116,34 +136,68 @@ export default function StudentReport({
   // STATES
   // ==========================================================
 
-  const [reports, setReports] = useState<
-    StudentReportData[]
-  >([]);
+  const [
+    reports,
+    setReports,
+  ] = useState<StudentReportData[]>([]);
 
-  const [loading, setLoading] =
-    useState(false);
+  const [
+    loading,
+    setLoading,
+  ] = useState(false);
 
-  const [pdfLoading, setPdfLoading] =
-    useState(false);
+  const [
+    pdfLoading,
+    setPdfLoading,
+  ] = useState(false);
 
-  const [shareLoading, setShareLoading] =
-    useState(false);
+  const [
+    shareLoading,
+    setShareLoading,
+  ] = useState(false);
 
-  const [error, setError] =
-    useState("");
+  const [
+    error,
+    setError,
+  ] = useState("");
 
-  const [expandedStudents, setExpandedStudents] =
-    useState<Record<string, boolean>>({});
+  const [
+    expandedStudents,
+    setExpandedStudents,
+  ] = useState<
+    Record<string, boolean>
+  >({});
+
+  // ==========================================================
+  // FILTER STATES
+  // ==========================================================
+
+  const [
+    selectedCategory,
+    setSelectedCategory,
+  ] = useState("all");
+
+  const [
+    selectedExamType,
+    setSelectedExamType,
+  ] = useState("all");
+
+  const [
+    selectedSubject,
+    setSelectedSubject,
+  ] = useState("all");
 
   // ==========================================================
   // TOKEN
   // ==========================================================
 
   const token =
-    localStorage.getItem("staffToken") || "";
+    localStorage.getItem(
+      "staffToken"
+    ) || "";
 
   // ==========================================================
-  // LOAD RESULTS
+  // LOAD RESULTS WHEN OPEN
   // ==========================================================
 
   useEffect(() => {
@@ -160,6 +214,19 @@ export default function StudentReport({
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, students]);
+
+  // ==========================================================
+  // RESET LOWER FILTERS WHEN UPPER FILTER CHANGES
+  // ==========================================================
+
+  useEffect(() => {
+    setSelectedExamType("all");
+    setSelectedSubject("all");
+  }, [selectedCategory]);
+
+  useEffect(() => {
+    setSelectedSubject("all");
+  }, [selectedExamType]);
 
   // ==========================================================
   // LOAD ALL STUDENT RESULTS
@@ -189,7 +256,9 @@ export default function StudentReport({
       const loaded: StudentReportData[] =
         await Promise.all(
           students.map(
-            async (student) => {
+            async (
+              student
+            ) => {
               try {
                 const response =
                   await fetch(
@@ -221,7 +290,9 @@ export default function StudentReport({
                   [];
 
                 if (
-                  Array.isArray(raw)
+                  Array.isArray(
+                    raw
+                  )
                 ) {
                   results = raw;
                 } else if (
@@ -233,7 +304,10 @@ export default function StudentReport({
                 }
 
                 results.sort(
-                  (a, b) =>
+                  (
+                    a,
+                    b
+                  ) =>
                     new Date(
                       b.createdAt ||
                         b.submittedAt ||
@@ -248,10 +322,14 @@ export default function StudentReport({
 
                 return {
                   ...student,
+
                   results,
+
                   loading: false,
                 };
-              } catch (err: any) {
+              } catch (
+                err: any
+              ) {
                 console.error(
                   `Result load failed for ${student.studentId}`,
                   err
@@ -259,8 +337,11 @@ export default function StudentReport({
 
                 return {
                   ...student,
+
                   results: [],
+
                   loading: false,
+
                   error:
                     err?.message ||
                     "Unable to load results.",
@@ -270,20 +351,31 @@ export default function StudentReport({
           )
         );
 
-      setReports(loaded);
+      setReports(
+        loaded
+      );
 
       const expanded: Record<
         string,
         boolean
       > = {};
 
-      loaded.forEach((student) => {
-        expanded[student.studentId] =
-          true;
-      });
+      loaded.forEach(
+        (
+          student
+        ) => {
+          expanded[
+            student.studentId
+          ] = true;
+        }
+      );
 
-      setExpandedStudents(expanded);
-    } catch (err: any) {
+      setExpandedStudents(
+        expanded
+      );
+    } catch (
+      err: any
+    ) {
       console.error(
         "Student report loading error:",
         err
@@ -305,7 +397,8 @@ export default function StudentReport({
   const numberValue = (
     value: unknown
   ) => {
-    const n = Number(value);
+    const n =
+      Number(value);
 
     return Number.isFinite(n)
       ? n
@@ -319,7 +412,8 @@ export default function StudentReport({
       return "N/A";
     }
 
-    const date = new Date(value);
+    const date =
+      new Date(value);
 
     if (
       Number.isNaN(
@@ -347,78 +441,441 @@ export default function StudentReport({
     }
 
     const parts =
-      name.trim().split(/\s+/);
+      name
+        .trim()
+        .split(/\s+/);
 
-    if (parts.length === 1) {
+    if (
+      parts.length === 1
+    ) {
       return parts[0]
         .slice(0, 2)
         .toUpperCase();
     }
 
     return `${parts[0][0]}${
-      parts[parts.length - 1][0]
+      parts[
+        parts.length - 1
+      ][0]
     }`.toUpperCase();
   };
+
+  const normalizeValue = (
+    value?: string
+  ) =>
+    String(
+      value || ""
+    )
+      .trim()
+      .toLowerCase();
 
   const toggleStudent = (
     studentId: string
   ) => {
     setExpandedStudents(
-      (previous) => ({
+      (
+        previous
+      ) => ({
         ...previous,
+
         [studentId]:
-          !previous[studentId],
+          !previous[
+            studentId
+          ],
       })
     );
   };
 
   // ==========================================================
+  // AVAILABLE CATEGORIES
+  // ==========================================================
+
+  const availableCategories =
+    useMemo(() => {
+      const values =
+        new Set<string>();
+
+      reports.forEach(
+        (
+          student
+        ) => {
+          student.results.forEach(
+            (
+              result
+            ) => {
+              const value =
+                result.testCategory?.trim() ||
+                "";
+
+              if (value) {
+                values.add(
+                  value
+                );
+              }
+            }
+          );
+        }
+      );
+
+      return Array.from(
+        values
+      ).sort(
+        (
+          a,
+          b
+        ) =>
+          a.localeCompare(
+            b
+          )
+      );
+    }, [reports]);
+
+  // ==========================================================
+  // AVAILABLE EXAM TYPES
+  // Category -> Exam Type
+  // ==========================================================
+
+  const availableExamTypes =
+    useMemo(() => {
+      const values =
+        new Set<string>();
+
+      reports.forEach(
+        (
+          student
+        ) => {
+          student.results.forEach(
+            (
+              result
+            ) => {
+              const category =
+                result.testCategory?.trim() ||
+                "";
+
+              const examType =
+                result.examType?.trim() ||
+                "";
+
+              if (
+                selectedCategory !==
+                  "all" &&
+                normalizeValue(
+                  category
+                ) !==
+                  normalizeValue(
+                    selectedCategory
+                  )
+              ) {
+                return;
+              }
+
+              if (
+                examType
+              ) {
+                values.add(
+                  examType
+                );
+              }
+            }
+          );
+        }
+      );
+
+      return Array.from(
+        values
+      ).sort(
+        (
+          a,
+          b
+        ) =>
+          a.localeCompare(
+            b
+          )
+      );
+    }, [
+      reports,
+      selectedCategory,
+    ]);
+
+  // ==========================================================
+  // AVAILABLE SUBJECTS
+  // Category -> Exam Type -> Subject
+  // ==========================================================
+
+  const availableSubjects =
+    useMemo(() => {
+      const values =
+        new Set<string>();
+
+      reports.forEach(
+        (
+          student
+        ) => {
+          student.results.forEach(
+            (
+              result
+            ) => {
+              const category =
+                result.testCategory?.trim() ||
+                "";
+
+              const examType =
+                result.examType?.trim() ||
+                "";
+
+              const subject =
+                result.subject?.trim() ||
+                "";
+
+              if (
+                selectedCategory !==
+                  "all" &&
+                normalizeValue(
+                  category
+                ) !==
+                  normalizeValue(
+                    selectedCategory
+                  )
+              ) {
+                return;
+              }
+
+              if (
+                selectedExamType !==
+                  "all" &&
+                normalizeValue(
+                  examType
+                ) !==
+                  normalizeValue(
+                    selectedExamType
+                  )
+              ) {
+                return;
+              }
+
+              if (
+                subject
+              ) {
+                values.add(
+                  subject
+                );
+              }
+            }
+          );
+        }
+      );
+
+      const preferredOrder = [
+        "physics",
+        "chemistry",
+        "botany",
+        "zoology",
+      ];
+
+      return Array.from(
+        values
+      ).sort(
+        (
+          a,
+          b
+        ) => {
+          const aIndex =
+            preferredOrder.indexOf(
+              normalizeValue(a)
+            );
+
+          const bIndex =
+            preferredOrder.indexOf(
+              normalizeValue(b)
+            );
+
+          if (
+            aIndex !== -1 &&
+            bIndex !== -1
+          ) {
+            return (
+              aIndex -
+              bIndex
+            );
+          }
+
+          if (
+            aIndex !== -1
+          ) {
+            return -1;
+          }
+
+          if (
+            bIndex !== -1
+          ) {
+            return 1;
+          }
+
+          return a.localeCompare(
+            b
+          );
+        }
+      );
+    }, [
+      reports,
+      selectedCategory,
+      selectedExamType,
+    ]);
+
+  // ==========================================================
+  // FILTER RESULTS
+  // ==========================================================
+
+  const filteredReports =
+    useMemo(() => {
+      return reports
+        .map(
+          (
+            student
+          ) => {
+            const filteredResults =
+              student.results.filter(
+                (
+                  result
+                ) => {
+                  const category =
+                    normalizeValue(
+                      result.testCategory
+                    );
+
+                  const examType =
+                    normalizeValue(
+                      result.examType
+                    );
+
+                  const subject =
+                    normalizeValue(
+                      result.subject
+                    );
+
+                  if (
+                    selectedCategory !==
+                      "all" &&
+                    category !==
+                      normalizeValue(
+                        selectedCategory
+                      )
+                  ) {
+                    return false;
+                  }
+
+                  if (
+                    selectedExamType !==
+                      "all" &&
+                    examType !==
+                      normalizeValue(
+                        selectedExamType
+                      )
+                  ) {
+                    return false;
+                  }
+
+                  if (
+                    selectedSubject !==
+                      "all" &&
+                    subject !==
+                      normalizeValue(
+                        selectedSubject
+                      )
+                  ) {
+                    return false;
+                  }
+
+                  return true;
+                }
+              );
+
+            return {
+              ...student,
+
+              results:
+                filteredResults,
+            };
+          }
+        )
+        .filter(
+          (
+            student
+          ) =>
+            student.results
+              .length > 0
+        );
+    }, [
+      reports,
+      selectedCategory,
+      selectedExamType,
+      selectedSubject,
+    ]);
+
+  // ==========================================================
   // TOTAL EXAMS
   // ==========================================================
 
-  const totalExams = useMemo(() => {
-    return reports.reduce(
-      (sum, student) =>
-        sum + student.results.length,
-      0
-    );
-  }, [reports]);
+  const totalExams =
+    useMemo(() => {
+      return filteredReports.reduce(
+        (
+          sum,
+          student
+        ) =>
+          sum +
+          student.results
+            .length,
+        0
+      );
+    }, [filteredReports]);
 
   // ==========================================================
   // SECTION AVERAGE
   // ==========================================================
 
-  const sectionAverage = useMemo(() => {
-    const allResults =
-      reports.flatMap(
-        (student) =>
-          student.results
+  const sectionAverage =
+    useMemo(() => {
+      const allResults =
+        filteredReports.flatMap(
+          (
+            student
+          ) =>
+            student.results
+        );
+
+      if (
+        !allResults.length
+      ) {
+        return 0;
+      }
+
+      const total =
+        allResults.reduce(
+          (
+            sum,
+            result
+          ) =>
+            sum +
+            numberValue(
+              result.percentage
+            ),
+          0
+        );
+
+      return Number(
+        (
+          total /
+          allResults.length
+        ).toFixed(2)
       );
-
-    if (!allResults.length) {
-      return 0;
-    }
-
-    const total =
-      allResults.reduce(
-        (sum, result) =>
-          sum +
-          numberValue(
-            result.percentage
-          ),
-        0
-      );
-
-    return Number(
-      (
-        total /
-        allResults.length
-      ).toFixed(2)
-    );
-  }, [reports]);
+    }, [
+      filteredReports,
+    ]);
 
   // ==========================================================
   // SUBJECT SUMMARY
+  // Includes total marks
   // ==========================================================
 
   const subjectSummary =
@@ -427,27 +884,43 @@ export default function StudentReport({
         string,
         {
           exams: number;
+          totalMarks: number;
           percentage: number;
         }
       > = {};
 
-      reports.forEach(
-        (student) => {
+      filteredReports.forEach(
+        (
+          student
+        ) => {
           student.results.forEach(
-            (result) => {
+            (
+              result
+            ) => {
               const subject =
                 result.subject?.trim() ||
                 "General";
 
-              if (!map[subject]) {
+              if (
+                !map[subject]
+              ) {
                 map[subject] = {
                   exams: 0,
+                  totalMarks: 0,
                   percentage: 0,
                 };
               }
 
-              map[subject].exams +=
-                1;
+              map[
+                subject
+              ].exams += 1;
+
+              map[
+                subject
+              ].totalMarks +=
+                numberValue(
+                  result.marks
+                );
 
               map[
                 subject
@@ -460,39 +933,110 @@ export default function StudentReport({
         }
       );
 
-      return Object.entries(map)
+      const preferredOrder = [
+        "physics",
+        "chemistry",
+        "botany",
+        "zoology",
+      ];
+
+      return Object.entries(
+        map
+      )
         .map(
-          ([
+          (
+            [
+              subject,
+              value,
+            ]
+          ): SubjectSummaryItem => ({
             subject,
-            value,
-          ]) => ({
-            subject,
-            exams: value.exams,
-            average: Number(
-              (
-                value.percentage /
-                value.exams
-              ).toFixed(2)
-            ),
+
+            exams:
+              value.exams,
+
+            totalMarks:
+              value.totalMarks,
+
+            averageMarks:
+              Number(
+                (
+                  value.totalMarks /
+                  value.exams
+                ).toFixed(2)
+              ),
+
+            averagePercentage:
+              Number(
+                (
+                  value.percentage /
+                  value.exams
+                ).toFixed(2)
+              ),
           })
         )
-        .sort((a, b) =>
-          a.subject.localeCompare(
-            b.subject
-          )
+        .sort(
+          (
+            a,
+            b
+          ) => {
+            const aIndex =
+              preferredOrder.indexOf(
+                normalizeValue(
+                  a.subject
+                )
+              );
+
+            const bIndex =
+              preferredOrder.indexOf(
+                normalizeValue(
+                  b.subject
+                )
+              );
+
+            if (
+              aIndex !== -1 &&
+              bIndex !== -1
+            ) {
+              return (
+                aIndex -
+                bIndex
+              );
+            }
+
+            if (
+              aIndex !== -1
+            ) {
+              return -1;
+            }
+
+            if (
+              bIndex !== -1
+            ) {
+              return 1;
+            }
+
+            return a.subject.localeCompare(
+              b.subject
+            );
+          }
         );
-    }, [reports]);
+    }, [
+      filteredReports,
+    ]);
 
   // ==========================================================
-  // BUILD PDF
+  // PDF
   // ==========================================================
 
   const buildPDF = () => {
-    const pdf = new jsPDF({
-      orientation: "portrait",
-      unit: "mm",
-      format: "a4",
-    });
+    const pdf =
+      new jsPDF({
+        orientation:
+          "portrait",
+        unit: "mm",
+        format: "a4",
+      });
 
     const pageWidth =
       pdf.internal.pageSize.getWidth();
@@ -539,7 +1083,9 @@ export default function StudentReport({
       "bold"
     );
 
-    pdf.setFontSize(21);
+    pdf.setFontSize(
+      21
+    );
 
     pdf.text(
       "EXAMMASTER",
@@ -552,7 +1098,9 @@ export default function StudentReport({
       "normal"
     );
 
-    pdf.setFontSize(8.5);
+    pdf.setFontSize(
+      8.5
+    );
 
     pdf.text(
       "MENTOR • SECTION PERFORMANCE REPORT",
@@ -560,14 +1108,17 @@ export default function StudentReport({
       22
     );
 
-    pdf.setFontSize(8);
+    pdf.setFontSize(
+      8
+    );
 
     pdf.text(
       `Report Date: ${reportDate}`,
       pageWidth - 14,
       15,
       {
-        align: "right",
+        align:
+          "right",
       }
     );
 
@@ -579,7 +1130,8 @@ export default function StudentReport({
       pageWidth - 14,
       22,
       {
-        align: "right",
+        align:
+          "right",
       }
     );
 
@@ -598,7 +1150,9 @@ export default function StudentReport({
       "bold"
     );
 
-    pdf.setFontSize(16);
+    pdf.setFontSize(
+      16
+    );
 
     pdf.text(
       title,
@@ -611,7 +1165,9 @@ export default function StudentReport({
       "normal"
     );
 
-    pdf.setFontSize(9);
+    pdf.setFontSize(
+      9
+    );
 
     pdf.text(
       `Mentor: ${
@@ -632,6 +1188,53 @@ export default function StudentReport({
     );
 
     // ========================================================
+    // FILTER SUMMARY
+    // ========================================================
+
+    pdf.setFontSize(
+      8
+    );
+
+    pdf.setTextColor(
+      95,
+      80,
+      68
+    );
+
+    pdf.text(
+      `Category: ${
+        selectedCategory ===
+        "all"
+          ? "All"
+          : selectedCategory
+      }`,
+      14,
+      72
+    );
+
+    pdf.text(
+      `Exam Type: ${
+        selectedExamType ===
+        "all"
+          ? "All"
+          : selectedExamType
+      }`,
+      72,
+      72
+    );
+
+    pdf.text(
+      `Subject: ${
+        selectedSubject ===
+        "all"
+          ? "All"
+          : selectedSubject
+      }`,
+      130,
+      72
+    );
+
+    // ========================================================
     // SUMMARY CARDS
     // ========================================================
 
@@ -640,7 +1243,7 @@ export default function StudentReport({
         label:
           "TOTAL STUDENTS",
         value: String(
-          reports.length
+          filteredReports.length
         ),
       },
       {
@@ -653,20 +1256,29 @@ export default function StudentReport({
       {
         label:
           "SECTION AVERAGE",
-        value: `${sectionAverage}%`,
+        value:
+          `${sectionAverage}%`,
       },
     ];
 
-    const cardWidth = 56;
-    const cardGap = 6;
+    const cardWidth =
+      56;
+
+    const cardGap =
+      6;
 
     summaryCards.forEach(
-      (card, index) => {
+      (
+        card,
+        index
+      ) => {
         const x =
           14 +
           index *
-            (cardWidth +
-              cardGap);
+            (
+              cardWidth +
+              cardGap
+            );
 
         pdf.setFillColor(
           248,
@@ -676,7 +1288,7 @@ export default function StudentReport({
 
         pdf.roundedRect(
           x,
-          74,
+          79,
           cardWidth,
           27,
           4,
@@ -695,14 +1307,16 @@ export default function StudentReport({
           "bold"
         );
 
-        pdf.setFontSize(7);
+        pdf.setFontSize(
+          7
+        );
 
         pdf.text(
           card.label,
           x +
             cardWidth /
               2,
-          82,
+          87,
           {
             align:
               "center",
@@ -715,14 +1329,16 @@ export default function StudentReport({
           29
         );
 
-        pdf.setFontSize(14);
+        pdf.setFontSize(
+          14
+        );
 
         pdf.text(
           card.value,
           x +
             cardWidth /
               2,
-          94,
+          99,
           {
             align:
               "center",
@@ -732,7 +1348,7 @@ export default function StudentReport({
     );
 
     // ========================================================
-    // SECTION SUBJECT SUMMARY
+    // SUBJECT SUMMARY
     // ========================================================
 
     if (
@@ -749,106 +1365,149 @@ export default function StudentReport({
         "bold"
       );
 
-      pdf.setFontSize(12);
+      pdf.setFontSize(
+        12
+      );
 
       pdf.text(
         "Subject-wise Section Summary",
         14,
-        113
+        118
       );
 
-      autoTable(pdf, {
-        startY: 118,
+      autoTable(
+        pdf,
+        {
+          startY:
+            123,
 
-        head: [
-          [
-            "SUBJECT",
-            "TOTAL EXAMS",
-            "SECTION AVERAGE",
+          head: [
+            [
+              "SUBJECT",
+              "EXAMS",
+              "TOTAL MARKS",
+              "AVG MARKS",
+              "AVG %",
+            ],
           ],
-        ],
 
-        body:
-          subjectSummary.map(
-            (item) => [
-              item.subject,
-              String(
-                item.exams
-              ),
-              `${item.average}%`,
-            ]
-          ),
+          body:
+            subjectSummary.map(
+              (
+                item
+              ) => [
+                item.subject,
 
-        theme: "grid",
+                String(
+                  item.exams
+                ),
 
-        margin: {
-          left: 14,
-          right: 14,
-          bottom: 20,
-        },
+                String(
+                  item.totalMarks
+                ),
 
-        styles: {
-          font:
-            "helvetica",
-          fontSize: 8.5,
-          cellPadding: 3,
-          textColor: [
-            45,
-            37,
-            32,
-          ],
-          lineColor: [
-            220,
-            212,
-            205,
-          ],
-          lineWidth: 0.25,
-        },
+                String(
+                  item.averageMarks
+                ),
 
-        headStyles: {
-          fillColor: [
-            67,
-            50,
-            41,
-          ],
-          textColor: [
-            255,
-            255,
-            255,
-          ],
-          fontStyle:
-            "bold",
-          halign:
-            "center",
-        },
+                `${item.averagePercentage}%`,
+              ]
+            ),
 
-        alternateRowStyles: {
-          fillColor: [
-            250,
-            247,
-            244,
-          ],
-        },
+          theme:
+            "grid",
 
-        columnStyles: {
-          1: {
+          margin: {
+            left: 14,
+            right: 14,
+            bottom: 20,
+          },
+
+          styles: {
+            font:
+              "helvetica",
+
+            fontSize:
+              8,
+
+            cellPadding:
+              3,
+
+            textColor: [
+              45,
+              37,
+              32,
+            ],
+
+            lineColor: [
+              220,
+              212,
+              205,
+            ],
+
+            lineWidth:
+              0.25,
+          },
+
+          headStyles: {
+            fillColor: [
+              67,
+              50,
+              41,
+            ],
+
+            textColor: [
+              255,
+              255,
+              255,
+            ],
+
+            fontStyle:
+              "bold",
+
             halign:
               "center",
           },
 
-          2: {
-            halign:
-              "center",
+          alternateRowStyles:
+            {
+              fillColor: [
+                250,
+                247,
+                244,
+              ],
+            },
+
+          columnStyles: {
+            1: {
+              halign:
+                "center",
+            },
+
+            2: {
+              halign:
+                "center",
+            },
+
+            3: {
+              halign:
+                "center",
+            },
+
+            4: {
+              halign:
+                "center",
+            },
           },
-        },
-      });
+        }
+      );
     }
 
     // ========================================================
     // EACH STUDENT
     // ========================================================
 
-    reports.forEach(
+    filteredReports.forEach(
       (
         student,
         index
@@ -868,7 +1527,8 @@ export default function StudentReport({
         pdf.roundedRect(
           14,
           14,
-          pageWidth - 28,
+          pageWidth -
+            28,
           30,
           5,
           5,
@@ -886,7 +1546,9 @@ export default function StudentReport({
           "bold"
         );
 
-        pdf.setFontSize(13);
+        pdf.setFontSize(
+          13
+        );
 
         pdf.text(
           `${String(
@@ -907,7 +1569,9 @@ export default function StudentReport({
           "normal"
         );
 
-        pdf.setFontSize(8);
+        pdf.setFontSize(
+          8
+        );
 
         pdf.text(
           `ID: ${
@@ -936,7 +1600,7 @@ export default function StudentReport({
         );
 
         // ----------------------------------------------------
-        // SUBJECT TABLE
+        // SUBJECT PERFORMANCE
         // ----------------------------------------------------
 
         pdf.setTextColor(
@@ -950,7 +1614,9 @@ export default function StudentReport({
           "bold"
         );
 
-        pdf.setFontSize(12);
+        pdf.setFontSize(
+          12
+        );
 
         pdf.text(
           "Subject-wise Performance",
@@ -967,7 +1633,9 @@ export default function StudentReport({
             "normal"
           );
 
-          pdf.setFontSize(9);
+          pdf.setFontSize(
+            9
+          );
 
           pdf.setTextColor(
             120,
@@ -985,149 +1653,402 @@ export default function StudentReport({
           return;
         }
 
-        autoTable(pdf, {
-          startY: 60,
+        autoTable(
+          pdf,
+          {
+            startY:
+              60,
 
-          head: [
-            [
-              "SUBJECT",
-              "EXAM",
-              "DATE",
-              "MARKS",
-              "%",
-              "GRADE",
-              "STATUS",
+            head: [
+              [
+                "CATEGORY",
+                "EXAM TYPE",
+                "SUBJECT",
+                "EXAM",
+                "DATE",
+                "MARKS",
+                "%",
+                "GRADE",
+                "STATUS",
+              ],
             ],
-          ],
 
-          body:
-            student.results.map(
-              (
-                result
-              ) => [
-                result.subject ||
-                  "General",
-                result.examName ||
-                  "Exam",
-                formatDate(
-                  result.createdAt ||
-                    result.submittedAt
-                ),
-                String(
-                  numberValue(
-                    result.marks
-                  )
-                ),
-                `${numberValue(
-                  result.percentage
-                )}%`,
-                result.grade ||
-                  "-",
-                result.status ||
-                  "-",
+            body:
+              student.results.map(
+                (
+                  result
+                ) => [
+                  result.testCategory ||
+                    "General",
+
+                  result.examType ||
+                    "N/A",
+
+                  result.subject ||
+                    "General",
+
+                  result.examName ||
+                    "Exam",
+
+                  formatDate(
+                    result.createdAt ||
+                      result.submittedAt
+                  ),
+
+                  String(
+                    numberValue(
+                      result.marks
+                    )
+                  ),
+
+                  `${numberValue(
+                    result.percentage
+                  )}%`,
+
+                  result.grade ||
+                    "-",
+
+                  result.status ||
+                    "-",
+                ]
+              ),
+
+            theme:
+              "grid",
+
+            margin: {
+              left: 10,
+              right: 10,
+              bottom: 20,
+            },
+
+            styles: {
+              font:
+                "helvetica",
+
+              fontSize:
+                6.5,
+
+              cellPadding:
+                2.5,
+
+              textColor: [
+                45,
+                37,
+                32,
+              ],
+
+              lineColor: [
+                220,
+                212,
+                205,
+              ],
+
+              lineWidth:
+                0.2,
+            },
+
+            headStyles: {
+              fillColor: [
+                67,
+                50,
+                41,
+              ],
+
+              textColor: [
+                255,
+                255,
+                255,
+              ],
+
+              fontStyle:
+                "bold",
+
+              fontSize:
+                6.2,
+
+              halign:
+                "center",
+            },
+
+            alternateRowStyles:
+              {
+                fillColor: [
+                  250,
+                  247,
+                  244,
+                ],
+              },
+
+            columnStyles: {
+              0: {
+                cellWidth:
+                  20,
+              },
+
+              1: {
+                cellWidth:
+                  20,
+              },
+
+              2: {
+                cellWidth:
+                  24,
+              },
+
+              3: {
+                cellWidth:
+                  48,
+              },
+
+              4: {
+                cellWidth:
+                  20,
+                  halign:
+                    "center",
+              },
+
+              5: {
+                cellWidth:
+                  15,
+                  halign:
+                    "center",
+              },
+
+              6: {
+                cellWidth:
+                  13,
+                  halign:
+                    "center",
+              },
+
+              7: {
+                cellWidth:
+                  15,
+                halign:
+                  "center",
+              },
+
+              8: {
+                cellWidth:
+                  20,
+                halign:
+                  "center",
+              },
+            },
+          }
+        );
+
+        // ----------------------------------------------------
+        // STUDENT SUBJECT MARKS
+        // ----------------------------------------------------
+
+        const studentSubjectMap:
+          Record<
+            string,
+            {
+              marks: number;
+              exams: number;
+            }
+          > = {};
+
+        student.results.forEach(
+          (
+            result
+          ) => {
+            const subject =
+              result.subject?.trim() ||
+              "General";
+
+            if (
+              !studentSubjectMap[
+                subject
               ]
-            ),
+            ) {
+              studentSubjectMap[
+                subject
+              ] = {
+                marks: 0,
+                exams: 0,
+              };
+            }
 
-          theme: "grid",
+            studentSubjectMap[
+              subject
+            ].marks +=
+              numberValue(
+                result.marks
+              );
 
-          margin: {
-            left: 14,
-            right: 14,
-            bottom: 20,
-          },
+            studentSubjectMap[
+              subject
+            ].exams += 1;
+          }
+        );
 
-          styles: {
-            font:
-              "helvetica",
-            fontSize: 7.5,
-            cellPadding: 3,
-            textColor: [
-              45,
-              37,
-              32,
+        const subjectMarksRows =
+          Object.entries(
+            studentSubjectMap
+          ).map(
+            ([
+              subject,
+              value,
+            ]) => [
+              subject,
+
+              String(
+                value.exams
+              ),
+
+              String(
+                value.marks
+              ),
+
+              String(
+                (
+                  value.marks /
+                  value.exams
+                ).toFixed(2)
+              ),
+            ]
+          );
+
+        const subjectTableY =
+          (pdf as any)
+            .lastAutoTable
+            ?.finalY || 70;
+
+        pdf.setTextColor(
+          53,
+          42,
+          35
+        );
+
+        pdf.setFont(
+          "helvetica",
+          "bold"
+        );
+
+        pdf.setFontSize(
+          10
+        );
+
+        pdf.text(
+          "Subject Marks Breakdown",
+          14,
+          subjectTableY +
+            12
+        );
+
+        autoTable(
+          pdf,
+          {
+            startY:
+              subjectTableY +
+              16,
+
+            head: [
+              [
+                "SUBJECT",
+                "EXAMS",
+                "TOTAL MARKS",
+                "AVG MARKS",
+              ],
             ],
-            lineColor: [
-              220,
-              212,
-              205,
-            ],
-            lineWidth:
-              0.2,
-          },
 
-          headStyles: {
-            fillColor: [
-              67,
-              50,
-              41,
-            ],
-            textColor: [
-              255,
-              255,
-              255,
-            ],
-            fontStyle:
-              "bold",
-            fontSize: 7,
-            halign:
-              "center",
-          },
+            body:
+              subjectMarksRows,
 
-          alternateRowStyles: {
-            fillColor: [
-              250,
-              247,
-              244,
-            ],
-          },
+            theme:
+              "grid",
 
-          columnStyles: {
-            0: {
-              cellWidth: 27,
+            margin: {
+              left: 14,
+              right: 14,
+              bottom: 20,
             },
 
-            1: {
-              cellWidth: 57,
+            styles: {
+              font:
+                "helvetica",
+
+              fontSize:
+                7.5,
+
+              cellPadding:
+                3,
+
+              textColor: [
+                45,
+                37,
+                32,
+              ],
+
+              lineColor: [
+                220,
+                212,
+                205,
+              ],
+
+              lineWidth:
+                0.2,
             },
 
-            2: {
-              cellWidth: 23,
+            headStyles: {
+              fillColor: [
+                67,
+                50,
+                41,
+              ],
+
+              textColor: [
+                255,
+                255,
+                255,
+              ],
+
+              fontStyle:
+                "bold",
+
               halign:
                 "center",
             },
 
-            3: {
-              cellWidth: 17,
-              halign:
-                "center",
-            },
+            alternateRowStyles:
+              {
+                fillColor: [
+                  250,
+                  247,
+                  244,
+                ],
+              },
 
-            4: {
-              cellWidth: 17,
-              halign:
-                "center",
-            },
+            columnStyles: {
+              1: {
+                halign:
+                  "center",
+              },
 
-            5: {
-              cellWidth: 16,
-              halign:
-                "center",
-            },
+              2: {
+                halign:
+                  "center",
+              },
 
-            6: {
-              cellWidth: 22,
-              halign:
-                "center",
+              3: {
+                halign:
+                  "center",
+              },
             },
-          },
-        });
+          }
+        );
 
         // ----------------------------------------------------
         // STUDENT AVERAGE
         // ----------------------------------------------------
 
         const average =
-          student.results.length
+          student.results
+            .length
             ? Number(
                 (
                   student.results.reduce(
@@ -1143,15 +2064,16 @@ export default function StudentReport({
                   ) /
                   student.results
                     .length
-                ).toFixed(2)
+                ).toFixed(
+                  2
+                )
               )
             : 0;
 
         const finalY =
           (pdf as any)
             .lastAutoTable
-            ?.finalY ||
-          70;
+            ?.finalY || 70;
 
         pdf.setFillColor(
           248,
@@ -1162,7 +2084,8 @@ export default function StudentReport({
         pdf.roundedRect(
           14,
           finalY + 10,
-          pageWidth - 28,
+          pageWidth -
+            28,
           23,
           4,
           4,
@@ -1180,7 +2103,9 @@ export default function StudentReport({
           "bold"
         );
 
-        pdf.setFontSize(8);
+        pdf.setFontSize(
+          8
+        );
 
         pdf.text(
           "STUDENT AVERAGE",
@@ -1194,7 +2119,9 @@ export default function StudentReport({
           29
         );
 
-        pdf.setFontSize(13);
+        pdf.setFontSize(
+          13
+        );
 
         pdf.text(
           `${average}%`,
@@ -1220,7 +2147,9 @@ export default function StudentReport({
       page <= pageCount;
       page++
     ) {
-      pdf.setPage(page);
+      pdf.setPage(
+        page
+      );
 
       pdf.setDrawColor(
         220,
@@ -1246,7 +2175,9 @@ export default function StudentReport({
         "normal"
       );
 
-      pdf.setFontSize(7.5);
+      pdf.setFontSize(
+        7.5
+      );
 
       pdf.text(
         "EXAMMASTER • Mentor Section Performance Report",
@@ -1272,112 +2203,125 @@ export default function StudentReport({
   // DOWNLOAD
   // ==========================================================
 
-  const handleDownload =
-    () => {
-      try {
-        if (!reports.length) {
-          alert(
-            "No report data available."
-          );
-          return;
-        }
-
-        setPdfLoading(true);
-
-        const pdf =
-          buildPDF();
-
-        const safeSection =
-          (
-            owner?.section ||
-            "NA"
-          )
-            .replace(
-              /[^a-zA-Z0-9]+/g,
-              "-"
-            )
-            .replace(
-              /^-|-$/g,
-              ""
-            );
-
-        pdf.save(
-          `EXAMMASTER-Section-${safeSection}-Performance-Report.pdf`
-        );
-      } catch (err) {
-        console.error(
-          "PDF generation error:",
-          err
-        );
-
+  const handleDownload = () => {
+    try {
+      if (
+        !reports.length
+      ) {
         alert(
-          "Unable to create PDF."
+          "No report data available."
         );
-      } finally {
-        setPdfLoading(false);
+
+        return;
       }
-    };
+
+      setPdfLoading(
+        true
+      );
+
+      const pdf =
+        buildPDF();
+
+      const safeSection =
+        (
+          owner?.section ||
+          "NA"
+        )
+          .replace(
+            /[^a-zA-Z0-9]+/g,
+            "-"
+          )
+          .replace(
+            /^-|-$/g,
+            ""
+          );
+
+      pdf.save(
+        `EXAMMASTER-Section-${safeSection}-Performance-Report.pdf`
+      );
+    } catch (
+      err
+    ) {
+      console.error(
+        "PDF generation error:",
+        err
+      );
+
+      alert(
+        "Unable to create PDF."
+      );
+    } finally {
+      setPdfLoading(
+        false
+      );
+    }
+  };
 
   // ==========================================================
   // SHARE
   // ==========================================================
 
-  const handleShare =
-    async () => {
-      try {
-        if (!reports.length) {
-          alert(
-            "No report data available."
-          );
-          return;
-        }
+  const handleShare = async () => {
+    try {
+      if (
+        !reports.length
+      ) {
+        alert(
+          "No report data available."
+        );
 
-        setShareLoading(true);
+        return;
+      }
 
-        const pdf =
-          buildPDF();
+      setShareLoading(
+        true
+      );
 
-        const safeSection =
-          (
-            owner?.section ||
-            "NA"
+      const pdf =
+        buildPDF();
+
+      const safeSection =
+        (
+          owner?.section ||
+          "NA"
+        )
+          .replace(
+            /[^a-zA-Z0-9]+/g,
+            "-"
           )
-            .replace(
-              /[^a-zA-Z0-9]+/g,
-              "-"
-            )
-            .replace(
-              /^-|-$/g,
-              ""
-            );
-
-        const fileName =
-          `EXAMMASTER-Section-${safeSection}-Performance-Report.pdf`;
-
-        const blob =
-          pdf.output(
-            "blob"
+          .replace(
+            /^-|-$/g,
+            ""
           );
 
-        const file =
-          new File(
-            [blob],
-            fileName,
-            {
-              type:
-                "application/pdf",
-            }
-          );
+      const fileName =
+        `EXAMMASTER-Section-${safeSection}-Performance-Report.pdf`;
 
-        // Native mobile / browser file share
-        if (
-          navigator.share &&
-          navigator.canShare &&
-          navigator.canShare({
-            files: [file],
-          })
-        ) {
-          await navigator.share({
+      const blob =
+        pdf.output(
+          "blob"
+        );
+
+      const file =
+        new File(
+          [blob],
+          fileName,
+          {
+            type:
+              "application/pdf",
+          }
+        );
+
+      // Native share
+      if (
+        navigator.share &&
+        navigator.canShare &&
+        navigator.canShare({
+          files: [file],
+        })
+      ) {
+        await navigator.share(
+          {
             title:
               "EXAMMASTER Section Performance Report",
 
@@ -1388,60 +2332,83 @@ export default function StudentReport({
               } student performance report.`,
 
             files: [file],
-          });
-
-          return;
-        }
-
-        // WhatsApp fallback
-        const message =
-          `EXAMMASTER - Mentor Section Performance Report\n\n` +
-          `Mentor: ${
-            owner?.name ||
-            "Mentor"
-          }\n` +
-          `Section: ${
-            owner?.section ||
-            "N/A"
-          }\n` +
-          `Total Students: ${
-            reports.length
-          }\n` +
-          `Total Exams: ${totalExams}\n` +
-          `Section Average: ${
-            sectionAverage
-          }%\n\n` +
-          `Please attach the downloaded PDF to this WhatsApp message.`;
-
-        window.open(
-          `https://wa.me/?text=${encodeURIComponent(
-            message
-          )}`,
-          "_blank",
-          "noopener,noreferrer"
-        );
-      } catch (err: any) {
-        if (
-          err?.name ===
-          "AbortError"
-        ) {
-          return;
-        }
-
-        console.error(
-          "Share error:",
-          err
+          }
         );
 
-        alert(
-          "Unable to share report."
-        );
-      } finally {
-        setShareLoading(
-          false
-        );
+        return;
       }
-    };
+
+      // WhatsApp fallback
+      const message =
+        `EXAMMASTER - Mentor Section Performance Report\n\n` +
+        `Mentor: ${
+          owner?.name ||
+          "Mentor"
+        }\n` +
+        `Section: ${
+          owner?.section ||
+          "N/A"
+        }\n` +
+        `Category: ${
+          selectedCategory ===
+          "all"
+            ? "All"
+            : selectedCategory
+        }\n` +
+        `Exam Type: ${
+          selectedExamType ===
+          "all"
+            ? "All"
+            : selectedExamType
+        }\n` +
+        `Subject: ${
+          selectedSubject ===
+          "all"
+            ? "All"
+            : selectedSubject
+        }\n` +
+        `Total Students: ${
+          filteredReports.length
+        }\n` +
+        `Total Exams: ${
+          totalExams
+        }\n` +
+        `Section Average: ${
+          sectionAverage
+        }%\n\n` +
+        `Please attach the downloaded PDF to this WhatsApp message.`;
+
+      window.open(
+        `https://wa.me/?text=${encodeURIComponent(
+          message
+        )}`,
+        "_blank",
+        "noopener,noreferrer"
+      );
+    } catch (
+      err: any
+    ) {
+      if (
+        err?.name ===
+        "AbortError"
+      ) {
+        return;
+      }
+
+      console.error(
+        "Share error:",
+        err
+      );
+
+      alert(
+        "Unable to share report."
+      );
+    } finally {
+      setShareLoading(
+        false
+      );
+    }
+  };
 
   // ==========================================================
   // CLOSE
@@ -1455,7 +2422,9 @@ export default function StudentReport({
       return;
     }
 
-    onOpenChange(false);
+    onOpenChange(
+      false
+    );
   };
 
   // ==========================================================
@@ -1473,7 +2442,9 @@ export default function StudentReport({
   return (
     <div
       className="student-report-overlay"
-      onMouseDown={(event) => {
+      onMouseDown={(
+        event
+      ) => {
         if (
           event.target ===
           event.currentTarget
@@ -1491,7 +2462,6 @@ export default function StudentReport({
         <header className="student-report-header">
 
           <div>
-
             <span className="student-report-eyebrow">
               EXAMMASTER • MENTOR
             </span>
@@ -1507,13 +2477,14 @@ export default function StudentReport({
               {owner?.section ||
                 "N/A"}
             </p>
-
           </div>
 
           <button
             type="button"
             className="student-report-close"
-            onClick={close}
+            onClick={
+              close
+            }
             disabled={
               pdfLoading ||
               shareLoading
@@ -1531,6 +2502,162 @@ export default function StudentReport({
         <div className="student-report-content">
 
           {/* =================================================
+              FILTER PANEL
+          ================================================= */}
+
+          <section className="student-report-block">
+
+            <div className="student-report-block-heading">
+              <div>
+                <span>
+                  PERFORMANCE FILTER
+                </span>
+
+                
+              </div>
+
+              <p>
+                {filteredReports.length}{" "}
+                Students
+              </p>
+            </div>
+
+            <div className="student-report-filter-grid">
+
+              {/* CATEGORY */}
+
+              <label className="student-report-filter">
+                <span>
+                  Category
+                </span>
+
+                <select
+                  value={
+                    selectedCategory
+                  }
+                  onChange={(
+                    event
+                  ) =>
+                    setSelectedCategory(
+                      event.target
+                        .value
+                    )
+                  }
+                >
+                  <option value="all">
+                    All Categories
+                  </option>
+
+                  {availableCategories.map(
+                    (
+                      category
+                    ) => (
+                      <option
+                        key={
+                          category
+                        }
+                        value={
+                          category
+                        }
+                      >
+                        {category}
+                      </option>
+                    )
+                  )}
+                </select>
+              </label>
+
+              {/* EXAM TYPE */}
+
+              <label className="student-report-filter">
+                <span>
+                  Exam Type
+                </span>
+
+                <select
+                  value={
+                    selectedExamType
+                  }
+                  onChange={(
+                    event
+                  ) =>
+                    setSelectedExamType(
+                      event.target
+                        .value
+                    )
+                  }
+                >
+                  <option value="all">
+                    All Exam Types
+                  </option>
+
+                  {availableExamTypes.map(
+                    (
+                      examType
+                    ) => (
+                      <option
+                        key={
+                          examType
+                        }
+                        value={
+                          examType
+                        }
+                      >
+                        {examType}
+                      </option>
+                    )
+                  )}
+                </select>
+              </label>
+
+              {/* SUBJECT */}
+
+              <label className="student-report-filter">
+                <span>
+                  Subject
+                </span>
+
+                <select
+                  value={
+                    selectedSubject
+                  }
+                  onChange={(
+                    event
+                  ) =>
+                    setSelectedSubject(
+                      event.target
+                        .value
+                    )
+                  }
+                >
+                  <option value="all">
+                    All Subjects
+                  </option>
+
+                  {availableSubjects.map(
+                    (
+                      subject
+                    ) => (
+                      <option
+                        key={
+                          subject
+                        }
+                        value={
+                          subject
+                        }
+                      >
+                        {subject}
+                      </option>
+                    )
+                  )}
+                </select>
+              </label>
+
+            </div>
+
+          </section>
+
+          {/* =================================================
               SUMMARY
           ================================================= */}
 
@@ -1545,8 +2672,9 @@ export default function StudentReport({
                 </span>
 
                 <strong>
-                  {reports.length ||
-                    students.length}
+                  {
+                    filteredReports.length
+                  }
                 </strong>
               </div>
             </div>
@@ -1560,20 +2688,67 @@ export default function StudentReport({
                 </span>
 
                 <strong>
-                  {totalExams}
+                  {
+                    totalExams
+                  }
                 </strong>
               </div>
             </div>
 
             <div className="student-report-stat">
-              <span>
-                SECTION AVERAGE
-              </span>
+              <div>
+                <span>
+                  SECTION AVERAGE
+                </span>
 
-              <strong>
-                {sectionAverage}%
-              </strong>
+                <strong>
+                  {
+                    sectionAverage
+                  }%
+                </strong>
+              </div>
             </div>
+
+          </div>
+
+          {/* =================================================
+              ACTIVE FILTER
+          ================================================= */}
+
+          <div className="student-report-active-filter">
+
+            <span>
+              Category:
+              <strong>
+                {" "}
+                {selectedCategory ===
+                "all"
+                  ? "All"
+                  : selectedCategory}
+              </strong>
+            </span>
+
+            <span>
+              Exam Type:
+              <strong>
+                {" "}
+                {selectedExamType ===
+                "all"
+                  ? "All"
+                  : selectedExamType}
+              </strong>
+            </span>
+
+            <span>
+              Subject:
+              <strong>
+                {" "}
+                {selectedSubject ===
+                "all"
+                  ? "All"
+                  : selectedSubject}
+              </strong>
+            </span>
 
           </div>
 
@@ -1582,7 +2757,6 @@ export default function StudentReport({
           ================================================= */}
 
           {loading ? (
-
             <div className="student-report-loading">
 
               <RefreshCw
@@ -1595,20 +2769,17 @@ export default function StudentReport({
               </h3>
 
               <p>
-                Collecting subject-wise
-                performance for all
-                section students.
+                Collecting category,
+                exam type and
+                subject-wise performance
+                for all section students.
               </p>
 
             </div>
-
           ) : error ? (
-
             <div className="student-report-error">
 
-              <FileText
-                size={25}
-              />
+              <FileText size={25} />
 
               <h3>
                 Unable to load report
@@ -1628,9 +2799,7 @@ export default function StudentReport({
               </button>
 
             </div>
-
           ) : (
-
             <>
 
               {/* ===========================================
@@ -1642,17 +2811,24 @@ export default function StudentReport({
                 <section className="student-report-block">
 
                   <div className="student-report-block-heading">
-
                     <div>
+
                       <span>
-                        SECTION ANALYSIS
+                        SUBJECT ANALYSIS
                       </span>
 
                       <h3>
-                        Subject-wise Average
+                        Subject-wise Marks
                       </h3>
+
                     </div>
 
+                    <p>
+                      {
+                        subjectSummary.length
+                      }{" "}
+                      Subjects
+                    </p>
                   </div>
 
                   <div className="student-report-subject-grid">
@@ -1676,9 +2852,24 @@ export default function StudentReport({
 
                           <strong>
                             {
-                              item.average
-                            }%
+                              item.averageMarks
+                            }{" "}
+                            marks
                           </strong>
+
+                          <small>
+                            Total Marks:{" "}
+                            {
+                              item.totalMarks
+                            }
+                          </small>
+
+                          <small>
+                            Average:{" "}
+                            {
+                              item.averagePercentage
+                            }%
+                          </small>
 
                           <small>
                             {
@@ -1709,6 +2900,7 @@ export default function StudentReport({
                 <div className="student-report-block-heading">
 
                   <div>
+
                     <span>
                       STUDENT PERFORMANCE
                     </span>
@@ -1716,11 +2908,12 @@ export default function StudentReport({
                     <h3>
                       Subject-wise Results
                     </h3>
+
                   </div>
 
                   <p>
                     {
-                      reports.length
+                      filteredReports.length
                     }{" "}
                     Students
                   </p>
@@ -1729,293 +2922,455 @@ export default function StudentReport({
 
                 <div className="student-report-list">
 
-                  {reports.map(
-                    (
-                      student,
-                      index
-                    ) => {
+                  {filteredReports.length ===
+                  0 ? (
+                    <div className="student-report-empty-result">
 
-                      const average =
-                        student
-                          .results
-                          .length
-                          ? Number(
-                              (
-                                student.results.reduce(
-                                  (
-                                    sum,
-                                    result
-                                  ) =>
-                                    sum +
-                                    numberValue(
-                                      result.percentage
-                                    ),
-                                  0
-                                ) /
-                                student
-                                  .results
-                                  .length
-                              ).toFixed(
-                                2
+                      <FileText
+                        size={20}
+                      />
+
+                      <span>
+                        No results found
+                        for the selected
+                        category, exam type
+                        and subject.
+                      </span>
+
+                    </div>
+                  ) : (
+                    filteredReports.map(
+                      (
+                        student,
+                        index
+                      ) => {
+                        const average =
+                          student
+                            .results
+                            .length
+                            ? Number(
+                                (
+                                  student.results.reduce(
+                                    (
+                                      sum,
+                                      result
+                                    ) =>
+                                      sum +
+                                      numberValue(
+                                        result.percentage
+                                      ),
+                                    0
+                                  ) /
+                                  student
+                                    .results
+                                    .length
+                                ).toFixed(
+                                  2
+                                )
                               )
-                            )
-                          : 0;
+                            : 0;
 
-                      const isExpanded =
-                        Boolean(
-                          expandedStudents[
-                            student
-                              .studentId
-                          ]
-                        );
+                        const totalMarks =
+                          student.results.reduce(
+                            (
+                              sum,
+                              result
+                            ) =>
+                              sum +
+                              numberValue(
+                                result.marks
+                              ),
+                            0
+                          );
 
-                      return (
-                        <article
-                          key={
-                            student.studentId
-                          }
-                          className="student-report-student"
-                        >
+                        const isExpanded =
+                          Boolean(
+                            expandedStudents[
+                              student
+                                .studentId
+                            ]
+                          );
 
-                          <button
-                            type="button"
-                            className="student-report-student-head"
-                            onClick={() =>
-                              toggleStudent(
-                                student.studentId
-                              )
+                        return (
+                          <article
+                            key={
+                              student.studentId
                             }
+                            className="student-report-student"
                           >
 
-                            <div className="student-report-student-info">
+                            {/* STUDENT HEADER */}
 
-                              <div className="student-report-avatar">
-                                {
-                                  getInitials(
-                                    student.name
-                                  )
-                                }
-                              </div>
+                            <button
+                              type="button"
+                              className="student-report-student-head"
+                              onClick={() =>
+                                toggleStudent(
+                                  student.studentId
+                                )
+                              }
+                            >
 
-                              <div>
+                              <div className="student-report-student-info">
 
-                                <strong>
-                                  {String(
-                                    index +
-                                      1
-                                  ).padStart(
-                                    2,
-                                    "0"
-                                  )}{" "}
+                                <div className="student-report-avatar">
                                   {
-                                    student.name
+                                    getInitials(
+                                      student.name
+                                    )
                                   }
-                                </strong>
+                                </div>
 
-                                <span>
-                                  {
-                                    student.studentId
-                                  }{" "}
-                                  •{" "}
-                                  {
-                                    student.className
-                                  }{" "}
-                                  • Section{" "}
-                                  {
-                                    student.section ||
-                                    owner?.section ||
-                                    "N/A"
-                                  }
-                                </span>
+                                <div>
 
-                              </div>
-
-                            </div>
-
-                            <div className="student-report-student-average">
-
-                              <div>
-                                <span>
-                                  Average
-                                </span>
-
-                                <strong>
-                                  {
-                                    average
-                                  }%
-                                </strong>
-                              </div>
-
-                              {isExpanded ? (
-                                <ChevronUp
-                                  size={
-                                    18
-                                  }
-                                />
-                              ) : (
-                                <ChevronDown
-                                  size={
-                                    18
-                                  }
-                                />
-                              )}
-
-                            </div>
-
-                          </button>
-
-                          {isExpanded && (
-                            <div className="student-report-student-body">
-
-                              {student
-                                .results
-                                .length ===
-                              0 ? (
-
-                                <div className="student-report-empty-result">
-
-                                  <FileText
-                                    size={
-                                      20
+                                  <strong>
+                                    {String(
+                                      index +
+                                        1
+                                    ).padStart(
+                                      2,
+                                      "0"
+                                    )}{" "}
+                                    {
+                                      student.name
                                     }
-                                  />
+                                  </strong>
 
                                   <span>
-                                    No results available for this student.
+                                    {
+                                      student.studentId
+                                    }{" "}
+                                    •{" "}
+                                    {
+                                      student.className
+                                    }{" "}
+                                    • Section{" "}
+                                    {
+                                      student.section ||
+                                      owner?.section ||
+                                      "N/A"
+                                    }
                                   </span>
 
                                 </div>
 
-                              ) : (
+                              </div>
 
-                                <div className="student-report-table-wrap">
+                              <div className="student-report-student-average">
 
-                                  <table className="student-report-table">
+                                <div>
+                                  <span>
+                                    Average
+                                  </span>
 
-                                    <thead>
-                                      <tr>
-                                        <th>
-                                          Subject
-                                        </th>
+                                  <strong>
+                                    {
+                                      average
+                                    }%
+                                  </strong>
 
-                                        <th>
-                                          Exam
-                                        </th>
+                                  <small>
+                                    {totalMarks}{" "}
+                                    Marks
+                                  </small>
+                                </div>
 
-                                        <th>
-                                          Date
-                                        </th>
+                                {isExpanded ? (
+                                  <ChevronUp
+                                    size={
+                                      18
+                                    }
+                                  />
+                                ) : (
+                                  <ChevronDown
+                                    size={
+                                      18
+                                    }
+                                  />
+                                )}
 
-                                        <th>
-                                          Marks
-                                        </th>
+                              </div>
 
-                                        <th>
-                                          %
-                                        </th>
+                            </button>
 
-                                        <th>
-                                          Grade
-                                        </th>
+                            {/* STUDENT BODY */}
 
-                                        <th>
-                                          Status
-                                        </th>
-                                      </tr>
-                                    </thead>
+                            {isExpanded && (
+                              <div className="student-report-student-body">
 
-                                    <tbody>
+                                {student
+                                  .results
+                                  .length ===
+                                0 ? (
+                                  <div className="student-report-empty-result">
 
-                                      {student.results.map(
+                                    <FileText
+                                      size={
+                                        20
+                                      }
+                                    />
+
+                                    <span>
+                                      No results
+                                      available
+                                      for this
+                                      student.
+                                    </span>
+
+                                  </div>
+                                ) : (
+                                  <>
+                                    {/* SUBJECT MARK CARDS */}
+
+                                    <div className="student-report-mini-subject-grid">
+
+                                      {Array.from(
+                                        new Set(
+                                          student.results.map(
+                                            (
+                                              result
+                                            ) =>
+                                              result.subject?.trim() ||
+                                              "General"
+                                          )
+                                        )
+                                      ).map(
                                         (
-                                          result,
-                                          resultIndex
-                                        ) => (
+                                          subject
+                                        ) => {
+                                          const subjectResults =
+                                            student.results.filter(
+                                              (
+                                                result
+                                              ) =>
+                                                normalizeValue(
+                                                  result.subject
+                                                ) ===
+                                                normalizeValue(
+                                                  subject
+                                                )
+                                            );
 
-                                          <tr
-                                            key={
-                                              result._id ||
-                                              `${student.studentId}-${resultIndex}`
-                                            }
-                                          >
+                                          const subjectTotalMarks =
+                                            subjectResults.reduce(
+                                              (
+                                                sum,
+                                                result
+                                              ) =>
+                                                sum +
+                                                numberValue(
+                                                  result.marks
+                                                ),
+                                              0
+                                            );
 
-                                            <td>
-                                              {
-                                                result.subject ||
-                                                "General"
+                                          const subjectAverageMarks =
+                                            subjectResults.length
+                                              ? Number(
+                                                  (
+                                                    subjectTotalMarks /
+                                                    subjectResults.length
+                                                  ).toFixed(
+                                                    2
+                                                  )
+                                                )
+                                              : 0;
+
+                                          return (
+                                            <div
+                                              key={
+                                                subject
                                               }
-                                            </td>
+                                              className="student-report-mini-subject-card"
+                                            >
 
-                                            <td>
-                                              {
-                                                result.examName ||
-                                                "Exam"
-                                              }
-                                            </td>
-
-                                            <td>
-                                              {formatDate(
-                                                result.createdAt ||
-                                                  result.submittedAt
-                                              )}
-                                            </td>
-
-                                            <td>
-                                              {numberValue(
-                                                result.marks
-                                              )}
-                                            </td>
-
-                                            <td>
-                                              {numberValue(
-                                                result.percentage
-                                              )}
-                                              %
-                                            </td>
-
-                                            <td>
-                                              {
-                                                result.grade ||
-                                                "-"
-                                              }
-                                            </td>
-
-                                            <td>
-                                              <span
-                                                className={
-                                                  result.status
-                                                    ?.toUpperCase() ===
-                                                  "PASS"
-                                                    ? "student-report-status pass"
-                                                    : "student-report-status fail"
-                                                }
-                                              >
+                                              <span>
                                                 {
-                                                  result.status ||
-                                                  "-"
+                                                  subject
                                                 }
                                               </span>
-                                            </td>
+
+                                              <strong>
+                                                {
+                                                  subjectAverageMarks
+                                                }{" "}
+                                                marks
+                                              </strong>
+
+                                              <small>
+                                                Total:{" "}
+                                                {
+                                                  subjectTotalMarks
+                                                }
+                                              </small>
+
+                                            </div>
+                                          );
+                                        }
+                                      )}
+
+                                    </div>
+
+                                    {/* RESULTS TABLE */}
+
+                                    <div className="student-report-table-wrap">
+
+                                      <table className="student-report-table">
+
+                                        <thead>
+
+                                          <tr>
+
+                                            <th>
+                                              Category
+                                            </th>
+
+                                            <th>
+                                              Exam Type
+                                            </th>
+
+                                            <th>
+                                              Subject
+                                            </th>
+
+                                            <th>
+                                              Exam
+                                            </th>
+
+                                            <th>
+                                              Date
+                                            </th>
+
+                                            <th>
+                                              Marks
+                                            </th>
+
+                                            <th>
+                                              %
+                                            </th>
+
+                                            <th>
+                                              Grade
+                                            </th>
+
+                                            <th>
+                                              Status
+                                            </th>
 
                                           </tr>
 
-                                        )
-                                      )}
+                                        </thead>
 
-                                    </tbody>
+                                        <tbody>
 
-                                  </table>
+                                          {student.results.map(
+                                            (
+                                              result,
+                                              resultIndex
+                                            ) => (
+                                              <tr
+                                                key={
+                                                  result._id ||
+                                                  `${student.studentId}-${resultIndex}`
+                                                }
+                                              >
 
-                                </div>
+                                                <td>
+                                                  {
+                                                    result.testCategory ||
+                                                    "General"
+                                                  }
+                                                </td>
 
-                              )}
+                                                <td>
+                                                  {
+                                                    result.examType ||
+                                                    "N/A"
+                                                  }
+                                                </td>
 
-                            </div>
-                          )}
+                                                <td>
+                                                  <strong>
+                                                    {
+                                                      result.subject ||
+                                                      "General"
+                                                    }
+                                                  </strong>
+                                                </td>
 
-                        </article>
-                      );
-                    }
+                                                <td>
+                                                  {
+                                                    result.examName ||
+                                                    "Exam"
+                                                  }
+                                                </td>
+
+                                                <td>
+                                                  {formatDate(
+                                                    result.createdAt ||
+                                                      result.submittedAt
+                                                  )}
+                                                </td>
+
+                                                <td>
+                                                  {numberValue(
+                                                    result.marks
+                                                  )}
+                                                </td>
+
+                                                <td>
+                                                  {numberValue(
+                                                    result.percentage
+                                                  )}
+                                                  %
+                                                </td>
+
+                                                <td>
+                                                  {
+                                                    result.grade ||
+                                                    "-"
+                                                  }
+                                                </td>
+
+                                                <td>
+
+                                                  <span
+                                                    className={
+                                                      result.status
+                                                        ?.toUpperCase() ===
+                                                      "PASS"
+                                                        ? "student-report-status pass"
+                                                        : "student-report-status fail"
+                                                    }
+                                                  >
+                                                    {
+                                                      result.status ||
+                                                      "-"
+                                                    }
+                                                  </span>
+
+                                                </td>
+
+                                              </tr>
+                                            )
+                                          )}
+
+                                        </tbody>
+
+                                      </table>
+
+                                    </div>
+
+                                  </>
+                                )}
+
+                              </div>
+                            )}
+
+                          </article>
+                        );
+                      }
+                    )
                   )}
 
                 </div>
@@ -2053,7 +3408,9 @@ export default function StudentReport({
                 className="student-report-spin"
               />
             ) : (
-              <Download size={17} />
+              <Download
+                size={17}
+              />
             )}
 
             <span>
@@ -2084,7 +3441,9 @@ export default function StudentReport({
                 className="student-report-spin"
               />
             ) : (
-              <Share2 size={17} />
+              <Share2
+                size={17}
+              />
             )}
 
             <span>
@@ -2101,4 +3460,3 @@ export default function StudentReport({
     </div>
   );
 }
-

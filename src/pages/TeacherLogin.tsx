@@ -328,7 +328,7 @@ export default function TeacherLogin() {
                   }}
                   placeholder={
                     isManagement
-                      ? "Enter your teacher ID"
+                      ? "Enter your Management ID"
                       : "Enter your director ID"
                   }
                   autoComplete="username"
@@ -341,7 +341,7 @@ export default function TeacherLogin() {
             {/* Access Code */}
             <div className="field-group">
               <label htmlFor="access-code">
-                Access Code
+                 Mobile Number
               </label>
 
               <div className="input-wrapper">
@@ -355,7 +355,7 @@ export default function TeacherLogin() {
                     setAccessCode(e.target.value);
                     if (error) setError("");
                   }}
-                  placeholder="Enter your access code"
+                  placeholder="Enter your Mobile number"
                   autoComplete="current-password"
                   disabled={loading}
                 />

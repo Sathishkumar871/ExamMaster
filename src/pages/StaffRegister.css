@@ -1,220 +1,990 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+/* ============================================================
+   STG COLLEGE — STAFF REGISTER
+
+   SAME DESIGN LANGUAGE AS STUDENT REGISTER
+   DARK LUXURY
+   GOLD ACCENT
+   GLASS CARD
+   CLEAN FORM
+   PREMIUM DROPDOWNS
+   RESPONSIVE
+============================================================ */
+
+/* ============================================================
+   GLOBAL
+============================================================ */
+
+.staff-register-page,
+.staff-register-page * {
+  box-sizing: border-box;
+}
+
+/* ============================================================
+   PAGE
+============================================================ */
 
 .staff-register-page {
   min-height: 100vh;
+  width: 100%;
+
+  position: relative;
+  isolation: isolate;
+
   display: flex;
-  justify-content: center;
   align-items: center;
-  /* Premium 3-color mixing gradient theme */
-  background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 50%, #a1c4fd 100%);
-  background-size: 200% 200%;
-  animation: gradientShift 10s ease infinite;
-  padding: 20px;
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  justify-content: center;
+
+  padding: 24px;
+
+  overflow-x: hidden;
+
+  background:
+    radial-gradient(
+      circle at 8% 8%,
+      rgba(255, 190, 95, 0.14),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 92% 92%,
+      rgba(100, 76, 255, 0.11),
+      transparent 30%
+    ),
+    linear-gradient(
+      145deg,
+      #05060a 0%,
+      #0b0d13 52%,
+      #06070b 100%
+    );
+
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
 }
 
-@keyframes gradientShift {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
+/* ============================================================
+   BACKGROUND GRID
+============================================================ */
+
+.staff-register-page::before {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  z-index: -2;
+
+  pointer-events: none;
+
+  opacity: 0.14;
+
+  background-image:
+    linear-gradient(
+      rgba(255, 255, 255, 0.025) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.025) 1px,
+      transparent 1px
+    );
+
+  background-size: 46px 46px;
+
+  mask-image:
+    radial-gradient(
+      circle at center,
+      #000 5%,
+      transparent 82%
+    );
+
+  -webkit-mask-image:
+    radial-gradient(
+      circle at center,
+      #000 5%,
+      transparent 82%
+    );
 }
+
+/* ============================================================
+   GOLD ORB
+============================================================ */
+
+.staff-register-page::after {
+  content: "";
+
+  position: absolute;
+
+  width: 430px;
+  height: 430px;
+
+  top: -220px;
+  left: -210px;
+
+  z-index: -1;
+
+  border-radius: 50%;
+
+  pointer-events: none;
+
+  filter: blur(115px);
+
+  opacity: 0.75;
+
+  background:
+    rgba(255, 174, 68, 0.10);
+
+  animation:
+    staffOrbFloat
+    12s
+    ease-in-out
+    infinite;
+}
+
+/* ============================================================
+   CARD
+============================================================ */
 
 .staff-register-card {
-  width: 410px;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  padding: 40px 30px;
-  border-radius: 22px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  animation: cardEntrance 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  width: min(100%, 535px);
+
+  position: relative;
+  z-index: 3;
+
+  padding: 36px;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.075);
+
+  border-radius: 28px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(28, 30, 39, 0.965),
+      rgba(8, 10, 14, 0.985)
+    );
+
+  box-shadow:
+    0 45px 110px
+      rgba(0, 0, 0, 0.58),
+    0 0 60px
+      rgba(255, 183, 81, 0.035),
+    inset
+      0 1px 0
+      rgba(255, 255, 255, 0.045);
+
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+
+  animation:
+    staffCardEnter
+    0.65s
+    cubic-bezier(.2, .8, .2, 1);
 }
 
-@keyframes cardEntrance {
-  from {
-    opacity: 0;
-    transform: translateY(20px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+/* ============================================================
+   GOLD TOP ACCENT
+============================================================ */
+
+.staff-register-card::before {
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  left: 50%;
+
+  width: 125px;
+  height: 2px;
+
+  transform: translateX(-50%);
+
+  border-radius: 999px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      #eaa650,
+      #ffe0a2,
+      #eaa650,
+      transparent
+    );
+
+  box-shadow:
+    0 0 18px
+    rgba(255, 190, 95, 0.34);
+
+  pointer-events: none;
 }
+
+/* ============================================================
+   TITLE
+============================================================ */
 
 .staff-register-card h1 {
+  margin:
+    8px 0 8px;
+
+  color: #ffffff;
+
   text-align: center;
-  font-size: 28px;
-  color: #1a1a1a;
+
+  font-size:
+    clamp(30px, 6vw, 42px);
+
+  line-height: 1.08;
+
+  letter-spacing: -1.45px;
+
   font-weight: 800;
-  letter-spacing: -0.5px;
-  margin-bottom: -5px;
+
+  text-shadow:
+    0 0 25px
+    rgba(255, 255, 255, 0.035);
 }
 
-.staff-register-card p {
+/* ============================================================
+   SUBTITLE
+============================================================ */
+
+.staff-register-card > p {
+  margin:
+    0 auto 27px;
+
+  max-width: 400px;
+
+  color:
+    rgba(255, 255, 255, 0.43);
+
   text-align: center;
-  color: #666;
-  font-size: 14px;
-  margin-bottom: 5px;
+
+  font-size: 12px;
+
+  line-height: 1.65;
+
+  letter-spacing: 0.15px;
 }
 
-/* Glassy Typing Boxes - Completely Fixed without jumping/moving */
+/* ============================================================
+   NORMAL INPUTS + SELECT
+============================================================ */
+
 .staff-register-card input,
 .staff-register-card select {
   width: 100%;
-  padding: 14px 16px;
-  border-radius: 12px;
-  border: 1.5px solid rgba(255, 255, 255, 0.6);
-  font-size: 15px;
+  height: 56px;
+
+  display: block;
+
+  margin: 0 0 13px;
+
+  padding:
+    0 16px;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.078);
+
+  border-radius: 14px;
+
   outline: none;
-  background: rgba(255, 255, 255, 0.55);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  color: #222;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+
+  color: #ffffff;
+
+  background:
+    rgba(255, 255, 255, 0.035);
+
+  font-family: inherit;
+
+  font-size: 13px;
+
+  transition:
+    border-color .24s ease,
+    background .24s ease,
+    box-shadow .24s ease,
+    transform .20s ease;
 }
 
-.staff-register-card input:hover,
-.staff-register-card select:hover {
-  background: rgba(255, 255, 255, 0.75);
-  border-color: rgba(255, 255, 255, 0.9);
+/* ============================================================
+   PLACEHOLDER
+============================================================ */
+
+.staff-register-card input::placeholder {
+  color:
+    rgba(255, 255, 255, 0.28);
 }
+
+/* ============================================================
+   INPUT FOCUS
+============================================================ */
 
 .staff-register-card input:focus,
 .staff-register-card select:focus {
-  border-color: #ee7707;
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 0 0 4px rgba(238, 119, 7, 0.15);
-  /* Removed translateY & scale to make the box completely fix and steady */
+  border-color:
+    rgba(255, 196, 108, 0.66);
+
+  background:
+    rgba(255, 255, 255, 0.052);
+
+  box-shadow:
+    0 0 0 4px
+      rgba(255, 193, 98, 0.055),
+    0 10px 26px
+      rgba(0, 0, 0, 0.16);
+
+  transform:
+    translateY(-1px);
 }
 
-.section-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+/* ============================================================
+   EMAIL
+============================================================ */
+
+.staff-register-card
+  input[type="email"] {
+  color: #ffffff;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* ============================================================
+   MOBILE
+============================================================ */
+
+.staff-register-card
+  input[placeholder="Mobile Number"] {
+  letter-spacing: 0.45px;
 }
 
-.section-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: #444;
-  margin-left: 2px;
-}
+/* ============================================================
+   ROLE / SEARCH INPUT
+============================================================ */
 
-.staff-register-card button {
-  padding: 15px;
-  border: none;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #ee7707 0%, #ff8c1a 100%);
-  color: white;
-  font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 0 6px 20px rgba(238, 119, 7, 0.3);
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  margin-top: 5px;
-}
-
-.staff-register-card button:hover {
-  background: linear-gradient(135deg, #d86900 0%, #ee7707 100%);
-  box-shadow: 0 8px 25px rgba(238, 119, 7, 0.4);
-  transform: translateY(-2px);
-}
-
-.staff-register-card button:active {
-  transform: translateY(1px) scale(0.97);
-  box-shadow: 0 3px 10px rgba(238, 119, 7, 0.3);
-}
-
-.staff-register-card button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none !important;
-  box-shadow: none;
-}
-
-.staff-register-card p:last-of-type {
-  font-size: 14px;
-  font-weight: 600;
-  color: #ee7707;
-  text-align: center;
-}
-/* Searchable Department Dropdown Styling */
 .searchable-dropdown-container {
-  position: relative;
   width: 100%;
+
+  position: relative;
 }
+
+/* ============================================================
+   DROPDOWN INPUT
+============================================================ */
+
+.searchable-dropdown-container > input {
+  margin-bottom: 13px;
+}
+
+/* ============================================================
+   DROPDOWN LIST
+============================================================ */
 
 .dropdown-list {
   position: absolute;
-  top: calc(100% + 4px);
+
   left: 0;
   right: 0;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1.5px solid rgba(255, 255, 255, 0.8);
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  max-height: 180px;
-  overflow-y: auto;
+
+  top: calc(100% - 7px);
+
   z-index: 100;
-  animation: fadeInList 0.2s ease forwards;
+
+  max-height: 210px;
+
+  overflow-y: auto;
+
+  padding: 6px;
+
+  border:
+    1px solid
+    rgba(255, 195, 105, 0.15);
+
+  border-radius: 14px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(26, 29, 38, 0.99),
+      rgba(8, 10, 15, 0.995)
+    );
+
+  box-shadow:
+    0 22px 45px
+      rgba(0, 0, 0, 0.60),
+    0 0 28px
+      rgba(255, 190, 95, 0.035);
+
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+
+  animation:
+    dropdownEnter
+    .20s
+    ease-out;
 }
 
-@keyframes fadeInList {
-  from {
-    opacity: 0;
-    transform: translateY(-5px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+/* ============================================================
+   DROPDOWN ITEM
+============================================================ */
 
 .dropdown-item {
-  padding: 12px 16px;
-  font-size: 14px;
-  color: #333;
+  min-height: 42px;
+
+  display: flex;
+  align-items: center;
+
+  padding:
+    0 12px;
+
+  border-radius: 9px;
+
+  color:
+    rgba(255, 255, 255, 0.67);
+
+  font-size: 12px;
+
+  font-weight: 650;
+
   cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+
+  transition:
+    color .18s ease,
+    background .18s ease,
+    padding-left .18s ease;
 }
 
-.dropdown-item:last-child {
-  border-bottom: none;
-}
+/* ============================================================
+   DROPDOWN HOVER
+============================================================ */
 
 .dropdown-item:hover {
-  background: rgba(238, 119, 7, 0.12);
-  color: #ee7707;
-  font-weight: 600;
+  color: #ffe1a3;
+
+  background:
+    rgba(255, 194, 101, 0.075);
+
+  padding-left: 15px;
 }
 
-.dropdown-item.no-result {
-  color: #888;
-  cursor: default;
-  text-align: center;
+/* ============================================================
+   DROPDOWN SCROLLBAR
+============================================================ */
+
+.dropdown-list::-webkit-scrollbar {
+  width: 4px;
 }
+
+.dropdown-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dropdown-list::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+
+  background:
+    rgba(255, 194, 101, 0.28);
+}
+
+/* ============================================================
+   SELECT ARROW
+============================================================ */
+
+.staff-register-card select {
+  appearance: none;
+  -webkit-appearance: none;
+
+  cursor: pointer;
+
+  padding-right: 44px;
+
+  background-image:
+    linear-gradient(
+      45deg,
+      transparent 50%,
+      #ffc96f 50%
+    ),
+    linear-gradient(
+      135deg,
+      #ffc96f 50%,
+      transparent 50%
+    );
+
+  background-position:
+    calc(100% - 19px) 23px,
+    calc(100% - 13px) 23px;
+
+  background-size:
+    6px 6px,
+    6px 6px;
+
+  background-repeat: no-repeat;
+}
+
+/* ============================================================
+   SELECT OPTIONS
+============================================================ */
+
+.staff-register-card select option {
+  color: #ffffff;
+
+  background:
+    #11131a;
+}
+
+/* ============================================================
+   FORM SPACING
+============================================================ */
+
+.searchable-dropdown-container + .searchable-dropdown-container {
+  margin-top: 0;
+}
+
+/* ============================================================
+   MESSAGE
+============================================================ */
+
+.staff-register-card
+  > p:last-of-type {
+  margin:
+    2px 0 14px;
+
+  padding:
+    10px 13px;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.075);
+
+  border-radius: 11px;
+
+  color:
+    rgba(255, 255, 255, 0.63);
+
+  background:
+    rgba(255, 255, 255, 0.025);
+
+  font-size: 11px;
+
+  line-height: 1.5;
+
+  animation:
+    messageEnter
+    .25s
+    ease;
+}
+
+/* ============================================================
+   REGISTER BUTTON
+============================================================ */
+
+.staff-register-card button {
+  width: 100%;
+  height: 57px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  position: relative;
+  overflow: hidden;
+
+  margin-top: 3px;
+
+  border: 0;
+
+  border-radius: 15px;
+
+  outline: none;
+
+  cursor: pointer;
+
+  color: #211609;
+
+  background:
+    linear-gradient(
+      135deg,
+      #ffe0a4 0%,
+      #f5b355 48%,
+      #e99c3d 100%
+    );
+
+  font-family: inherit;
+
+  font-size: 14px;
+
+  font-weight: 850;
+
+  letter-spacing: 0.1px;
+
+  box-shadow:
+    0 14px 32px
+      rgba(236, 159, 62, 0.17),
+    inset
+      0 1px 0
+      rgba(255, 255, 255, 0.48);
+
+  transition:
+    transform .20s ease,
+    box-shadow .20s ease,
+    filter .20s ease;
+}
+
+/* ============================================================
+   BUTTON SHINE
+============================================================ */
+
+.staff-register-card button::before {
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  left: -90%;
+
+  width: 42%;
+  height: 100%;
+
+  transform:
+    skewX(-23deg);
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.40),
+      transparent
+    );
+
+  transition:
+    left .75s ease;
+}
+
+/* ============================================================
+   BUTTON HOVER
+============================================================ */
+
+.staff-register-card button:hover:not(:disabled) {
+  transform:
+    translateY(-2px);
+
+  filter:
+    brightness(1.045);
+
+  box-shadow:
+    0 19px 43px
+      rgba(236, 159, 62, 0.25),
+    inset
+      0 1px 0
+      rgba(255, 255, 255, 0.50);
+}
+
+.staff-register-card
+  button:hover:not(:disabled)::before {
+  left: 145%;
+}
+
+/* ============================================================
+   BUTTON ACTIVE
+============================================================ */
+
+.staff-register-card button:active:not(:disabled) {
+  transform:
+    translateY(0);
+}
+
+/* ============================================================
+   DISABLED
+============================================================ */
+
+.staff-register-card button:disabled {
+  opacity: 0.55;
+
+  cursor: not-allowed;
+
+  filter: none;
+
+  box-shadow:
+    none;
+}
+
+/* ============================================================
+   AUTOFILL
+============================================================ */
+
+.staff-register-card
+  input:-webkit-autofill,
+.staff-register-card
+  input:-webkit-autofill:hover,
+.staff-register-card
+  input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #ffffff;
+
+  -webkit-box-shadow:
+    0 0 0 1000px #11141a inset;
+
+  transition:
+    background-color 9999s ease-in-out 0s;
+}
+
+/* ============================================================
+   CARD ANIMATION
+============================================================ */
+
+@keyframes staffCardEnter {
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(23px)
+      scale(.978);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
+
+/* ============================================================
+   ORB ANIMATION
+============================================================ */
+
+@keyframes staffOrbFloat {
+  0%,
+  100% {
+    transform:
+      translate3d(0, 0, 0);
+  }
+
+  50% {
+    transform:
+      translate3d(24px, -18px, 0);
+  }
+}
+
+/* ============================================================
+   DROPDOWN ANIMATION
+============================================================ */
+
+@keyframes dropdownEnter {
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(-5px)
+      scale(.985);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
+
+/* ============================================================
+   MESSAGE ANIMATION
+============================================================ */
+
+@keyframes messageEnter {
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0);
+  }
+}
+
+/* ============================================================
+   TABLET
+============================================================ */
+
+@media (max-width: 700px) {
+  .staff-register-page {
+    align-items: flex-start;
+
+    padding:
+      18px 15px 28px;
+  }
+
+  .staff-register-card {
+    margin-top: 8px;
+
+    padding:
+      31px 25px 25px;
+
+    border-radius: 24px;
+  }
+
+  .staff-register-card h1 {
+    font-size: 34px;
+  }
+}
+
+/* ============================================================
+   MOBILE
+============================================================ */
+
+@media (max-width: 560px) {
+  .staff-register-page {
+    min-height: 100dvh;
+
+    padding:
+      13px 11px 24px;
+  }
+
+  .staff-register-card {
+    width: 100%;
+
+    margin-top: 6px;
+
+    padding:
+      28px 18px 21px;
+
+    border-radius: 22px;
+  }
+
+  .staff-register-card h1 {
+    margin-top: 6px;
+
+    font-size: 30px;
+
+    letter-spacing: -1px;
+  }
+
+  .staff-register-card > p {
+    margin-bottom: 23px;
+
+    font-size: 11px;
+  }
+
+  .staff-register-card input,
+  .staff-register-card select {
+    height: 54px;
+
+    margin-bottom: 12px;
+
+    border-radius: 13px;
+
+    padding:
+      0 14px;
+
+    font-size: 13px;
+  }
+
+  .dropdown-item {
+    min-height: 40px;
+
+    font-size: 12px;
+  }
+
+  .staff-register-card button {
+    height: 54px;
+
+    border-radius: 14px;
+
+    font-size: 13px;
+  }
+}
+
+/* ============================================================
+   SMALL MOBILE
+============================================================ */
+
+@media (max-width: 390px) {
+  .staff-register-card {
+    padding:
+      25px 14px 19px;
+
+    border-radius: 20px;
+  }
+
+  .staff-register-card h1 {
+    font-size: 27px;
+  }
+
+  .staff-register-card > p {
+    font-size: 10.5px;
+  }
+
+  .staff-register-card input,
+  .staff-register-card select {
+    height: 51px;
+
+    padding:
+      0 13px;
+
+    font-size: 12px;
+
+    border-radius: 12px;
+  }
+
+  .staff-register-card button {
+    height: 52px;
+
+    font-size: 12.5px;
+  }
+
+  .staff-register-card
+    > p:last-of-type {
+    font-size: 10.5px;
+  }
+}
+
+/* ============================================================
+   VERY SMALL MOBILE
+============================================================ */
+
+@media (max-width: 340px) {
+  .staff-register-card {
+    padding:
+      23px 12px 18px;
+  }
+
+  .staff-register-card h1 {
+    font-size: 25px;
+  }
+
+  .staff-register-card input,
+  .staff-register-card select {
+    height: 49px;
+  }
+}
+
+/* ============================================================
+   REDUCED MOTION
+============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .staff-register-card,
+  .staff-register-page::after,
+  .dropdown-list,
+  .staff-register-card
+    > p:last-of-type {
+    animation: none !important;
+  }
+
+  .staff-register-card input,
+  .staff-register-card select,
+  .staff-register-card button,
+  .dropdown-item {
+    transition: none !important;
+  }
+}
+

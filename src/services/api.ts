@@ -1,6 +1,6 @@
-// ============================================================
-// API CONFIG
-// ============================================================
+/* ============================================================
+   API CONFIG
+============================================================ */
 
 const LOCAL_API_BASE_URL =
   "http://localhost:5000/api";
@@ -8,30 +8,18 @@ const LOCAL_API_BASE_URL =
 const RENDER_API_BASE_URL =
   "https://exammaster-backend-up1y.onrender.com/api";
 
-// ============================================================
-// AUTO API URL
-// ============================================================
-//
-// Local development:
-// http://localhost:5000/api
-//
-// Production / Vercel:
-// https://exammaster-backend-up1y.onrender.com/api
-//
-// Vite lo:
-// import.meta.env.DEV = true  → localhost
-// import.meta.env.PROD = true → Render
-// ============================================================
+/* ============================================================
+   AUTO API URL
+============================================================ */
 
 const API_BASE_URL =
   import.meta.env.DEV
     ? LOCAL_API_BASE_URL
     : RENDER_API_BASE_URL;
 
-
-// ============================================================
-// API ENDPOINTS
-// ============================================================
+/* ============================================================
+   API ENDPOINTS
+============================================================ */
 
 const API_URL =
   `${API_BASE_URL}/student`;
@@ -39,10 +27,125 @@ const API_URL =
 const QUESTION_API_URL =
   `${API_BASE_URL}/questions`;
 
+/* ============================================================
+   STUDENT TOKEN HELPER
+============================================================ */
 
-// ============================================================
-// DEBUG API CONFIG
-// ============================================================
+const getStudentToken = (): string | null => {
+  return (
+    localStorage.getItem("studentToken") ||
+    localStorage.getItem("token")
+  );
+};
+
+/* ============================================================
+   CLEAR STUDENT SESSION
+============================================================ */
+
+const clearStudentSession = () => {
+  localStorage.removeItem("token");
+  localStorage.removeItem("studentToken");
+  localStorage.removeItem("student");
+  localStorage.removeItem("studentId");
+  localStorage.removeItem("role");
+};
+
+/* ============================================================
+   HANDLE STUDENT SESSION
+============================================================ */
+
+const handleStudentSession = async (
+  response: Response
+): Promise<void> => {
+  if (response.status !== 401) {
+    return;
+  }
+
+  try {
+    const data = await response.clone().json();
+
+    /* ========================================================
+       ANOTHER DEVICE LOGGED IN
+    ======================================================== */
+
+    if (
+      data?.code ===
+      "SESSION_REPLACED"
+    ) {
+      console.warn(
+        "⚠️ Student session replaced by another device."
+      );
+
+      clearStudentSession();
+
+      window.location.href = "/login";
+
+      return;
+    }
+
+    /* ========================================================
+       INVALID / EXPIRED SESSION
+    ======================================================== */
+
+    if (
+      data?.code ===
+      "INVALID_SESSION"
+    ) {
+      console.warn(
+        "⚠️ Student session expired or invalid."
+      );
+
+      clearStudentSession();
+
+      window.location.href = "/login";
+    }
+  } catch {
+    // Ignore invalid response JSON
+  }
+};
+
+/* ============================================================
+   STUDENT FETCH HELPER
+   Automatically adds student Bearer token
+============================================================ */
+
+const studentFetch = async (
+  url: string,
+  options: RequestInit = {}
+): Promise<Response> => {
+  const token =
+    getStudentToken();
+
+  const headers = new Headers(
+    options.headers
+  );
+
+  if (token) {
+    headers.set(
+      "Authorization",
+      `Bearer ${token}`
+    );
+  }
+
+  const response =
+    await fetch(
+      url,
+      {
+        ...options,
+        headers,
+      }
+    );
+
+  await handleStudentSession(
+    response
+  );
+
+  return response;
+};
+
+/* ============================================================
+   DEBUG API CONFIG
+============================================================ */
 
 console.log(
   "=========================================="
@@ -86,15 +189,13 @@ console.log(
   "=========================================="
 );
 
-
-// ============================================================
-// STUDENT REGISTER
-// ============================================================
+/* ============================================================
+   STUDENT REGISTER
+============================================================ */
 
 export const registerStudent = async (
   data: any
 ) => {
-
   const response =
     await fetch(
       `${API_URL}/register`,
@@ -112,28 +213,45 @@ export const registerStudent = async (
     );
 
   if (!response.ok) {
+    let message =
+      `Registration failed: ${response.status}`;
 
-    const errorText =
-      await response.text();
+    try {
+      const errorData =
+        await response.json();
 
-    throw new Error(
-      errorText ||
-      `Registration failed: ${response.status}`
-    );
+      if (errorData?.message) {
+        message =
+          errorData.message;
+      }
+    } catch {
+      try {
+        const errorText =
+          await response.text();
+
+        if (errorText) {
+          message =
+            errorText;
+        }
+      } catch {
+        // Ignore
+      }
+    }
+
+    throw new Error(message);
   }
 
   return response.json();
 };
 
-
-// ============================================================
-// STUDENT LOGIN
-// ============================================================
+/* ============================================================
+   STUDENT LOGIN
+   STUDENT ID + PASSWORD
+============================================================ */
 
 export const loginStudent = async (
   data: any
 ) => {
-
   const response =
     await fetch(
       `${API_URL}/login`,
@@ -151,291 +269,300 @@ export const loginStudent = async (
     );
 
   if (!response.ok) {
+    let message =
+      `Login failed: ${response.status}`;
 
-    const errorText =
-      await response.text();
+    try {
+      const errorData =
+        await response.json();
 
-    throw new Error(
-      errorText ||
-      `Login failed: ${response.status}`
-    );
+      if (errorData?.message) {
+        message =
+          errorData.message;
+      }
+    } catch {
+      try {
+        const errorText =
+          await response.text();
+
+        if (errorText) {
+          message =
+            errorText;
+        }
+      } catch {
+        // Ignore
+      }
+    }
+
+    throw new Error(message);
   }
 
   return response.json();
 };
 
+/* ============================================================
+   GET STUDENT PROFILE
+============================================================ */
 
-// ============================================================
-// GET STUDENT QUESTIONS
-// ============================================================
-
-export const getStudentQuestions = async (
-  params?: {
-
-    subject?: string;
-
-    chapter?: string;
-
-    testCategory?:
-      | "mock"
-      | "daily"
-      | "subject";
-
-    examType?:
-      | "All"
-      | "NEET"
-      | "JEE";
-
-    academicYear?:
-      | "All"
-      | "1st PUC"
-      | "2nd PUC";
-
-    testTitle?: string;
-
-    testId?: string;
-
-  }
+export const getStudentProfile = async (
+  studentId: string
 ) => {
-
-  const query =
-    new URLSearchParams();
-
-
-  if (
-    params?.subject &&
-    params.subject !== "All"
-  ) {
-
-    query.append(
-      "subject",
-      params.subject
+  if (!studentId) {
+    throw new Error(
+      "Student ID is required"
     );
   }
-
-
-  if (
-    params?.chapter &&
-    params.chapter !== "All"
-  ) {
-
-    query.append(
-      "chapter",
-      params.chapter
-    );
-  }
-
-
-  if (
-    params?.testCategory
-  ) {
-
-    query.append(
-      "testCategory",
-      params.testCategory
-    );
-  }
-
-
-  if (
-    params?.examType &&
-    params.examType !== "All"
-  ) {
-
-    query.append(
-      "examType",
-      params.examType
-    );
-  }
-
-
-  if (
-    params?.academicYear &&
-    params.academicYear !== "All"
-  ) {
-
-    query.append(
-      "academicYear",
-      params.academicYear
-    );
-  }
-
-
-  if (
-    params?.testTitle &&
-    params.testTitle !== "All"
-  ) {
-
-    query.append(
-      "testTitle",
-      params.testTitle
-    );
-  }
-
-
-  if (
-    params?.testId &&
-    params.testId !== "All"
-  ) {
-
-    query.append(
-      "testId",
-      params.testId
-    );
-  }
-
-
-  const queryString =
-    query.toString();
-
-  const url =
-    queryString
-      ? `${QUESTION_API_URL}/student?${queryString}`
-      : `${QUESTION_API_URL}/student`;
-
-
-  console.log(
-    "📚 GET STUDENT QUESTIONS:",
-    url
-  );
-
 
   const response =
-    await fetch(url);
-
+    await studentFetch(
+      `${API_URL}/profile/${encodeURIComponent(
+        studentId
+      )}`
+    );
 
   if (!response.ok) {
-
     let message =
-      `Failed to fetch questions: ${response.status}`;
+      `Failed to fetch student profile: ${response.status}`;
 
     try {
-
       const data =
         await response.json();
 
-      if (
-        data?.message
-      ) {
-
+      if (data?.message) {
         message =
           data.message;
       }
-
     } catch {
       // Ignore
     }
 
-    throw new Error(
-      message
-    );
+    throw new Error(message);
   }
 
-
-  const data =
-    await response.json();
-
-
-  console.log(
-    "✅ QUESTIONS:",
-    data
-  );
-
-
-  return data;
+  return response.json();
 };
 
+/* ============================================================
+   GET STUDENT QUESTIONS
+============================================================ */
 
-// ============================================================
-// GET ALL STUDENT QUESTIONS
-// ============================================================
+export const getStudentQuestions =
+  async (
+    params?: {
+      subject?: string;
+
+      chapter?: string;
+
+      testCategory?:
+        | "mock"
+        | "daily"
+        | "subject";
+
+      examType?:
+        | "All"
+        | "NEET"
+        | "JEE";
+
+      academicYear?:
+        | "All"
+        | "1st PUC"
+        | "2nd PUC";
+
+      testTitle?: string;
+
+      testId?: string;
+    }
+  ) => {
+    const query =
+      new URLSearchParams();
+
+    if (
+      params?.subject &&
+      params.subject !== "All"
+    ) {
+      query.append(
+        "subject",
+        params.subject
+      );
+    }
+
+    if (
+      params?.chapter &&
+      params.chapter !== "All"
+    ) {
+      query.append(
+        "chapter",
+        params.chapter
+      );
+    }
+
+    if (
+      params?.testCategory
+    ) {
+      query.append(
+        "testCategory",
+        params.testCategory
+      );
+    }
+
+    if (
+      params?.examType &&
+      params.examType !== "All"
+    ) {
+      query.append(
+        "examType",
+        params.examType
+      );
+    }
+
+    if (
+      params?.academicYear &&
+      params.academicYear !== "All"
+    ) {
+      query.append(
+        "academicYear",
+        params.academicYear
+      );
+    }
+
+    if (
+      params?.testTitle &&
+      params.testTitle !== "All"
+    ) {
+      query.append(
+        "testTitle",
+        params.testTitle
+      );
+    }
+
+    if (
+      params?.testId &&
+      params.testId !== "All"
+    ) {
+      query.append(
+        "testId",
+        params.testId
+      );
+    }
+
+    const queryString =
+      query.toString();
+
+    const url =
+      queryString
+        ? `${QUESTION_API_URL}/student?${queryString}`
+        : `${QUESTION_API_URL}/student`;
+
+    console.log(
+      "📚 GET STUDENT QUESTIONS:",
+      url
+    );
+
+    /* ========================================================
+       PROTECTED STUDENT REQUEST
+    ======================================================== */
+
+    const response =
+      await studentFetch(url);
+
+    if (!response.ok) {
+      let message =
+        `Failed to fetch questions: ${response.status}`;
+
+      try {
+        const data =
+          await response.json();
+
+        if (data?.message) {
+          message =
+            data.message;
+        }
+      } catch {
+        // Ignore
+      }
+
+      throw new Error(message);
+    }
+
+    const data =
+      await response.json();
+
+    console.log(
+      "✅ QUESTIONS:",
+      data
+    );
+
+    return data;
+  };
+
+/* ============================================================
+   GET ALL STUDENT QUESTIONS
+============================================================ */
 
 export const getAllStudentQuestions =
   async () => {
-
     return getStudentQuestions();
   };
 
-
-// ============================================================
-// GET PHYSICS TESTS
-// ============================================================
+/* ============================================================
+   GET PHYSICS TESTS
+============================================================ */
 
 export const getPhysicsTests =
   async () => {
-
     return getStudentQuestions({
-
       subject:
         "Physics",
-
       testCategory:
         "subject",
-
     });
   };
 
-
-// ============================================================
-// GET CHEMISTRY TESTS
-// ============================================================
+/* ============================================================
+   GET CHEMISTRY TESTS
+============================================================ */
 
 export const getChemistryTests =
   async () => {
-
     return getStudentQuestions({
-
       subject:
         "Chemistry",
-
       testCategory:
         "subject",
-
     });
   };
 
-
-// ============================================================
-// GET BIOLOGY TESTS
-// ============================================================
+/* ============================================================
+   GET BIOLOGY TESTS
+============================================================ */
 
 export const getBiologyTests =
   async () => {
-
     return getStudentQuestions({
-
       subject:
         "Biology",
-
       testCategory:
         "subject",
-
     });
   };
 
-
-// ============================================================
-// GET ZOOLOGY TESTS
-// ============================================================
+/* ============================================================
+   GET ZOOLOGY TESTS
+============================================================ */
 
 export const getZoologyTests =
   async () => {
-
     return getStudentQuestions({
-
       subject:
         "Zoology",
-
       testCategory:
         "subject",
-
     });
   };
 
-
-// ============================================================
-// GET MOCK TESTS
-// ============================================================
+/* ============================================================
+   GET MOCK TESTS
+============================================================ */
 
 export const getMockTests =
   async (
@@ -447,23 +574,17 @@ export const getMockTests =
       | "1st PUC"
       | "2nd PUC"
   ) => {
-
     return getStudentQuestions({
-
       testCategory:
         "mock",
-
       examType,
-
       academicYear,
-
     });
   };
 
-
-// ============================================================
-// GET DAILY TESTS
-// ============================================================
+/* ============================================================
+   GET DAILY TESTS
+============================================================ */
 
 export const getDailyTests =
   async (
@@ -475,218 +596,164 @@ export const getDailyTests =
       | "1st PUC"
       | "2nd PUC"
   ) => {
-
     return getStudentQuestions({
-
       testCategory:
         "daily",
-
       examType,
-
       academicYear,
-
     });
   };
 
-
-// ============================================================
-// GET SINGLE TEST
-// ============================================================
+/* ============================================================
+   GET SINGLE TEST
+============================================================ */
 
 export const getSingleTest =
   async (
     testId: string
   ) => {
-
     if (!testId) {
-
       throw new Error(
         "Test ID is required"
       );
     }
 
     return getStudentQuestions({
-
       testId,
-
     });
   };
 
-
-// ============================================================
-// GET SINGLE PHYSICS TEST
-// ============================================================
+/* ============================================================
+   GET SINGLE PHYSICS TEST
+============================================================ */
 
 export const getPhysicsTest =
   async (
     testId: string
   ) => {
-
     if (!testId) {
-
       throw new Error(
         "Physics Test ID is required"
       );
     }
 
     return getStudentQuestions({
-
       subject:
         "Physics",
-
       testCategory:
         "subject",
-
       testId,
-
     });
   };
 
-
-// ============================================================
-// GET SINGLE CHEMISTRY TEST
-// ============================================================
+/* ============================================================
+   GET SINGLE CHEMISTRY TEST
+============================================================ */
 
 export const getChemistryTest =
   async (
     testId: string
   ) => {
-
     if (!testId) {
-
       throw new Error(
         "Chemistry Test ID is required"
       );
     }
 
     return getStudentQuestions({
-
       subject:
         "Chemistry",
-
       testCategory:
         "subject",
-
       testId,
-
     });
   };
 
-
-// ============================================================
-// GET SINGLE BIOLOGY TEST
-// ============================================================
+/* ============================================================
+   GET SINGLE BIOLOGY TEST
+============================================================ */
 
 export const getBiologyTest =
   async (
     testId: string
   ) => {
-
     if (!testId) {
-
       throw new Error(
         "Biology Test ID is required"
       );
     }
 
     return getStudentQuestions({
-
       subject:
         "Biology",
-
       testCategory:
         "subject",
-
       testId,
-
     });
   };
 
-
-// ============================================================
-// GET QUESTIONS BY CHAPTER
-// ============================================================
+/* ============================================================
+   GET QUESTIONS BY CHAPTER
+============================================================ */
 
 export const getQuestionsByChapter =
   async (
     subject: string,
     chapter: string
   ) => {
-
     return getStudentQuestions({
-
       subject,
-
       chapter,
-
       testCategory:
         "subject",
-
     });
   };
 
-
-// ============================================================
-// GET NEET SUBJECT TESTS
-// ============================================================
+/* ============================================================
+   GET NEET SUBJECT TESTS
+============================================================ */
 
 export const getNEETSubjectTests =
   async (
     subject: string,
-
     academicYear?:
       | "1st PUC"
       | "2nd PUC"
   ) => {
-
     return getStudentQuestions({
-
       subject,
-
       testCategory:
         "subject",
-
       examType:
         "NEET",
-
       academicYear,
-
     });
   };
 
-
-// ============================================================
-// GET JEE SUBJECT TESTS
-// ============================================================
+/* ============================================================
+   GET JEE SUBJECT TESTS
+============================================================ */
 
 export const getJEESubjectTests =
   async (
     subject: string,
-
     academicYear?:
       | "1st PUC"
       | "2nd PUC"
   ) => {
-
     return getStudentQuestions({
-
       subject,
-
       testCategory:
         "subject",
-
       examType:
         "JEE",
-
       academicYear,
-
     });
   };
 
-
-// ============================================================
-// GET NEET MOCK TESTS
-// ============================================================
+/* ============================================================
+   GET NEET MOCK TESTS
+============================================================ */
 
 export const getNEETMockTests =
   async (
@@ -694,24 +761,18 @@ export const getNEETMockTests =
       | "1st PUC"
       | "2nd PUC"
   ) => {
-
     return getStudentQuestions({
-
       testCategory:
         "mock",
-
       examType:
         "NEET",
-
       academicYear,
-
     });
   };
 
-
-// ============================================================
-// GET JEE MOCK TESTS
-// ============================================================
+/* ============================================================
+   GET JEE MOCK TESTS
+============================================================ */
 
 export const getJEEMockTests =
   async (
@@ -719,24 +780,18 @@ export const getJEEMockTests =
       | "1st PUC"
       | "2nd PUC"
   ) => {
-
     return getStudentQuestions({
-
       testCategory:
         "mock",
-
       examType:
         "JEE",
-
       academicYear,
-
     });
   };
 
-
-// ============================================================
-// GET NEET DAILY TESTS
-// ============================================================
+/* ============================================================
+   GET NEET DAILY TESTS
+============================================================ */
 
 export const getNEETDailyTests =
   async (
@@ -744,24 +799,18 @@ export const getNEETDailyTests =
       | "1st PUC"
       | "2nd PUC"
   ) => {
-
     return getStudentQuestions({
-
       testCategory:
         "daily",
-
       examType:
         "NEET",
-
       academicYear,
-
     });
   };
 
-
-// ============================================================
-// GET JEE DAILY TESTS
-// ============================================================
+/* ============================================================
+   GET JEE DAILY TESTS
+============================================================ */
 
 export const getJEEDailyTests =
   async (
@@ -769,48 +818,37 @@ export const getJEEDailyTests =
       | "1st PUC"
       | "2nd PUC"
   ) => {
-
     return getStudentQuestions({
-
       testCategory:
         "daily",
-
       examType:
         "JEE",
-
       academicYear,
-
     });
   };
 
-
-// ============================================================
-// GENERATE QUESTIONS FROM PDF
-// ============================================================
+/* ============================================================
+   GENERATE QUESTIONS FROM PDF
+============================================================ */
 
 export const generateQuestionsFromPDF =
   async (
     file: File
   ) => {
-
     if (!file) {
-
       throw new Error(
         "PDF file is required"
       );
     }
 
-
     if (
       file.type !==
       "application/pdf"
     ) {
-
       throw new Error(
         "Please select a valid PDF file."
       );
     }
-
 
     const maxSize =
       50 * 1024 * 1024;
@@ -818,12 +856,10 @@ export const generateQuestionsFromPDF =
     if (
       file.size > maxSize
     ) {
-
       throw new Error(
         "PDF file size must be less than 50MB."
       );
     }
-
 
     const token =
       localStorage.getItem(
@@ -831,12 +867,10 @@ export const generateQuestionsFromPDF =
       );
 
     if (!token) {
-
       throw new Error(
         "Staff login required."
       );
     }
-
 
     const formData =
       new FormData();
@@ -845,7 +879,6 @@ export const generateQuestionsFromPDF =
       "pdf",
       file
     );
-
 
     const response =
       await fetch(
@@ -863,47 +896,35 @@ export const generateQuestionsFromPDF =
         }
       );
 
-
     if (!response.ok) {
-
       let message =
         `PDF upload failed: ${response.status}`;
 
       try {
-
         const data =
           await response.json();
 
-        if (
-          data?.message
-        ) {
-
+        if (data?.message) {
           message =
             data.message;
         }
-
       } catch {
         // Ignore
       }
 
-      throw new Error(
-        message
-      );
+      throw new Error(message);
     }
-
 
     return response.json();
   };
 
-
-// ============================================================
-// GENERATE QUESTIONS USING GROQ AI
-// ============================================================
+/* ============================================================
+   GENERATE QUESTIONS USING GROQ AI
+============================================================ */
 
 export const generateAIQuestions =
   async (
     data: {
-
       testCategory?:
         | "mock"
         | "daily"
@@ -932,22 +953,18 @@ export const generateAIQuestions =
       testTime?: string;
 
       targetExamLevel?: string;
-
     }
   ) => {
-
     const token =
       localStorage.getItem(
         "staffToken"
       );
 
     if (!token) {
-
       throw new Error(
         "Staff login required."
       );
     }
-
 
     const response =
       await fetch(
@@ -956,13 +973,11 @@ export const generateAIQuestions =
           method: "POST",
 
           headers: {
-
             "Content-Type":
               "application/json",
 
             Authorization:
               `Bearer ${token}`,
-
           },
 
           body:
@@ -970,47 +985,37 @@ export const generateAIQuestions =
         }
       );
 
-
     if (!response.ok) {
-
       let message =
         `AI generation failed: ${response.status}`;
 
       try {
-
         const errorData =
           await response.json();
 
         if (
           errorData?.message
         ) {
-
           message =
             errorData.message;
         }
-
       } catch {
         // Ignore
       }
 
-      throw new Error(
-        message
-      );
+      throw new Error(message);
     }
-
 
     return response.json();
   };
 
-
-// ============================================================
-// GET STAFF QUESTIONS
-// ============================================================
+/* ============================================================
+   GET STAFF QUESTIONS
+============================================================ */
 
 export const getQuestions =
   async (
     params?: {
-
       subject?: string;
 
       chapter?: string;
@@ -1035,26 +1040,21 @@ export const getQuestions =
       testId?: string;
 
       status?: string;
-
     }
   ) => {
-
     const token =
       localStorage.getItem(
         "staffToken"
       );
 
     if (!token) {
-
       throw new Error(
         "Staff login required."
       );
     }
 
-
     const query =
       new URLSearchParams();
-
 
     Object.entries(
       params || {}
@@ -1062,14 +1062,12 @@ export const getQuestions =
       (
         [key, value]
       ) => {
-
         if (
           value !== undefined &&
           value !== null &&
           String(value).trim() !== "" &&
           value !== "All"
         ) {
-
           query.append(
             key,
             String(value)
@@ -1078,7 +1076,6 @@ export const getQuestions =
       }
     );
 
-
     const queryString =
       query.toString();
 
@@ -1086,7 +1083,6 @@ export const getQuestions =
       queryString
         ? `${QUESTION_API_URL}?${queryString}`
         : QUESTION_API_URL;
-
 
     const response =
       await fetch(
@@ -1099,56 +1095,42 @@ export const getQuestions =
         }
       );
 
-
     if (!response.ok) {
-
       let message =
         `Failed to fetch questions: ${response.status}`;
 
       try {
-
         const data =
           await response.json();
 
-        if (
-          data?.message
-        ) {
-
+        if (data?.message) {
           message =
             data.message;
         }
-
       } catch {
         // Ignore
       }
 
-      throw new Error(
-        message
-      );
+      throw new Error(message);
     }
-
 
     return response.json();
   };
 
-
-// ============================================================
-// UPDATE QUESTION
-// ============================================================
+/* ============================================================
+   UPDATE QUESTION
+============================================================ */
 
 export const updateQuestion =
   async (
     id: string,
     data: any
   ) => {
-
     if (!id) {
-
       throw new Error(
         "Question ID is required"
       );
     }
-
 
     const token =
       localStorage.getItem(
@@ -1156,12 +1138,10 @@ export const updateQuestion =
       );
 
     if (!token) {
-
       throw new Error(
         "Staff login required."
       );
     }
-
 
     const response =
       await fetch(
@@ -1170,13 +1150,11 @@ export const updateQuestion =
           method: "PUT",
 
           headers: {
-
             "Content-Type":
               "application/json",
 
             Authorization:
               `Bearer ${token}`,
-
           },
 
           body:
@@ -1184,55 +1162,43 @@ export const updateQuestion =
         }
       );
 
-
     if (!response.ok) {
-
       let message =
         `Question update failed: ${response.status}`;
 
       try {
-
         const errorData =
           await response.json();
 
         if (
           errorData?.message
         ) {
-
           message =
             errorData.message;
         }
-
       } catch {
         // Ignore
       }
 
-      throw new Error(
-        message
-      );
+      throw new Error(message);
     }
-
 
     return response.json();
   };
 
-
-// ============================================================
-// DELETE SINGLE QUESTION
-// ============================================================
+/* ============================================================
+   DELETE SINGLE QUESTION
+============================================================ */
 
 export const deleteQuestion =
   async (
     id: string
   ) => {
-
     if (!id) {
-
       throw new Error(
         "Question ID is required"
       );
     }
-
 
     const token =
       localStorage.getItem(
@@ -1240,12 +1206,10 @@ export const deleteQuestion =
       );
 
     if (!token) {
-
       throw new Error(
         "Staff login required."
       );
     }
-
 
     const response =
       await fetch(
@@ -1260,58 +1224,44 @@ export const deleteQuestion =
         }
       );
 
-
     if (!response.ok) {
-
       let message =
         `Question deletion failed: ${response.status}`;
 
       try {
-
         const data =
           await response.json();
 
-        if (
-          data?.message
-        ) {
-
+        if (data?.message) {
           message =
             data.message;
         }
-
       } catch {
         // Ignore
       }
 
-      throw new Error(
-        message
-      );
+      throw new Error(message);
     }
-
 
     return response.json();
   };
 
-
-// ============================================================
-// DELETE ALL QUESTIONS
-// ============================================================
+/* ============================================================
+   DELETE ALL QUESTIONS
+============================================================ */
 
 export const deleteAllQuestions =
   async () => {
-
     const token =
       localStorage.getItem(
         "staffToken"
       );
 
     if (!token) {
-
       throw new Error(
         "Staff login required."
       );
     }
-
 
     const response =
       await fetch(
@@ -1326,55 +1276,41 @@ export const deleteAllQuestions =
         }
       );
 
-
     if (!response.ok) {
-
       let message =
         `Delete all questions failed: ${response.status}`;
 
       try {
-
         const data =
           await response.json();
 
-        if (
-          data?.message
-        ) {
-
+        if (data?.message) {
           message =
             data.message;
         }
-
       } catch {
         // Ignore
       }
 
-      throw new Error(
-        message
-      );
+      throw new Error(message);
     }
-
 
     return response.json();
   };
 
-
-// ============================================================
-// VERIFY SINGLE QUESTION WITH AI
-// ============================================================
+/* ============================================================
+   VERIFY SINGLE QUESTION WITH AI
+============================================================ */
 
 export const verifyQuestionWithAI =
   async (
     id: string
   ) => {
-
     if (!id) {
-
       throw new Error(
         "Question ID is required"
       );
     }
-
 
     const token =
       localStorage.getItem(
@@ -1382,12 +1318,10 @@ export const verifyQuestionWithAI =
       );
 
     if (!token) {
-
       throw new Error(
         "Staff login required."
       );
     }
-
 
     const response =
       await fetch(
@@ -1402,55 +1336,41 @@ export const verifyQuestionWithAI =
         }
       );
 
-
     if (!response.ok) {
-
       let message =
         `AI verification failed: ${response.status}`;
 
       try {
-
         const data =
           await response.json();
 
-        if (
-          data?.message
-        ) {
-
+        if (data?.message) {
           message =
             data.message;
         }
-
       } catch {
         // Ignore
       }
 
-      throw new Error(
-        message
-      );
+      throw new Error(message);
     }
-
 
     return response.json();
   };
 
-
-// ============================================================
-// VERIFY QUESTIONS IN BULK
-// ============================================================
+/* ============================================================
+   VERIFY QUESTIONS IN BULK
+============================================================ */
 
 export const verifyQuestionsBulk =
   async (
     testId: string
   ) => {
-
     if (!testId) {
-
       throw new Error(
         "Test ID is required."
       );
     }
-
 
     const token =
       localStorage.getItem(
@@ -1458,12 +1378,10 @@ export const verifyQuestionsBulk =
       );
 
     if (!token) {
-
       throw new Error(
         "Staff login required."
       );
     }
-
 
     const response =
       await fetch(
@@ -1472,13 +1390,11 @@ export const verifyQuestionsBulk =
           method: "POST",
 
           headers: {
-
             "Content-Type":
               "application/json",
 
             Authorization:
               `Bearer ${token}`,
-
           },
 
           body:
@@ -1488,55 +1404,41 @@ export const verifyQuestionsBulk =
         }
       );
 
-
     if (!response.ok) {
-
       let message =
         `Bulk verification failed: ${response.status}`;
 
       try {
-
         const data =
           await response.json();
 
-        if (
-          data?.message
-        ) {
-
+        if (data?.message) {
           message =
             data.message;
         }
-
       } catch {
         // Ignore
       }
 
-      throw new Error(
-        message
-      );
+      throw new Error(message);
     }
-
 
     return response.json();
   };
 
-
-// ============================================================
-// PUBLISH QUESTION
-// ============================================================
+/* ============================================================
+   PUBLISH QUESTION
+============================================================ */
 
 export const publishQuestion =
   async (
     id: string
   ) => {
-
     if (!id) {
-
       throw new Error(
         "Question ID is required."
       );
     }
-
 
     const token =
       localStorage.getItem(
@@ -1544,12 +1446,10 @@ export const publishQuestion =
       );
 
     if (!token) {
-
       throw new Error(
         "Staff login required."
       );
     }
-
 
     const response =
       await fetch(
@@ -1564,55 +1464,41 @@ export const publishQuestion =
         }
       );
 
-
     if (!response.ok) {
-
       let message =
         `Publish failed: ${response.status}`;
 
       try {
-
         const data =
           await response.json();
 
-        if (
-          data?.message
-        ) {
-
+        if (data?.message) {
           message =
             data.message;
         }
-
       } catch {
         // Ignore
       }
 
-      throw new Error(
-        message
-      );
+      throw new Error(message);
     }
-
 
     return response.json();
   };
 
-
-// ============================================================
-// UNPUBLISH QUESTION
-// ============================================================
+/* ============================================================
+   UNPUBLISH QUESTION
+============================================================ */
 
 export const unpublishQuestion =
   async (
     id: string
   ) => {
-
     if (!id) {
-
       throw new Error(
         "Question ID is required."
       );
     }
-
 
     const token =
       localStorage.getItem(
@@ -1620,12 +1506,10 @@ export const unpublishQuestion =
       );
 
     if (!token) {
-
       throw new Error(
         "Staff login required."
       );
     }
-
 
     const response =
       await fetch(
@@ -1640,60 +1524,46 @@ export const unpublishQuestion =
         }
       );
 
-
     if (!response.ok) {
-
       let message =
         `Unpublish failed: ${response.status}`;
 
       try {
-
         const data =
           await response.json();
 
-        if (
-          data?.message
-        ) {
-
+        if (data?.message) {
           message =
             data.message;
         }
-
       } catch {
         // Ignore
       }
 
-      throw new Error(
-        message
-      );
+      throw new Error(message);
     }
-
 
     return response.json();
   };
 
-
-// ============================================================
-// CREATE MANUAL QUESTION
-// ============================================================
+/* ============================================================
+   CREATE MANUAL QUESTION
+============================================================ */
 
 export const createQuestion =
   async (
     data: any
   ) => {
-
     const token =
       localStorage.getItem(
         "staffToken"
       );
 
     if (!token) {
-
       throw new Error(
         "Staff login required."
       );
     }
-
 
     const response =
       await fetch(
@@ -1702,13 +1572,11 @@ export const createQuestion =
           method: "POST",
 
           headers: {
-
             "Content-Type":
               "application/json",
 
             Authorization:
               `Bearer ${token}`,
-
           },
 
           body:
@@ -1716,34 +1584,24 @@ export const createQuestion =
         }
       );
 
-
     if (!response.ok) {
-
       let message =
         `Question creation failed: ${response.status}`;
 
       try {
-
         const result =
           await response.json();
 
-        if (
-          result?.message
-        ) {
-
+        if (result?.message) {
           message =
             result.message;
         }
-
       } catch {
         // Ignore
       }
 
-      throw new Error(
-        message
-      );
+      throw new Error(message);
     }
-
 
     return response.json();
   };

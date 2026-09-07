@@ -1,3 +1,4 @@
+
 import React, {
   useCallback,
   useEffect,
@@ -130,6 +131,10 @@ interface ResultSummary {
   resultAvailableAt?: string;
   isResultPublished?: boolean;
 
+  /*
+   * Review is kept for results/history handling,
+   * but is NOT displayed on this component.
+   */
   reviewList: ReviewItem[];
 }
 
@@ -230,41 +235,11 @@ export default function MockTestInterface({
     `exam-master-device-${studentId}`;
 
   // ====================================================
-  // QUESTION STATE
+  // STATE
   // ====================================================
 
   const [serverQuestions, setServerQuestions] =
     useState<Question[] | null>(null);
-
-  /*
-   * VERY IMPORTANT:
-   * Once server returns ExamSession questions,
-   * server order is authoritative.
-   *
-   * We don't resort those questions.
-   */
-  const displayQuestions = useMemo(() => {
-    const source =
-      Array.isArray(serverQuestions) &&
-      serverQuestions.length > 0
-        ? serverQuestions
-        : Array.isArray(questions)
-        ? questions
-        : [];
-
-    return source
-      .filter(Boolean)
-      .map((question) => ({
-        ...question,
-      }));
-  }, [
-    questions,
-    serverQuestions,
-  ]);
-
-  // ====================================================
-  // STATE
-  // ====================================================
 
   const [currentQuestion, setCurrentQuestion] =
     useState(0);
@@ -326,16 +301,11 @@ export default function MockTestInterface({
 
   const timerInitializedRef =
     useRef(false);
+const examTabIdRef =
+  useRef<string>("");
 
-  const examTabIdRef =
-    useRef<string>(
-      `${Date.now()}-${Math.random()
-        .toString(36)
-        .slice(2, 10)}`
-    );
-
-  const backHandlingRef =
-    useRef(false);
+const serverTimerReadyRef =
+  useRef(false);
 
   const progressRequestRef =
     useRef<number | null>(null);
@@ -371,7 +341,7 @@ export default function MockTestInterface({
         question._id ||
           question.id ||
           ""
-      );
+      ).trim();
     },
     []
   );
@@ -386,10 +356,10 @@ export default function MockTestInterface({
         return "";
       }
 
-      return (
+      return String(
         question.question ||
-        question.questionText ||
-        ""
+          question.questionText ||
+          ""
       );
     },
     []
@@ -405,15 +375,21 @@ export default function MockTestInterface({
         return option;
       }
 
-      if (option?.text !== undefined) {
+      if (
+        option?.text !== undefined
+      ) {
         return String(option.text);
       }
 
-      if (option?.value !== undefined) {
+      if (
+        option?.value !== undefined
+      ) {
         return String(option.value);
       }
 
-      if (option?.label !== undefined) {
+      if (
+        option?.label !== undefined
+      ) {
         return String(option.label);
       }
 
@@ -457,7 +433,9 @@ export default function MockTestInterface({
   // ====================================================
 
   const getQuestionImages = useCallback(
-    (question?: Question): string[] => {
+    (
+      question?: Question
+    ): string[] => {
       if (!question) {
         return [];
       }
@@ -539,6 +517,225 @@ export default function MockTestInterface({
     },
     []
   );
+
+  // ====================================================
+  // NORMALIZED QUESTION KEY
+  // ====================================================
+
+  const normalizeQuestionKey =
+    useCallback(
+      (question: Question) => {
+        const questionText =
+          getQuestionText(
+            question
+          )
+            .toLowerCase()
+            .replace(/\s+/g, " ")
+            .replace(/\s+([,.!?;:])/g, "$1")
+            .trim();
+
+        const optionText =
+          Array.isArray(
+            question?.options
+          )
+            ? question.options
+                .map((option) =>
+                  getOptionText(option)
+                    .toLowerCase()
+                    .replace(/\s+/g, " ")
+                    .trim()
+                )
+                .join("|")
+            : "";
+
+        /*
+         * Question text + options combination
+         * gives a stronger duplicate key.
+         */
+        return `${questionText}||${optionText}`;
+      },
+      [
+        getOptionText,
+        getQuestionText,
+      ]
+    );
+
+  // ====================================================
+  // SUBJECT PRIORITY
+  // PHYSICS -> CHEMISTRY -> BOTANY -> ZOOLOGY
+  // ====================================================
+
+  const getSubjectPriority =
+    useCallback(
+      (question: Question) => {
+        const value =
+          String(
+            question?.subject ||
+              ""
+          )
+            .trim()
+            .toLowerCase();
+
+        if (
+          value.includes(
+            "physics"
+          ) ||
+          value === "phy"
+        ) {
+          return 1;
+        }
+
+        if (
+          value.includes(
+            "chemistry"
+          ) ||
+          value === "chem"
+        ) {
+          return 2;
+        }
+
+        if (
+          value.includes(
+            "botany"
+          ) ||
+          value === "bot"
+        ) {
+          return 3;
+        }
+
+        if (
+          value.includes(
+            "zoology"
+          ) ||
+          value === "zoo"
+        ) {
+          return 4;
+        }
+
+        return 99;
+      },
+      []
+    );
+
+  // ====================================================
+  // PREPARE QUESTIONS
+  //
+  // 1. Remove duplicate questions
+  // 2. Physics first
+  // 3. Chemistry second
+  // 4. Botany third
+  // 5. Zoology fourth
+  // 6. Keep original relative order
+  // ====================================================
+
+  const prepareQuestions =
+    useCallback(
+      (
+        source: Question[]
+      ) => {
+        const uniqueQuestions: Question[] =
+          [];
+
+        const usedIds =
+          new Set<string>();
+
+        const usedDuplicateKeys =
+          new Set<string>();
+
+        source
+          .filter(Boolean)
+          .forEach(
+            (question) => {
+              const id =
+                getQuestionId(
+                  question
+                );
+
+              const duplicateKey =
+                normalizeQuestionKey(
+                  question
+                );
+
+              /*
+               * Remove exact duplicate by ID.
+               */
+              if (
+                id &&
+                usedIds.has(id)
+              ) {
+                return;
+              }
+
+              /*
+               * Remove duplicate even when
+               * database IDs differ.
+               */
+              if (
+                duplicateKey &&
+                usedDuplicateKeys.has(
+                  duplicateKey
+                )
+              ) {
+                return;
+              }
+
+              if (id) {
+                usedIds.add(id);
+              }
+
+              if (duplicateKey) {
+                usedDuplicateKeys.add(
+                  duplicateKey
+                );
+              }
+
+              uniqueQuestions.push({
+                ...question,
+              });
+            }
+          );
+
+        /*
+         * JS Array.sort is stable in modern browsers.
+         * Therefore questions inside the same subject
+         * maintain the original backend order.
+         */
+        return uniqueQuestions.sort(
+          (a, b) =>
+            getSubjectPriority(a) -
+            getSubjectPriority(b)
+        );
+      },
+      [
+        getQuestionId,
+        getSubjectPriority,
+        normalizeQuestionKey,
+      ]
+    );
+
+  // ====================================================
+  // DISPLAY QUESTIONS
+  // ====================================================
+
+  const displayQuestions = useMemo(() => {
+    const source =
+      Array.isArray(
+        serverQuestions
+      ) &&
+      serverQuestions.length > 0
+        ? serverQuestions
+        : Array.isArray(questions)
+        ? questions
+        : [];
+
+    return prepareQuestions(
+      source
+    );
+  }, [
+    prepareQuestions,
+    questions,
+    serverQuestions,
+  ]);
 
   // ====================================================
   // CURRENT QUESTION
@@ -699,7 +896,9 @@ export default function MockTestInterface({
         try {
           sessionStorage.setItem(
             warningStorageKey,
-            String(safeValue)
+            String(
+              safeValue
+            )
           );
         } catch {
           // Ignore.
@@ -716,9 +915,6 @@ export default function MockTestInterface({
     useCallback(() => {
       hasSubmittedRef.current =
         true;
-
-      backHandlingRef.current =
-        false;
 
       setSubmitError(
         "This exam was opened on another device. This device is no longer authorized."
@@ -752,18 +948,11 @@ export default function MockTestInterface({
         // Ignore.
       }
 
-      try {
-        localStorage.removeItem(
-          "studentToken"
-        );
-
-        localStorage.removeItem(
-          "token"
-        );
-      } catch {
-        // Ignore.
-      }
-
+      /*
+       * IMPORTANT:
+       * Do not clear student login merely because
+       * another exam device took over.
+       */
       window.setTimeout(() => {
         onBack();
       }, 900);
@@ -996,10 +1185,8 @@ export default function MockTestInterface({
       return date.toLocaleString(
         undefined,
         {
-          dateStyle:
-            "medium",
-          timeStyle:
-            "short",
+          dateStyle: "medium",
+          timeStyle: "short",
         }
       );
     }, [resultSummary]);
@@ -1031,8 +1218,7 @@ export default function MockTestInterface({
               ? ` - ${chapterName}`
               : " - Full Assessment"),
 
-          testCategory:
-            "mock",
+          testCategory: "mock",
 
           subject,
 
@@ -1074,8 +1260,8 @@ export default function MockTestInterface({
         };
 
         /*
-         * Do not keep detailed answer review locally
-         * until the result is published.
+         * Detailed result/review will only be saved
+         * after result publication.
          */
         if (published) {
           historyItem.correct =
@@ -1246,9 +1432,7 @@ export default function MockTestInterface({
               "function"
                 ? globalThis.crypto.randomUUID()
                 : Math.random()
-                    .toString(
-                      36
-                    )
+                    .toString(36)
                     .slice(
                       2,
                       14
@@ -1283,8 +1467,7 @@ export default function MockTestInterface({
                 deviceSessionStorageKey
               ) || "";
           } catch {
-            storedDeviceSession =
-              "";
+            storedDeviceSession = "";
           }
 
           deviceSessionIdRef.current =
@@ -1298,8 +1481,7 @@ export default function MockTestInterface({
             await fetch(
               `${cleanApiBase}/mock-test/start`,
               {
-                method:
-                  "POST",
+                method: "POST",
 
                 headers: {
                   ...getBackendHeaders(),
@@ -1338,9 +1520,7 @@ export default function MockTestInterface({
                 () => null
               );
 
-          if (
-            cancelled
-          ) {
+          if (cancelled) {
             return;
           }
 
@@ -1357,9 +1537,7 @@ export default function MockTestInterface({
             hasSubmittedRef.current =
               true;
 
-            setSubmitted(
-              true
-            );
+            setSubmitted(true);
 
             setServerInitializing(
               false
@@ -1387,7 +1565,7 @@ export default function MockTestInterface({
           }
 
           // ------------------------------------------
-          // TIME EXPIRED ON START/RESUME
+          // TIME EXPIRED ON START
           // ------------------------------------------
 
           if (
@@ -1405,15 +1583,7 @@ export default function MockTestInterface({
                 );
             }
 
-            /*
-             * The backend expired session response may not
-             * include deviceSessionId. Keep stored token if
-             * we already have one.
-             */
-
-            setTimeLeft(
-              0
-            );
+            setTimeLeft(0);
 
             setServerReady(
               true
@@ -1436,12 +1606,10 @@ export default function MockTestInterface({
           }
 
           // ------------------------------------------
-          // OTHER ERROR
+          // OTHER SERVER ERROR
           // ------------------------------------------
 
-          if (
-            !response.ok
-          ) {
+          if (!response.ok) {
             throw new Error(
               data?.message ||
                 `Unable to start exam (${response.status})`
@@ -1506,6 +1674,12 @@ export default function MockTestInterface({
                         ""
                     ),
 
+                  chapterName:
+                    String(
+                      item?.chapterName ??
+                        ""
+                    ),
+
                   questionNumber:
                     typeof item?.questionNumber ===
                     "number"
@@ -1519,7 +1693,8 @@ export default function MockTestInterface({
                     ),
 
                   /*
-                   * DO NOT set correctAnswer here.
+                   * Correct answer is intentionally NOT
+                   * sent to the browser.
                    */
                 })
               );
@@ -1539,7 +1714,9 @@ export default function MockTestInterface({
                 ""
             ).trim();
 
-          if (!returnedSessionId) {
+          if (
+            !returnedSessionId
+          ) {
             throw new Error(
               "Mock test server did not return a sessionId."
             );
@@ -1553,7 +1730,7 @@ export default function MockTestInterface({
           );
 
           // ------------------------------------------
-          // DEVICE SESSION ID
+          // DEVICE SESSION
           // ------------------------------------------
 
           const returnedDeviceSessionId =
@@ -1626,7 +1803,7 @@ export default function MockTestInterface({
             typeof data?.currentQuestion ===
             "number"
           ) {
-            const questionCount =
+            const serverQuestionCount =
               Array.isArray(
                 data?.questions
               )
@@ -1646,7 +1823,7 @@ export default function MockTestInterface({
                   ),
                   Math.max(
                     0,
-                    questionCount -
+                    serverQuestionCount -
                       1
                   )
                 )
@@ -1660,39 +1837,28 @@ export default function MockTestInterface({
           // ------------------------------------------
           // SERVER ANSWERS
           // ------------------------------------------
+         if (
+  Array.isArray(data?.answers)
+) {
+  const restoredAnswers: AnswerMap = {};
 
-          if (
-            Array.isArray(
-              data?.answers
-            )
-          ) {
-            const restoredAnswers:
-              AnswerMap =
-              {};
+  data.answers.forEach(
+    (item: any) => {
+      if (item?.questionId) {
+        restoredAnswers[
+          String(item.questionId)
+        ] = String(
+          item.answer || ""
+        );
+      }
+    }
+  );
 
-            data.answers.forEach(
-              (item: any) => {
-                if (
-                  item?.questionId
-                ) {
-                  restoredAnswers[
-                    String(
-                      item.questionId
-                    )
-                  ] =
-                    String(
-                      item.answer ||
-                        ""
-                    );
-                }
-              }
-            );
-
-            setAnswers(
-              restoredAnswers
-            );
-          }
-
+  setAnswers((previous) => ({
+    ...previous,
+    ...restoredAnswers,
+  }));
+}
           // ------------------------------------------
           // SERVER REVIEW
           // ------------------------------------------
@@ -1716,7 +1882,9 @@ export default function MockTestInterface({
                 restoredReview[
                   String(id)
                 ] =
-                  Boolean(marked);
+                  Boolean(
+                    marked
+                  );
               }
             );
 
@@ -1728,43 +1896,48 @@ export default function MockTestInterface({
           // ------------------------------------------
           // SERVER TIMER
           // ------------------------------------------
+         if (
+  typeof data?.remainingSeconds ===
+  "number"
+) {
+  const remaining =
+    Math.max(
+      0,
+      Math.floor(
+        data.remainingSeconds
+      )
+    );
 
-          if (
-            typeof data?.remainingSeconds ===
-            "number"
-          ) {
-            const remaining =
-              Math.max(
-                0,
-                Math.floor(
-                  data.remainingSeconds
-                )
-              );
+  // IMPORTANT:
+  // From this point onwards, 0 means actual server
+  // timer expiry, not initial React state.
+  serverTimerReadyRef.current =
+    true;
 
-            setTimeLeft(
-              remaining
-            );
+  setTimeLeft(
+    remaining
+  );
 
-            try {
-              sessionStorage.setItem(
-                timerEndStorageKey,
-                String(
-                  Date.now() +
-                    remaining *
-                      1000
-                )
-              );
+  try {
+    sessionStorage.setItem(
+      timerEndStorageKey,
+      String(
+        Date.now() +
+          remaining * 1000
+      )
+    );
 
-              sessionStorage.setItem(
-                timerStorageKey,
-                String(
-                  remaining
-                )
-              );
-            } catch {
-              // Ignore.
-            }
-          }
+    sessionStorage.setItem(
+      timerStorageKey,
+      String(
+        remaining
+      )
+    );
+  } catch {
+    // Ignore.
+  }
+}
+          
 
           // ------------------------------------------
           // WARNING RESTORE
@@ -1804,9 +1977,7 @@ export default function MockTestInterface({
         } catch (
           error: any
         ) {
-          if (
-            cancelled
-          ) {
+          if (cancelled) {
             return;
           }
 
@@ -1828,9 +1999,7 @@ export default function MockTestInterface({
               "Unable to connect to exam server. Please try again."
           );
         } finally {
-          if (
-            !cancelled
-          ) {
+          if (!cancelled) {
             timerInitializedRef.current =
               true;
 
@@ -1844,8 +2013,7 @@ export default function MockTestInterface({
     void initializeServerSession();
 
     return () => {
-      cancelled =
-        true;
+      cancelled = true;
     };
   }, [
     cleanApiBase,
@@ -1873,9 +2041,7 @@ export default function MockTestInterface({
           statusStorageKey
         );
 
-      if (
-        savedStatus
-      ) {
+      if (savedStatus) {
         try {
           const parsedStatus =
             JSON.parse(
@@ -1923,9 +2089,7 @@ export default function MockTestInterface({
           answerStorageKey
         );
 
-      if (
-        savedAnswers
-      ) {
+      if (savedAnswers) {
         try {
           const parsed =
             JSON.parse(
@@ -1953,9 +2117,7 @@ export default function MockTestInterface({
           reviewStorageKey
         );
 
-      if (
-        savedReview
-      ) {
+      if (savedReview) {
         try {
           const parsed =
             JSON.parse(
@@ -2024,11 +2186,12 @@ export default function MockTestInterface({
           Math.max(
             0,
             Math.ceil(
-              (Number(
-                savedTimerEnd
-              ) -
-                Date.now()) /
-                1000
+              (
+                Number(
+                  savedTimerEnd
+                ) -
+                Date.now()
+              ) / 1000
             )
           )
         );
@@ -2127,7 +2290,11 @@ export default function MockTestInterface({
   ]);
 
   // ====================================================
-  // FALLBACK TIMER BEFORE SERVER READY
+  // FALLBACK TIMER
+  //
+  // IMPORTANT:
+  // This timer NEVER submits.
+  // It is only used until server timer is ready.
   // ====================================================
 
   useEffect(() => {
@@ -2158,11 +2325,12 @@ export default function MockTestInterface({
           Math.max(
             0,
             Math.ceil(
-              (Number(
-                existingDeadline
-              ) -
-                Date.now()) /
-                1000
+              (
+                Number(
+                  existingDeadline
+                ) -
+                Date.now()
+              ) / 1000
             )
           )
         );
@@ -2201,6 +2369,10 @@ export default function MockTestInterface({
   // ====================================================
 
   useEffect(() => {
+    if (submitted) {
+      return;
+    }
+
     try {
       sessionStorage.setItem(
         answerStorageKey,
@@ -2214,6 +2386,7 @@ export default function MockTestInterface({
   }, [
     answerStorageKey,
     answers,
+    submitted,
   ]);
 
   // ====================================================
@@ -2221,6 +2394,10 @@ export default function MockTestInterface({
   // ====================================================
 
   useEffect(() => {
+    if (submitted) {
+      return;
+    }
+
     try {
       sessionStorage.setItem(
         reviewStorageKey,
@@ -2234,6 +2411,7 @@ export default function MockTestInterface({
   }, [
     markedForReview,
     reviewStorageKey,
+    submitted,
   ]);
 
   // ====================================================
@@ -2296,8 +2474,7 @@ export default function MockTestInterface({
               await fetch(
                 `${cleanApiBase}/mock-test/progress`,
                 {
-                  method:
-                    "POST",
+                  method: "POST",
 
                   headers:
                     getBackendHeaders(),
@@ -2372,18 +2549,18 @@ export default function MockTestInterface({
             }
 
             if (
-              response.status ===
-                410 &&
-              data?.code ===
-                "EXAM_TIME_EXPIRED"
-            ) {
-              setTimeLeft(
-                0
-              );
+  response.status ===
+    410 &&
+  data?.code ===
+    "EXAM_TIME_EXPIRED"
+) {
+  serverTimerReadyRef.current =
+    true;
 
-              return;
-            }
+  setTimeLeft(0);
 
+  return;
+}
             if (
               !response.ok
             ) {
@@ -2467,8 +2644,7 @@ export default function MockTestInterface({
               await fetch(
                 `${cleanApiBase}/mock-test/heartbeat`,
                 {
-                  method:
-                    "POST",
+                  method: "POST",
 
                   headers:
                     getBackendHeaders(),
@@ -2521,20 +2697,19 @@ export default function MockTestInterface({
 
               return;
             }
+           if (
+  response.status === 410 &&
+  data?.code === "EXAM_TIME_EXPIRED"
+) {
+  serverTimerReadyRef.current = true;
 
-            if (
-              response.status ===
-                410 &&
-              data?.code ===
-                "EXAM_TIME_EXPIRED"
-            ) {
-              setTimeLeft(
-                0
-              );
+  setTimeLeft(0);
 
-              return;
-            }
+  return;
+}
+           
 
+             
             if (
               !response.ok
             ) {
@@ -2640,25 +2815,22 @@ export default function MockTestInterface({
         const safeSeconds =
           Math.max(
             0,
-            seconds
+            Number(seconds) || 0
           );
 
         const hours =
           Math.floor(
-            safeSeconds /
-              3600
+            safeSeconds / 3600
           );
 
         const minutes =
           Math.floor(
-            (safeSeconds %
-              3600) /
+            (safeSeconds % 3600) /
               60
           );
 
         const secs =
-          safeSeconds %
-          60;
+          safeSeconds % 60;
 
         if (hours > 0) {
           return `${String(
@@ -2704,74 +2876,80 @@ export default function MockTestInterface({
   // ====================================================
   // SELECT OPTION
   // ====================================================
+const handleSelectOption = useCallback(
+  (option: string) => {
+    if (
+      !currentQuestionId ||
+      tabBlocked ||
+      submitted ||
+      isSubmitting ||
+      !serverSessionReady
+    ) {
+      return;
+    }
 
-  const handleSelectOption =
-    useCallback(
-      (option: string) => {
-        if (
-          !currentQuestionId ||
-          tabBlocked ||
-          submitted ||
-          isSubmitting ||
-          !serverSessionReady
-        ) {
-          return;
-        }
+    const nextAnswers = {
+      ...answers,
+      [currentQuestionId]: option,
+    };
 
-        setAnswers(
-          (previous) => ({
-            ...previous,
-            [currentQuestionId]:
-              option,
-          })
-        );
-      },
-      [
-        currentQuestionId,
-        isSubmitting,
-        serverSessionReady,
-        submitted,
-        tabBlocked,
-      ]
-    );
+    setAnswers(nextAnswers);
 
+    // Refresh ayina latest selected answer lose kakunda immediate ga save
+    try {
+      sessionStorage.setItem(
+        answerStorageKey,
+        JSON.stringify(nextAnswers)
+      );
+    } catch {}
+  },
+  [
+    answerStorageKey,
+    answers,
+    currentQuestionId,
+    isSubmitting,
+    serverSessionReady,
+    submitted,
+    tabBlocked,
+  ]
+);
   // ====================================================
   // CLEAR ANSWER
   // ====================================================
+const handleClearAnswer = useCallback(() => {
+  if (
+    !currentQuestionId ||
+    tabBlocked ||
+    submitted ||
+    isSubmitting ||
+    !serverSessionReady
+  ) {
+    return;
+  }
 
-  const handleClearAnswer =
-    useCallback(() => {
-      if (
-        !currentQuestionId ||
-        tabBlocked ||
-        submitted ||
-        isSubmitting ||
-        !serverSessionReady
-      ) {
-        return;
-      }
+  const nextAnswers = {
+    ...answers,
+  };
 
-      setAnswers(
-        (previous) => {
-          const next = {
-            ...previous,
-          };
+  delete nextAnswers[currentQuestionId];
 
-          delete next[
-            currentQuestionId
-          ];
+  setAnswers(nextAnswers);
 
-          return next;
-        }
-      );
-    }, [
-      currentQuestionId,
-      isSubmitting,
-      serverSessionReady,
-      submitted,
-      tabBlocked,
-    ]);
-
+  try {
+    sessionStorage.setItem(
+      answerStorageKey,
+      JSON.stringify(nextAnswers)
+    );
+  } catch {}
+}, [
+  answerStorageKey,
+  answers,
+  currentQuestionId,
+  isSubmitting,
+  serverSessionReady,
+  submitted,
+  tabBlocked,
+]);
   // ====================================================
   // TOGGLE REVIEW
   // ====================================================
@@ -2886,8 +3064,7 @@ export default function MockTestInterface({
 
       if (
         currentQuestion <
-        displayQuestions.length -
-          1
+        displayQuestions.length - 1
       ) {
         setCurrentQuestion(
           (previous) =>
@@ -2919,6 +3096,17 @@ export default function MockTestInterface({
           return;
         }
 
+        /*
+         * Auto-submit is allowed ONLY when
+         * timer reaches zero.
+         */
+        if (
+          isAutoSubmit &&
+          timeLeft > 0
+        ) {
+          return;
+        }
+
         if (
           !cleanApiBase ||
           !serverSessionReady ||
@@ -2927,9 +3115,6 @@ export default function MockTestInterface({
           setSubmitError(
             "Exam server session is still being prepared. Please wait a moment."
           );
-
-          backHandlingRef.current =
-            false;
 
           return;
         }
@@ -2960,8 +3145,7 @@ export default function MockTestInterface({
             await fetch(
               `${cleanApiBase}/mock-test/submit`,
               {
-                method:
-                  "POST",
+                method: "POST",
 
                 headers: {
                   ...getBackendHeaders(),
@@ -3085,9 +3269,6 @@ export default function MockTestInterface({
               data.result
             );
 
-          /*
-           * SERVER RESULT IS AUTHORITATIVE.
-           */
           setResultSummary(
             serverSummary
           );
@@ -3110,7 +3291,7 @@ export default function MockTestInterface({
           );
 
           // ------------------------------------------
-          // LOCAL RESULT
+          // SAVE RESULT
           // ------------------------------------------
 
           saveLocalResult(
@@ -3119,6 +3300,8 @@ export default function MockTestInterface({
 
           // ------------------------------------------
           // SAFE SUBMITTED CACHE
+          //
+          // NO REVIEW DETAILS while result is pending.
           // ------------------------------------------
 
           const safeStoredResult:
@@ -3149,8 +3332,8 @@ export default function MockTestInterface({
             };
 
           /*
-           * Only store detailed scoring/review
-           * when server says result is published.
+           * Only save detailed evaluation
+           * after publication.
            */
           if (
             serverSummary.isResultPublished
@@ -3188,6 +3371,10 @@ export default function MockTestInterface({
             safeStoredResult.reviewList =
               serverSummary.reviewList;
           }
+
+          // ------------------------------------------
+          // STATUS CACHE
+          // ------------------------------------------
 
           try {
             sessionStorage.setItem(
@@ -3258,18 +3445,12 @@ export default function MockTestInterface({
             false
           );
 
-          /*
-           * Keep this value because result screen
-           * needs to know manual/automatic submission.
-           */
           setAutoSubmitted(
             finalAutoSubmitted
           );
+          window.location.assign("/exam-history");
 
           autoSubmitStartedRef.current =
-            false;
-
-          backHandlingRef.current =
             false;
         } catch (
           error: any
@@ -3280,9 +3461,6 @@ export default function MockTestInterface({
           );
 
           hasSubmittedRef.current =
-            false;
-
-          backHandlingRef.current =
             false;
 
           setIsSubmitting(
@@ -3323,116 +3501,95 @@ export default function MockTestInterface({
         statusStorageKey,
         studentId,
         studentName,
-        submitted,
+        timeLeft,
         timerEndStorageKey,
         timerStorageKey,
       ]
     );
 
   // ====================================================
-  // AUTO SUBMIT WHEN TIMER HITS ZERO
+  // ONLY AUTO SUBMIT WHEN TIMER = 00:00
   // ====================================================
+      // ====================================================
+// AUTO SUBMIT
+//
+// ONLY when the SERVER timer actually reaches 00:00.
+//
+// Refresh      -> NO auto submit
+// Back         -> NO auto submit
+// Exit         -> NO auto submit
+// Tab switch   -> NO auto submit
+// Timer 00:00  -> AUTO submit
+// ====================================================
 
-  useEffect(() => {
-    if (
-      submitted ||
-      isSubmitting
-    ) {
-      return;
-    }
+useEffect(() => {
+  if (
+    submitted ||
+    isSubmitting
+  ) {
+    return;
+  }
 
-    if (
-      !serverReady ||
-      !serverSessionReady ||
-      !serverSessionIdRef.current
-    ) {
-      return;
-    }
+  if (
+    !serverReady ||
+    !serverSessionReady ||
+    !serverSessionIdRef.current
+  ) {
+    return;
+  }
 
-    if (
-      timeLeft > 0
-    ) {
-      return;
-    }
+  /*
+   * Prevent initial React state 0 from
+   * being interpreted as timer expiry.
+   */
+  if (
+    !serverTimerReadyRef.current
+  ) {
+    return;
+  }
 
-    if (
-      autoSubmitStartedRef.current
-    ) {
-      return;
-    }
+  /*
+   * Timer must actually be zero.
+   */
+  if (
+    timeLeft !== 0
+  ) {
+    return;
+  }
 
-    autoSubmitStartedRef.current =
-      true;
+  if (
+    autoSubmitStartedRef.current
+  ) {
+    return;
+  }
 
-    setAutoSubmitted(
-      true
-    );
+  autoSubmitStartedRef.current =
+    true;
 
-    setSubmitError(
-      "Time is over. Your exam is being submitted automatically."
-    );
+  setAutoSubmitted(
+    true
+  );
 
-    void submitExamData(
-      true
-    );
-  }, [
-    isSubmitting,
-    serverReady,
-    serverSessionReady,
-    submitExamData,
-    submitted,
-    timeLeft,
-  ]);
+  setSubmitError(
+    "Time is over. Your exam is being submitted automatically."
+  );
 
-  // ====================================================
-  // SECURITY EXIT
-  // ====================================================
-
-  const handleSecurityExit =
-    useCallback(() => {
-      if (
-        submitted ||
-        isSubmitting ||
-        hasSubmittedRef.current ||
-        backHandlingRef.current
-      ) {
-        return;
-      }
-
-      /*
-       * If server session is not available,
-       * don't pretend the exam was submitted.
-       */
-      if (
-        !serverSessionReady ||
-        !serverSessionIdRef.current
-      ) {
-        setSubmitError(
-          "The secure exam session is still connecting. Please remain on this page."
-        );
-
-        return;
-      }
-
-      backHandlingRef.current =
-        true;
-
-      setSubmitError(
-        "Exit detected. Your exam is being submitted automatically."
-      );
-
-      void submitExamData(
-        true
-      );
-    }, [
-      isSubmitting,
-      serverSessionReady,
-      submitExamData,
-      submitted,
-    ]);
-
+  void submitExamData(
+    true
+  );
+}, [
+  isSubmitting,
+  serverReady,
+  serverSessionReady,
+  submitExamData,
+  submitted,
+  timeLeft,
+]);
   // ====================================================
   // BROWSER BACK
+  //
+  // IMPORTANT:
+  // BACK MUST NOT AUTO-SUBMIT.
   // ====================================================
 
   useEffect(() => {
@@ -3447,6 +3604,10 @@ export default function MockTestInterface({
         testKey,
     };
 
+    /*
+     * Push a history entry so pressing browser
+     * back does not immediately leave the exam.
+     */
     window.history.pushState(
       stateMarker,
       "",
@@ -3456,20 +3617,24 @@ export default function MockTestInterface({
     const handlePopState =
       () => {
         if (
-          submitted ||
-          isSubmitting ||
-          hasSubmittedRef.current
+          submitted
         ) {
           return;
         }
 
+        /*
+         * Put the history lock back.
+         * DO NOT call submitExamData().
+         */
         window.history.pushState(
           stateMarker,
           "",
           window.location.href
         );
 
-        handleSecurityExit();
+        setSubmitError(
+          "Browser Back is disabled while the exam is in progress. Submit the exam or wait for the timer to finish."
+        );
       };
 
     window.addEventListener(
@@ -3484,14 +3649,15 @@ export default function MockTestInterface({
       );
     };
   }, [
-    handleSecurityExit,
-    isSubmitting,
     submitted,
     testKey,
   ]);
 
   // ====================================================
   // REFRESH / CLOSE WARNING
+  //
+  // IMPORTANT:
+  // REFRESH NEVER AUTO-SUBMITS.
   // ====================================================
 
   useEffect(() => {
@@ -3505,11 +3671,6 @@ export default function MockTestInterface({
       (
         event: BeforeUnloadEvent
       ) => {
-        event.preventDefault();
-
-        event.returnValue =
-          "Exam is in progress. Refresh will restore the saved exam session.";
-
         try {
           sessionStorage.setItem(
             answerStorageKey,
@@ -3539,6 +3700,22 @@ export default function MockTestInterface({
             )
           );
 
+          /*
+           * Keep absolute end time too.
+           */
+          if (
+            timeLeft > 0
+          ) {
+            sessionStorage.setItem(
+              timerEndStorageKey,
+              String(
+                Date.now() +
+                  timeLeft *
+                    1000
+              )
+            );
+          }
+
           sessionStorage.setItem(
             warningStorageKey,
             String(
@@ -3548,6 +3725,15 @@ export default function MockTestInterface({
         } catch {
           // Ignore.
         }
+
+        /*
+         * Browser shows its own native refresh/close
+         * confirmation.
+         *
+         * NEVER call submitExamData here.
+         */
+        event.preventDefault();
+        event.returnValue = "";
       };
 
     window.addEventListener(
@@ -3570,74 +3756,43 @@ export default function MockTestInterface({
     reviewStorageKey,
     submitted,
     timeLeft,
+    timerEndStorageKey,
     timerStorageKey,
     warningStorageKey,
   ]);
 
-  // ====================================================
-  // VISIBILITY WARNING
-  // ====================================================
 
-  useEffect(() => {
-    if (
-      submitted
-    ) {
+    // ====================================================
+// VISIBILITY WARNING
+//
+// Refresh -> NO WARNING
+// Tab switch -> WARNING
+// ====================================================
+useEffect(() => {
+  if (submitted) {
+    return;
+  }
+
+  const handleVisibilityChange = () => {
+    // Tab switch ayina submit cheyyadu.
+    // Refresh ayina warning count cheyyadu.
+    if (document.visibilityState !== "visible") {
       return;
     }
+  };
 
-    const handleVisibilityChange =
-      () => {
-        if (
-          document.visibilityState ===
-          "hidden"
-        ) {
-          if (
-            !wasHiddenRef.current
-          ) {
-            wasHiddenRef.current =
-              true;
+  document.addEventListener(
+    "visibilitychange",
+    handleVisibilityChange
+  );
 
-            const nextWarning =
-              warningRef.current +
-              1;
-
-            saveWarningCount(
-              nextWarning
-            );
-
-            setSubmitError(
-              `Exam focus warning ${nextWarning}. Please keep the exam tab active.`
-            );
-          }
-
-          return;
-        }
-
-        if (
-          document.visibilityState ===
-          "visible"
-        ) {
-          wasHiddenRef.current =
-            false;
-        }
-      };
-
-    document.addEventListener(
+  return () => {
+    document.removeEventListener(
       "visibilitychange",
       handleVisibilityChange
     );
-
-    return () => {
-      document.removeEventListener(
-        "visibilitychange",
-        handleVisibilityChange
-      );
-    };
-  }, [
-    saveWarningCount,
-    submitted,
-  ]);
-
+  };
+}, [submitted]);
   // ====================================================
   // RE-SYNC AFTER RETURNING TO TAB
   // ====================================================
@@ -3661,8 +3816,7 @@ export default function MockTestInterface({
             await fetch(
               `${cleanApiBase}/mock-test/heartbeat`,
               {
-                method:
-                  "POST",
+                method: "POST",
 
                 headers:
                   getBackendHeaders(),
@@ -3702,10 +3856,27 @@ export default function MockTestInterface({
 
           if (
             response.status ===
+              409 &&
+            data?.code ===
+              "EXAM_ALREADY_SUBMITTED"
+          ) {
+            hasSubmittedRef.current =
+              true;
+
+            setSubmitted(
+              true
+            );
+
+            return;
+          }
+
+          if (
+            response.status ===
               410 &&
             data?.code ===
               "EXAM_TIME_EXPIRED"
           ) {
+            serverTimerReadyRef.current = true;
             setTimeLeft(
               0
             );
@@ -3776,169 +3947,295 @@ export default function MockTestInterface({
   // ====================================================
   // ONE ACTIVE TAB
   // ====================================================
+// ====================================================
+// ONE ACTIVE TAB
+//
+// Refresh:
+//   SAME tab ID because sessionStorage survives refresh
+//
+// New tab:
+//   DIFFERENT sessionStorage -> DIFFERENT tab ID
+//
+// Therefore refresh will NOT show:
+// "another browser tab is controlling this exam"
+// ====================================================
 
-  useEffect(() => {
-    if (
-      submitted
-    ) {
-      return;
+useEffect(() => {
+  if (submitted) {
+    return;
+  }
+
+  const tabStorageKey =
+    `${testKey}_exam_tab_id`;
+
+  let tabId = "";
+
+  try {
+    tabId =
+      sessionStorage.getItem(
+        tabStorageKey
+      ) || "";
+  } catch {
+    tabId = "";
+  }
+
+  // Create tab ID only once for this browser tab.
+  if (!tabId) {
+    const randomPart =
+      typeof globalThis.crypto
+        ?.randomUUID === "function"
+        ? globalThis.crypto.randomUUID()
+        : Math.random()
+            .toString(36)
+            .slice(2, 14);
+
+    tabId =
+      `${Date.now()}-${randomPart}`;
+
+    try {
+      sessionStorage.setItem(
+        tabStorageKey,
+        tabId
+      );
+    } catch {
+      // Ignore.
     }
+  }
 
-    const tabId =
-      examTabIdRef.current;
+  examTabIdRef.current =
+    tabId;
 
-    const registerTab =
-      () => {
-        try {
-          const existing =
-            localStorage.getItem(
-              activeTabStorageKey
-            );
+  const registerTab = () => {
+    try {
+      const existing =
+        localStorage.getItem(
+          activeTabStorageKey
+        );
 
-          if (
-            existing
-          ) {
-            try {
-              const parsed =
-                JSON.parse(
-                  existing
-                );
+      // ----------------------------------------------
+      // No active tab yet
+      // ----------------------------------------------
 
-              const fresh =
-                parsed?.tabId &&
-                Number(
-                  parsed.timestamp
-                ) >
-                  Date.now() -
-                    15000;
+      if (!existing) {
+        localStorage.setItem(
+          activeTabStorageKey,
+          JSON.stringify({
+            tabId,
+            timestamp: Date.now(),
+          })
+        );
 
-              if (
-                fresh &&
-                parsed.tabId !==
-                  tabId
-              ) {
-                setTabBlocked(
-                  true
-                );
+        setTabBlocked(false);
+        return true;
+      }
 
-                setSubmitError(
-                  "This exam is already open in another browser tab. Continue in the original tab."
-                );
+      // ----------------------------------------------
+      // Read existing lock
+      // ----------------------------------------------
 
-                return false;
-              }
-            } catch {
-              // Replace invalid lock.
-            }
-          }
+      let parsed: any = null;
 
-          localStorage.setItem(
-            activeTabStorageKey,
-            JSON.stringify({
-              tabId,
-              timestamp:
-                Date.now(),
-            })
-          );
+      try {
+        parsed =
+          JSON.parse(existing);
+      } catch {
+        parsed = null;
+      }
 
-          setTabBlocked(
-            false
-          );
+      const existingTabId =
+        String(
+          parsed?.tabId || ""
+        );
 
-          return true;
-        } catch {
-          return true;
-        }
-      };
+      const existingTimestamp =
+        Number(
+          parsed?.timestamp || 0
+        );
 
-    registerTab();
+      const isFresh =
+        Boolean(
+          existingTabId &&
+            existingTimestamp >
+              Date.now() - 15000
+        );
 
-    const heartbeat =
-      window.setInterval(
-        () => {
-          try {
-            const current =
-              localStorage.getItem(
-                activeTabStorageKey
-              );
+      // ----------------------------------------------
+      // SAME TAB
+      //
+      // This is what makes refresh safe.
+      // ----------------------------------------------
 
-            if (
-              !current
-            ) {
-              registerTab();
-              return;
-            }
+      if (
+        isFresh &&
+        existingTabId === tabId
+      ) {
+        localStorage.setItem(
+          activeTabStorageKey,
+          JSON.stringify({
+            tabId,
+            timestamp: Date.now(),
+          })
+        );
 
-            const parsed =
-              JSON.parse(
-                current
-              );
+        setTabBlocked(false);
 
-            if (
-              parsed?.tabId ===
-              tabId
-            ) {
-              localStorage.setItem(
-                activeTabStorageKey,
-                JSON.stringify({
-                  tabId,
-                  timestamp:
-                    Date.now(),
-                })
-              );
+        /*
+         * Clear stale "another tab" message
+         * when the same tab is restored.
+         */
+        setSubmitError(
+          (previous) =>
+            previous.includes(
+              "another browser tab"
+            )
+              ? ""
+              : previous
+        );
 
-              setTabBlocked(
-                false
-              );
-            } else {
-              setTabBlocked(
-                true
-              );
-            }
-          } catch {
-            // Ignore.
-          }
-        },
-        5000
+        return true;
+      }
+
+      // ----------------------------------------------
+      // DIFFERENT ACTIVE TAB
+      // ----------------------------------------------
+
+      if (
+        isFresh &&
+        existingTabId !== tabId
+      ) {
+        setTabBlocked(true);
+
+        setSubmitError(
+          "This exam is already open in another browser tab. Continue in the original tab."
+        );
+
+        return false;
+      }
+
+      // ----------------------------------------------
+      // OLD / EXPIRED LOCK
+      // ----------------------------------------------
+
+      localStorage.setItem(
+        activeTabStorageKey,
+        JSON.stringify({
+          tabId,
+          timestamp: Date.now(),
+        })
       );
 
-    return () => {
-      window.clearInterval(
-        heartbeat
-      );
+      setTabBlocked(false);
 
+      return true;
+    } catch {
+      /*
+       * If localStorage is unavailable,
+       * don't lock the student out.
+       */
+      setTabBlocked(false);
+      return true;
+    }
+  };
+
+  registerTab();
+
+  const heartbeat =
+    window.setInterval(() => {
       try {
         const current =
           localStorage.getItem(
             activeTabStorageKey
           );
 
-        if (
-          current
-        ) {
-          const parsed =
-            JSON.parse(
-              current
-            );
-
-          if (
-            parsed?.tabId ===
-            tabId
-          ) {
-            localStorage.removeItem(
-              activeTabStorageKey
-            );
-          }
+        if (!current) {
+          registerTab();
+          return;
         }
+
+        let parsed: any = null;
+
+        try {
+          parsed =
+            JSON.parse(current);
+        } catch {
+          parsed = null;
+        }
+
+        const currentTabId =
+          String(
+            parsed?.tabId || ""
+          );
+
+        /*
+         * This tab still owns the lock.
+         */
+        if (
+          currentTabId === tabId
+        ) {
+          localStorage.setItem(
+            activeTabStorageKey,
+            JSON.stringify({
+              tabId,
+              timestamp: Date.now(),
+            })
+          );
+
+          setTabBlocked(false);
+          return;
+        }
+
+        /*
+         * Another tab owns the lock.
+         */
+        setTabBlocked(true);
       } catch {
         // Ignore.
       }
-    };
-  }, [
-    activeTabStorageKey,
-    submitted,
-  ]);
+    }, 5000);
 
+  return () => {
+    window.clearInterval(
+      heartbeat
+    );
+
+    /*
+     * Remove lock only if THIS tab owns it.
+     */
+    try {
+      const current =
+        localStorage.getItem(
+          activeTabStorageKey
+        );
+
+      if (current) {
+        let parsed: any = null;
+
+        try {
+          parsed =
+            JSON.parse(current);
+        } catch {
+          parsed = null;
+        }
+
+        if (
+          String(
+            parsed?.tabId || ""
+          ) === tabId
+        ) {
+          localStorage.removeItem(
+            activeTabStorageKey
+          );
+        }
+      }
+    } catch {
+      // Ignore.
+    }
+  };
+}, [
+  activeTabStorageKey,
+  submitted,
+  testKey,
+]);
   // ====================================================
   // KEYBOARD
   // ====================================================
@@ -4006,6 +4303,8 @@ export default function MockTestInterface({
             number - 1
           ] !== undefined
         ) {
+          event.preventDefault();
+
           handleSelectOption(
             getOptionText(
               currentQ.options[
@@ -4040,10 +4339,20 @@ export default function MockTestInterface({
 
   // ====================================================
   // EXIT
+  //
+  // IMPORTANT:
+  // Manual Exit DOES NOT auto-submit.
+  // It simply asks user to leave the exam.
   // ====================================================
 
   const handleExit =
     useCallback(() => {
+      if (
+        isSubmitting
+      ) {
+        return;
+      }
+
       if (
         submitted
       ) {
@@ -4051,18 +4360,72 @@ export default function MockTestInterface({
         return;
       }
 
-      if (
-        isSubmitting
-      ) {
-        return;
+      /*
+       * No auto submit here.
+       *
+       * Save current local state first.
+       */
+      try {
+        sessionStorage.setItem(
+          answerStorageKey,
+          JSON.stringify(
+            answers
+          )
+        );
+
+        sessionStorage.setItem(
+          reviewStorageKey,
+          JSON.stringify(
+            markedForReview
+          )
+        );
+
+        sessionStorage.setItem(
+          currentQuestionStorageKey,
+          String(
+            currentQuestion
+          )
+        );
+
+        sessionStorage.setItem(
+          timerStorageKey,
+          String(
+            timeLeft
+          )
+        );
+
+        if (
+          timeLeft > 0
+        ) {
+          sessionStorage.setItem(
+            timerEndStorageKey,
+            String(
+              Date.now() +
+                timeLeft *
+                  1000
+            )
+          );
+        }
+      } catch {
+        // Ignore.
       }
 
-      handleSecurityExit();
+      setSubmitError(
+        "Exit is disabled while the exam is in progress. Your session and progress will be restored when you return."
+      );
     }, [
-      handleSecurityExit,
+      answerStorageKey,
+      answers,
+      currentQuestion,
+      currentQuestionStorageKey,
       isSubmitting,
+      markedForReview,
       onBack,
+      reviewStorageKey,
       submitted,
+      timeLeft,
+      timerEndStorageKey,
+      timerStorageKey,
     ]);
 
   // ====================================================
@@ -4072,7 +4435,7 @@ export default function MockTestInterface({
   const handleGoToHistory =
     useCallback(() => {
       window.location.assign(
-        "/results"
+         "/exam-history"
       );
     }, []);
 
@@ -4113,6 +4476,9 @@ export default function MockTestInterface({
 
   // ====================================================
   // RESULT SCREEN
+  //
+  // REVIEW IS NOT SHOWN HERE.
+  // Student goes to /results.
   // ====================================================
 
   if (
@@ -4125,6 +4491,7 @@ export default function MockTestInterface({
     return (
       <div className="exam-page result-page">
         <div className="result-card">
+
           <div className="result-success-icon">
             <CheckCircle2 size={42} />
           </div>
@@ -4149,8 +4516,8 @@ export default function MockTestInterface({
 
               <span>
                 The exam was automatically
-                submitted because the server
-                timer reached 00:00.
+                submitted because the timer
+                reached 00:00.
               </span>
             </div>
           )}
@@ -4256,7 +4623,8 @@ export default function MockTestInterface({
                   }
 
                   <small>
-                    /{
+                    /
+                    {
                       resultSummary.maxMarks
                     }
                   </small>
@@ -4376,14 +4744,16 @@ export default function MockTestInterface({
                   </span>
 
                   <strong>
-                    {resultSummary.attempted >
-                    0
-                      ? Math.round(
-                          (resultSummary.correct /
-                            resultSummary.attempted) *
-                            100
-                        )
-                      : 0}
+                    {
+                      resultSummary.attempted >
+                      0
+                        ? Math.round(
+                            (resultSummary.correct /
+                              resultSummary.attempted) *
+                              100
+                          )
+                        : 0
+                    }
                     %
                   </strong>
                 </div>
@@ -4433,6 +4803,8 @@ export default function MockTestInterface({
                 <span>
                   Your final result has been
                   published successfully.
+                  Detailed question review is
+                  available in Result History.
                 </span>
               </div>
             </>
@@ -4463,17 +4835,21 @@ export default function MockTestInterface({
         {
           "--exam-primary":
             themeColor,
+
           "--exam-primary-dark":
             themeColor,
         } as React.CSSProperties
       }
     >
+
       {/* ==================================================
           HEADER
       ================================================== */}
 
       <header className="exam-header">
+
         <div className="exam-header-left">
+
           <button
             className="header-back-btn"
             onClick={handleExit}
@@ -4490,6 +4866,7 @@ export default function MockTestInterface({
           </div>
 
           <div className="exam-heading">
+
             <div className="exam-title-row">
               <h3>
                 {subject} Mock Test
@@ -4513,10 +4890,12 @@ export default function MockTestInterface({
                 "Full Assessment"}{" "}
               • {className}
             </span>
+
           </div>
         </div>
 
         <div className="exam-header-right">
+
           <div className="live-status">
             <span />
             LIVE
@@ -4548,15 +4927,14 @@ export default function MockTestInterface({
 
           <button
             className="header-exit-btn"
-            onClick={
-              handleExit
-            }
+            onClick={handleExit}
             disabled={
               isSubmitting
             }
           >
             Exit
           </button>
+
         </div>
       </header>
 
@@ -4578,11 +4956,11 @@ export default function MockTestInterface({
           </strong>
 
           <span>
-            Do not press Back or close this
-            page. Back/Exit attempts will
-            automatically submit the exam.
-            Refresh restores your saved
-            exam session and progress.
+            Do not leave this exam page.
+            Refresh safely restores your
+            saved session and progress.
+            The exam is automatically submitted
+            only when the timer reaches 00:00.
           </span>
         </div>
       </div>
@@ -4705,13 +5083,17 @@ export default function MockTestInterface({
       ================================================== */}
 
       <div className="exam-body">
+
         {/* ==================================================
             QUESTION PANEL
         ================================================== */}
 
         <main className="question-panel">
+
           <div className="question-topbar">
+
             <div className="question-topbar-left">
+
               <div className="question-progress-label">
                 QUESTION{" "}
                 {
@@ -4732,17 +5114,21 @@ export default function MockTestInterface({
                 <div
                   style={{
                     width: `${
-                      ((currentQuestion +
-                        1) /
-                        displayQuestions.length) *
+                      (
+                        (currentQuestion +
+                          1) /
+                        displayQuestions.length
+                      ) *
                       100
                     }%`,
                   }}
                 />
               </div>
+
             </div>
 
             <div className="question-top-actions">
+
               <button
                 className={`small-action ${
                   markedForReview[
@@ -4769,12 +5155,14 @@ export default function MockTestInterface({
                   ? "Review Marked"
                   : "Mark Review"}
               </button>
+
             </div>
           </div>
 
           {/* QUESTION */}
 
           <section className="question-content">
+
             <div className="question-number">
               Q
               {
@@ -4783,6 +5171,7 @@ export default function MockTestInterface({
             </div>
 
             <div className="question-main">
+
               <h1>
                 {getQuestionText(
                   currentQ
@@ -4823,96 +5212,104 @@ export default function MockTestInterface({
               <div className="question-hint">
                 Select your option
               </div>
+
             </div>
+
           </section>
 
-          {/* OPTIONS */}
+         
+           
+{/* OPTIONS */}
 
-          <div className="options-list">
-            {currentQ?.options?.map(
-              (
-                option,
-                index
-              ) => {
-                const optionText =
-                  getOptionText(
-                    option
-                  );
+<div className="options-list">
 
-                const optionImage =
-                  getOptionImage(
-                    option
-                  );
+  {currentQ?.options?.map(
+    (
+      option,
+      index
+    ) => {
+      const optionText =
+        getOptionText(
+          option
+        );
 
-                const isSelected =
-                  answers[
-                    currentQuestionId
-                  ] ===
-                  optionText;
+      const optionImage =
+        getOptionImage(
+          option
+        );
 
-                const optionLetter =
-                  String.fromCharCode(
-                    65 + index
-                  );
+      const isSelected =
+        answers[
+          currentQuestionId
+        ] ===
+        optionText;
 
-                return (
-                  <button
-                    key={`${currentQuestionId}-${index}`}
-                    type="button"
-                    className={`answer-option ${
-                      isSelected
-                        ? "selected"
-                        : ""
-                    }`}
-                    onClick={() =>
-                      handleSelectOption(
-                        optionText
-                      )
-                    }
-                    disabled={
-                      tabBlocked ||
-                      submitted ||
-                      isSubmitting ||
-                      !serverSessionReady
-                    }
-                  >
-                    <span className="option-letter">
-                      {isSelected ? (
-                        <Check size={16} />
-                      ) : (
-                        optionLetter
-                      )}
-                    </span>
+      const optionNumber =
+        index + 1;
 
-                    <span className="option-text">
-                      {optionText}
+      return (
+        <button
+          key={`${currentQuestionId}-${index}`}
+          type="button"
+          className={`answer-option ${
+            isSelected
+              ? "selected"
+              : ""
+          }`}
+          onClick={() =>
+            handleSelectOption(
+              optionText
+            )
+          }
+          disabled={
+            tabBlocked ||
+            submitted ||
+            isSubmitting ||
+            !serverSessionReady
+          }
+        >
 
-                      {optionImage && (
-                        <img
-                          src={
-                            optionImage
-                          }
-                          alt={`Option ${optionLetter}`}
-                          className="option-image"
-                          loading="lazy"
-                        />
-                      )}
-                    </span>
-
-                    {isSelected && (
-                      <span className="selected-check">
-                        <Check size={15} />
-                      </span>
-                    )}
-                  </button>
-                );
-              }
+          <span className="option-letter">
+            {isSelected ? (
+              <Check size={16} />
+            ) : (
+              optionNumber
             )}
-          </div>
+          </span>
+
+          <span className="option-text">
+            {optionText}
+
+            {optionImage && (
+              <img
+                src={
+                  optionImage
+                }
+                alt={`Option ${optionNumber}`}
+                className="option-image"
+                loading="lazy"
+              />
+            )}
+          </span>
+
+          {isSelected && (
+            <span className="selected-check">
+              <Check size={15} />
+            </span>
+          )}
+
+        </button>
+      );
+    }
+  )}
+
+</div>
+
 
           {/* ACTION BAR */}
 
           <div className="question-actions">
+
             <button
               className="text-action danger-text"
               onClick={
@@ -4949,11 +5346,13 @@ export default function MockTestInterface({
                 ? "Marked • Next"
                 : "Mark & Next"}
             </button>
+
           </div>
 
           {/* NAVIGATION */}
 
           <div className="question-navigation">
+
             <button
               className="nav-btn secondary"
               disabled={
@@ -4972,20 +5371,22 @@ export default function MockTestInterface({
             </button>
 
             <div className="keyboard-hint">
+
               <span>
                 ← →
               </span>
+
               Navigate
 
               <span>
                 1–4
               </span>
+
               Answer
             </div>
 
             {currentQuestion <
-            displayQuestions.length -
-              1 ? (
+            displayQuestions.length - 1 ? (
               <button
                 className="nav-btn primary"
                 onClick={
@@ -5022,7 +5423,9 @@ export default function MockTestInterface({
                 <Send size={17} />
               </button>
             )}
+
           </div>
+
         </main>
 
         {/* ==================================================
@@ -5031,9 +5434,11 @@ export default function MockTestInterface({
 
         {showPalette && (
           <aside className="exam-sidebar">
+
             {/* STUDENT */}
 
             <div className="student-card">
+
               <div className="student-avatar">
                 {studentName
                   ?.charAt(0)
@@ -5042,6 +5447,7 @@ export default function MockTestInterface({
               </div>
 
               <div className="student-info">
+
                 <strong>
                   {studentName}
                 </strong>
@@ -5049,17 +5455,20 @@ export default function MockTestInterface({
                 <span>
                   {studentId}
                 </span>
+
               </div>
 
               <ShieldCheck
                 size={17}
                 className="verified-icon"
               />
+
             </div>
 
             {/* MAIN STATS */}
 
             <div className="exam-stats">
+
               <div className="stat-card answered">
                 <strong>
                   {answeredCount}
@@ -5089,11 +5498,13 @@ export default function MockTestInterface({
                   Remaining
                 </span>
               </div>
+
             </div>
 
             {/* SECURITY STATS */}
 
             <div className="exam-stats">
+
               <div className="stat-card review">
                 <strong>
                   {warningCount}
@@ -5127,11 +5538,13 @@ export default function MockTestInterface({
                   Server Time
                 </span>
               </div>
+
             </div>
 
             {/* PALETTE HEADER */}
 
             <div className="palette-header">
+
               <div>
                 <h4>
                   Question Palette
@@ -5143,11 +5556,13 @@ export default function MockTestInterface({
               </div>
 
               <LayoutGrid size={18} />
+
             </div>
 
             {/* PALETTE */}
 
             <div className="question-palette">
+
               {displayQuestions.map(
                 (
                   question,
@@ -5165,9 +5580,7 @@ export default function MockTestInterface({
 
                   const isMarked =
                     Boolean(
-                      markedForReview[
-                        id
-                      ]
+                      markedForReview[id]
                     );
 
                   const isCurrent =
@@ -5229,11 +5642,13 @@ export default function MockTestInterface({
                   );
                 }
               )}
+
             </div>
 
             {/* LEGEND */}
 
             <div className="palette-legend">
+
               <div>
                 <span className="legend-dot answered-dot" />
                 Answered
@@ -5248,6 +5663,7 @@ export default function MockTestInterface({
                 <span className="legend-dot unanswered-dot" />
                 Not Answered
               </div>
+
             </div>
 
             {/* SUBMIT */}
@@ -5282,9 +5698,12 @@ export default function MockTestInterface({
               <ArrowRight
                 size={17}
               />
+
             </button>
+
           </aside>
         )}
+
       </div>
 
       {/* ==================================================
@@ -5324,12 +5743,14 @@ export default function MockTestInterface({
             )
           }
         >
+
           <div
             className="submit-modal"
             onClick={(event) =>
               event.stopPropagation()
             }
           >
+
             <button
               className="modal-close"
               onClick={() =>
@@ -5359,11 +5780,13 @@ export default function MockTestInterface({
             <p>
               Once submitted, your
               responses will be recorded
-              and evaluated by the server.
-              You cannot reopen this exam.
+              and evaluated by the
+              server. You cannot reopen
+              this exam.
             </p>
 
             <div className="submit-summary">
+
               <div>
                 <span>
                   Total
@@ -5415,6 +5838,7 @@ export default function MockTestInterface({
                   {warningCount}
                 </strong>
               </div>
+
             </div>
 
             {unansweredCount >
@@ -5443,6 +5867,7 @@ export default function MockTestInterface({
             {timeLeft <= 60 &&
               timeLeft > 0 && (
               <div className="submit-warning">
+
                 <Clock3 size={17} />
 
                 <span>
@@ -5454,20 +5879,24 @@ export default function MockTestInterface({
                   </strong>{" "}
                   remaining.
                 </span>
+
               </div>
             )}
 
             {submitError && (
               <div className="submit-error">
+
                 <AlertTriangle
                   size={17}
                 />
 
                 {submitError}
+
               </div>
             )}
 
             <div className="modal-actions">
+
               <button
                 className="modal-cancel"
                 disabled={
@@ -5513,8 +5942,11 @@ export default function MockTestInterface({
                   </>
                 )}
               </button>
+
             </div>
+
           </div>
+
         </div>
       )}
 
@@ -5529,7 +5961,9 @@ export default function MockTestInterface({
             zIndex: 9999,
           }}
         >
+
           <div className="submit-modal">
+
             <div className="modal-icon">
               <Loader2
                 size={25}
@@ -5553,9 +5987,12 @@ export default function MockTestInterface({
               server. Please do not refresh
               this page.
             </p>
+
           </div>
+
         </div>
       )}
+
     </div>
   );
 }

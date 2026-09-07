@@ -35,15 +35,18 @@ export default function StaffRegister() {
 
 
   const departmentsList = [
-     "Kannada",
-     "English",
-      "Hindi",
-    "Biology",
-         "Chemistry",
+     
+     
+     
+          
+          
            "Physics",
-               "Mathematics",
-       "Computer Science",
-    "Physical Education (PET)"
+            "Chemistry",
+            "Botany",
+            "zoology",
+            "Mathematics",
+       
+   
 
   ];
 

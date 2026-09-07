@@ -1,62 +1,62 @@
-
 /* ============================================================
-   STUDENT REPORT OVERLAY
+   STUDENT REPORT
+   PREMIUM RESPONSIVE DESIGN
 ============================================================ */
 
 .student-report-overlay {
   position: fixed;
   inset: 0;
   z-index: 99999;
-  padding: 18px;
+
+  padding: 20px;
+
   display: flex;
   align-items: center;
   justify-content: center;
 
-  background:
-    rgba(31, 24, 20, 0.74);
+  background: rgba(25, 20, 17, 0.68);
 
-  backdrop-filter:
-    blur(14px);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 
-  -webkit-backdrop-filter:
-    blur(14px);
+  animation:
+    studentReportOverlayIn 0.22s ease-out;
 }
 
+
 /* ============================================================
-   REPORT MODAL
+   MODAL
 ============================================================ */
 
 .student-report-modal {
-  width: min(
-    1180px,
-    100%
-  );
+  width: min(1220px, 100%);
 
-  max-height:
-    calc(100vh - 36px);
-
-  overflow: hidden;
+  max-height: calc(100vh - 40px);
 
   display: flex;
   flex-direction: column;
 
-  border:
-    1px solid
-    rgba(255, 255, 255, 0.14);
+  overflow: hidden;
 
-  border-radius: 22px;
+  border: 1px solid rgba(111, 82, 61, 0.14);
+
+  border-radius: 24px;
 
   background:
     linear-gradient(
       180deg,
-      #fffdfb 0%,
-      #f8f3ee 100%
+      #fffefd 0%,
+      #f8f5f1 100%
     );
 
   box-shadow:
-    0 34px 90px
-    rgba(0, 0, 0, 0.32);
+    0 40px 100px rgba(0, 0, 0, 0.28),
+    0 12px 30px rgba(69, 47, 34, 0.10);
+
+  animation:
+    studentReportModalIn 0.24s ease-out;
 }
+
 
 /* ============================================================
    HEADER
@@ -65,12 +65,15 @@
 .student-report-header {
   flex-shrink: 0;
 
+  min-height: 92px;
+
   padding:
-    22px 24px;
+    20px 24px;
 
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
+
   gap: 20px;
 
   color: #fff;
@@ -78,23 +81,33 @@
   background:
     linear-gradient(
       135deg,
-      #2c201b,
-      #4c382b
+      #241a16 0%,
+      #3a2921 52%,
+      #543a2b 100%
     );
+
+  box-shadow:
+    inset 0 -1px rgba(255, 255, 255, 0.07);
+}
+
+.student-report-header > div:first-child {
+  min-width: 0;
 }
 
 .student-report-eyebrow {
   display: block;
+
   margin-bottom: 7px;
 
   color:
-    rgba(255, 255, 255, 0.58);
+    rgba(255, 255, 255, 0.50);
 
   font-size: 9px;
-  font-weight: 850;
+  font-weight: 900;
 
-  letter-spacing:
-    0.14em;
+  letter-spacing: 0.15em;
+
+  text-transform: uppercase;
 }
 
 .student-report-header h2 {
@@ -102,40 +115,44 @@
 
   color: #fff;
 
-  font-size: 22px;
+  font-size: clamp(18px, 2vw, 23px);
+
   line-height: 1.2;
 
-  font-weight: 850;
+  font-weight: 900;
+
+  letter-spacing: -0.02em;
 }
 
 .student-report-header p {
   margin: 7px 0 0;
 
   color:
-    rgba(255, 255, 255, 0.7);
+    rgba(255, 255, 255, 0.66);
 
   font-size: 11px;
+
   font-weight: 600;
 }
 
 .student-report-close {
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
 
-  flex-shrink: 0;
+  flex: 0 0 40px;
 
   border:
     1px solid
-    rgba(255, 255, 255, 0.18);
+    rgba(255, 255, 255, 0.15);
 
-  border-radius: 10px;
+  border-radius: 11px;
 
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
 
   background:
-    rgba(255, 255, 255, 0.08);
+    rgba(255, 255, 255, 0.07);
 
   color: #fff;
 
@@ -143,16 +160,20 @@
 
   transition:
     transform 0.18s ease,
-    background 0.18s ease;
+    background 0.18s ease,
+    border-color 0.18s ease;
 }
 
 .student-report-close:hover {
-  transform:
-    translateY(-1px);
+  transform: translateY(-1px);
 
   background:
-    rgba(255, 255, 255, 0.15);
+    rgba(255, 255, 255, 0.13);
+
+  border-color:
+    rgba(255, 255, 255, 0.24);
 }
+
 
 /* ============================================================
    CONTENT
@@ -160,78 +181,108 @@
 
 .student-report-content {
   min-height: 0;
-  overflow-y: auto;
 
-  scrollbar-width:
-    thin;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  scrollbar-width: thin;
 
   scrollbar-color:
-    #b9a89b transparent;
+    #b8a99c transparent;
 }
+
+.student-report-content::-webkit-scrollbar {
+  width: 7px;
+}
+
+.student-report-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.student-report-content::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #b8a99c;
+}
+
+.student-report-content::-webkit-scrollbar-thumb:hover {
+  background: #9c8878;
+}
+
 
 /* ============================================================
    SUMMARY
 ============================================================ */
 
 .student-report-summary {
-  padding:
-    15px 22px;
+  padding: 15px 22px;
 
   display: grid;
 
   grid-template-columns:
-    repeat(3, 1fr);
+    repeat(3, minmax(0, 1fr));
 
-  gap: 11px;
+  gap: 12px;
 
   border-bottom:
     1px solid
-    rgba(80, 58, 44, 0.08);
+    rgba(79, 59, 46, 0.08);
 
   background:
-    rgba(255, 255, 255, 0.8);
+    rgba(255, 255, 255, 0.82);
 }
 
 .student-report-stat {
-  min-height: 64px;
+  min-width: 0;
+  min-height: 68px;
 
   padding:
     11px 14px;
 
   display: flex;
   align-items: center;
-  gap: 10px;
+
+  gap: 11px;
 
   border:
     1px solid
-    rgba(103, 76, 58, 0.11);
+    rgba(103, 76, 58, 0.10);
 
-  border-radius: 12px;
+  border-radius: 14px;
 
   background:
     linear-gradient(
       135deg,
-      #fffefd,
-      #f8f0e8
+      #fffefd 0%,
+      #f8f1ea 100%
     );
+
+  box-shadow:
+    0 5px 18px
+    rgba(65, 44, 32, 0.04);
 }
 
 .student-report-stat > svg {
-  color:
-    #73533d;
+  flex-shrink: 0;
+
+  color: #76553e;
+}
+
+.student-report-stat > div {
+  min-width: 0;
 }
 
 .student-report-stat span {
   display: block;
 
-  color:
-    #968476;
+  color: #99887c;
 
   font-size: 8px;
-  font-weight: 850;
 
-  letter-spacing:
-    0.08em;
+  font-weight: 900;
+
+  letter-spacing: 0.09em;
+
+  text-transform: uppercase;
 }
 
 .student-report-stat strong {
@@ -239,30 +290,37 @@
 
   margin-top: 4px;
 
-  color:
-    #413128;
+  color: #423128;
 
   font-size: 18px;
+
+  line-height: 1;
 
   font-weight: 900;
 }
 
+
 /* ============================================================
-   BLOCK
+   GENERIC BLOCK
 ============================================================ */
 
 .student-report-block {
   padding:
-    18px 22px 0;
+    20px 22px 0;
 }
 
 .student-report-block-heading {
-  margin-bottom: 12px;
+  margin-bottom: 13px;
 
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 12px;
+
+  gap: 14px;
+}
+
+.student-report-block-heading > div {
+  min-width: 0;
 }
 
 .student-report-block-heading span {
@@ -270,104 +328,372 @@
 
   margin-bottom: 4px;
 
-  color:
-    #967f6e;
+  color: #998375;
 
   font-size: 8px;
-  font-weight: 850;
 
-  letter-spacing:
-    0.12em;
+  font-weight: 900;
+
+  letter-spacing: 0.13em;
+
+  text-transform: uppercase;
 }
 
 .student-report-block-heading h3 {
   margin: 0;
 
-  color:
-    #433329;
+  color: #433329;
 
   font-size: 16px;
 
-  font-weight: 850;
+  line-height: 1.25;
+
+  font-weight: 900;
+
+  letter-spacing: -0.01em;
 }
 
 .student-report-block-heading p {
+  flex-shrink: 0;
+
   margin: 0;
 
-  color:
-    #968376;
+  color: #978579;
 
   font-size: 10px;
+
   font-weight: 750;
 }
 
+
 /* ============================================================
-   SUBJECT SUMMARY
+   FILTER GRID
+============================================================ */
+
+.student-report-filter-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 12px;
+
+  margin-top: 15px;
+}
+
+.student-report-filter {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 7px;
+}
+
+.student-report-filter > span {
+  display: block;
+
+  color: #7e6d61;
+
+  font-size: 9px;
+
+  font-weight: 900;
+
+  letter-spacing: 0.07em;
+
+  text-transform: uppercase;
+}
+
+.student-report-filter select {
+  width: 100%;
+  min-height: 44px;
+
+  padding:
+    0 38px 0 13px;
+
+  border:
+    1px solid #ddd6d0;
+
+  border-radius: 11px;
+
+  outline: none;
+
+  appearance: none;
+
+  color: #322821;
+
+  background:
+    #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23715c4d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
+    no-repeat right 13px center;
+
+  font-size: 11px;
+
+  font-weight: 750;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 2px 6px rgba(52, 37, 28, 0.03);
+
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    background-color 0.18s ease;
+}
+
+.student-report-filter select:hover {
+  border-color: #c8b9ad;
+
+  background-color: #fffdfa;
+}
+
+.student-report-filter select:focus {
+  border-color: #9a704f;
+
+  box-shadow:
+    0 0 0 3px rgba(154, 112, 79, 0.10);
+}
+
+
+/* ============================================================
+   RESET BUTTON
+============================================================ */
+
+.student-report-reset-filter {
+  flex-shrink: 0;
+
+  min-height: 34px;
+
+  padding:
+    0 12px;
+
+  border:
+    1px solid #ddd5ce;
+
+  border-radius: 9px;
+
+  background: #fff;
+
+  color: #684a38;
+
+  font-size: 9px;
+
+  font-weight: 900;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.student-report-reset-filter:hover {
+  transform: translateY(-1px);
+
+  border-color: #af8d73;
+
+  background: #fffaf5;
+
+  box-shadow:
+    0 5px 12px
+    rgba(78, 55, 41, 0.07);
+}
+
+
+/* ============================================================
+   ACTIVE FILTER PATH
+============================================================ */
+
+.student-report-active-filter {
+  margin:
+    13px 22px 0;
+
+  padding:
+    10px 12px;
+
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+
+  gap: 7px 0;
+
+  border:
+    1px solid #e3ddd7;
+
+  border-radius: 11px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #fbfaf8,
+      #f5f7fa
+    );
+
+  color: #7d7168;
+
+  font-size: 9px;
+
+  font-weight: 750;
+}
+
+.student-report-active-filter span {
+  display: inline-flex;
+  align-items: center;
+
+  min-height: 18px;
+
+  padding:
+    0 11px;
+
+  border-right:
+    1px solid #ded8d2;
+}
+
+.student-report-active-filter span:first-child {
+  padding-left: 3px;
+}
+
+.student-report-active-filter span:last-child {
+  padding-right: 3px;
+
+  border-right: 0;
+}
+
+.student-report-active-filter strong {
+  margin-left: 3px;
+
+  color: #2859a6;
+
+  font-weight: 900;
+}
+
+
+/* ============================================================
+   SUBJECT SUMMARY CARDS
 ============================================================ */
 
 .student-report-subject-grid {
   display: grid;
 
   grid-template-columns:
-    repeat(
-      auto-fit,
-      minmax(145px, 1fr)
-    );
+    repeat(4, minmax(0, 1fr));
 
-  gap: 10px;
+  gap: 11px;
 }
 
 .student-report-subject-card {
+  min-width: 0;
+  width: 100%;
+
   padding:
-    13px;
+    14px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+
+  text-align: left;
 
   border:
-    1px solid
-    rgba(102, 74, 54, 0.1);
+    1px solid #e2ddd8;
 
-  border-radius: 13px;
+  border-radius: 15px;
 
   background:
-    #fff;
+    linear-gradient(
+      180deg,
+      #ffffff 0%,
+      #faf8f6 100%
+    );
+
+  color: #302720;
 
   box-shadow:
-    0 5px 18px
-    rgba(65, 44, 32, 0.04);
+    0 5px 16px
+    rgba(67, 46, 33, 0.045);
+
+  cursor: pointer;
+
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease;
 }
 
-.student-report-subject-card span {
-  display: block;
+.student-report-subject-card:hover {
+  transform: translateY(-2px);
 
-  color:
-    #796658;
+  border-color: #cfb9a7;
 
-  font-size: 10px;
-  font-weight: 800;
+  box-shadow:
+    0 10px 24px
+    rgba(67, 46, 33, 0.08);
 }
 
-.student-report-subject-card strong {
+.student-report-subject-card.active {
+  border-color: #2f67b2;
+
+  background:
+    linear-gradient(
+      180deg,
+      #ffffff 0%,
+      #eef5ff 100%
+    );
+
+  box-shadow:
+    0 0 0 2px
+    rgba(47, 103, 178, 0.08),
+    0 10px 24px
+    rgba(47, 103, 178, 0.08);
+}
+
+.student-report-subject-card > span {
   display: block;
 
-  margin-top: 5px;
+  width: 100%;
 
-  color:
-    #453328;
+  margin-bottom: 7px;
 
-  font-size: 19px;
+  color: #366cb0;
+
+  font-size: 9px;
+
+  font-weight: 900;
+
+  letter-spacing: 0.09em;
+
+  text-transform: uppercase;
+}
+
+.student-report-subject-card > strong {
+  display: block;
+
+  color: #342820;
+
+  font-size: 18px;
+
+  line-height: 1.15;
+
   font-weight: 900;
 }
 
-.student-report-subject-card small {
+.student-report-subject-card > small {
   display: block;
 
-  margin-top: 3px;
+  margin-top: 4px;
 
-  color:
-    #a08d7e;
+  color: #8c7e74;
 
-  font-size: 9px;
+  font-size: 8.5px;
+
+  line-height: 1.3;
+
   font-weight: 650;
 }
+
 
 /* ============================================================
    STUDENT LIST
@@ -377,27 +703,26 @@
   display: flex;
   flex-direction: column;
 
-  gap: 10px;
+  gap: 11px;
 
-  padding-bottom: 20px;
+  padding-bottom: 22px;
 }
 
 .student-report-student {
   overflow: hidden;
 
   border:
-    1px solid
-    rgba(104, 76, 56, 0.1);
+    1px solid #e3ddd7;
 
-  border-radius: 15px;
+  border-radius: 16px;
 
-  background:
-    #fff;
+  background: #fff;
 
   box-shadow:
     0 6px 20px
     rgba(64, 43, 30, 0.04);
 }
+
 
 /* ============================================================
    STUDENT HEADER
@@ -406,22 +731,34 @@
 .student-report-student-head {
   width: 100%;
 
+  min-height: 68px;
+
   padding:
-    13px 15px;
+    12px 15px;
 
   border: 0;
 
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   gap: 15px;
 
   text-align: left;
 
-  background:
-    transparent;
+  background: #fff;
+
+  color: inherit;
 
   cursor: pointer;
+
+  transition:
+    background 0.18s ease;
+}
+
+.student-report-student-head:hover {
+  background:
+    #fcfaf8;
 }
 
 .student-report-student-info {
@@ -434,29 +771,37 @@
 }
 
 .student-report-avatar {
-  width: 41px;
-  height: 41px;
+  width: 42px;
+  height: 42px;
 
-  flex-shrink: 0;
+  flex: 0 0 42px;
 
   border-radius: 12px;
 
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+
+  color: #523b2c;
 
   background:
     linear-gradient(
       135deg,
-      #ead8c7,
-      #cba98e
+      #edddce,
+      #c7a78c
     );
 
-  color:
-    #533c2c;
-
   font-size: 11px;
+
   font-weight: 900;
+
+  box-shadow:
+    inset 0 1px
+    rgba(255, 255, 255, 0.55);
+}
+
+.student-report-student-info > div:last-child {
+  min-width: 0;
 }
 
 .student-report-student-info strong {
@@ -464,18 +809,17 @@
 
   overflow: hidden;
 
-  color:
-    #3f3027;
+  color: #403027;
 
   font-size: 12px;
 
-  font-weight: 850;
+  line-height: 1.25;
 
-  text-overflow:
-    ellipsis;
+  font-weight: 900;
 
-  white-space:
-    nowrap;
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
 }
 
 .student-report-student-info span {
@@ -485,63 +829,88 @@
 
   overflow: hidden;
 
-  color:
-    #998778;
+  color: #9a897e;
 
-  font-size: 9px;
+  font-size: 8.5px;
 
-  text-overflow:
-    ellipsis;
+  line-height: 1.35;
 
-  white-space:
-    nowrap;
+  font-weight: 650;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
 }
+
+
+/* ============================================================
+   STUDENT AVERAGE
+============================================================ */
 
 .student-report-student-average {
   flex-shrink: 0;
 
-  display: flex;
+  display: inline-flex;
   align-items: center;
 
-  gap: 12px;
+  gap: 11px;
 
-  color:
-    #806b5c;
+  color: #79695e;
 }
 
 .student-report-student-average > div {
+  min-width: 68px;
+
   text-align: right;
 }
 
 .student-report-student-average span {
   display: block;
 
-  color:
-    #9d8c80;
+  color: #a09288;
 
   font-size: 7px;
 
-  font-weight: 800;
+  line-height: 1;
 
-  text-transform:
-    uppercase;
+  font-weight: 900;
+
+  letter-spacing: 0.06em;
+
+  text-transform: uppercase;
 }
 
 .student-report-student-average strong {
   display: block;
 
-  margin-top: 3px;
+  margin-top: 4px;
 
-  color:
-    #473429;
+  color: #473429;
 
-  font-size: 13px;
+  font-size: 14px;
+
+  line-height: 1;
 
   font-weight: 900;
 }
 
+.student-report-student-average small {
+  display: block;
+
+  margin-top: 4px;
+
+  color: #9a8b81;
+
+  font-size: 7.5px;
+
+  line-height: 1;
+
+  font-weight: 700;
+}
+
+
 /* ============================================================
-   RESULT TABLE
+   STUDENT BODY
 ============================================================ */
 
 .student-report-student-body {
@@ -549,132 +918,384 @@
     0 15px 15px;
 }
 
+
+/* ============================================================
+   MINI SUBJECT CARDS
+============================================================ */
+
+.student-report-mini-subject-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  gap: 9px;
+
+  margin-bottom: 13px;
+}
+
+.student-report-mini-subject-card {
+  width: 100%;
+  min-width: 0;
+
+  padding:
+    10px 11px;
+
+  border:
+    1px solid #e3ddd7;
+
+  border-radius: 11px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+
+  text-align: left;
+
+  background: #fff;
+
+  color: #312820;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.student-report-mini-subject-card:hover {
+  transform: translateY(-1px);
+
+  border-color: #cdbcae;
+
+  box-shadow:
+    0 5px 14px
+    rgba(67, 46, 33, 0.06);
+}
+
+.student-report-mini-subject-card.active {
+  border-color: #2f67b2;
+
+  background:
+    #f0f6ff;
+
+  box-shadow:
+    0 0 0 2px
+    rgba(47, 103, 178, 0.07);
+}
+
+.student-report-mini-subject-card span {
+  display: block;
+
+  margin-bottom: 4px;
+
+  color: #3769a7;
+
+  font-size: 8px;
+
+  font-weight: 900;
+
+  letter-spacing: 0.06em;
+
+  text-transform: uppercase;
+}
+
+.student-report-mini-subject-card strong {
+  display: block;
+
+  color: #332821;
+
+  font-size: 13px;
+
+  line-height: 1.15;
+
+  font-weight: 900;
+}
+
+.student-report-mini-subject-card small {
+  display: block;
+
+  margin-top: 3px;
+
+  color: #8e8077;
+
+  font-size: 8px;
+
+  line-height: 1.2;
+
+  font-weight: 650;
+}
+
+
+/* ============================================================
+   TABLE
+============================================================ */
+
 .student-report-table-wrap {
+  width: 100%;
+
   overflow-x: auto;
 
   border:
-    1px solid
-    rgba(104, 76, 56, 0.09);
+    1px solid #e4ded8;
 
-  border-radius: 10px;
+  border-radius: 11px;
+
+  background: #fff;
+
+  -webkit-overflow-scrolling: touch;
+
+  scrollbar-width: thin;
+}
+
+.student-report-table-wrap::-webkit-scrollbar {
+  height: 6px;
+}
+
+.student-report-table-wrap::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #b7a99f;
 }
 
 .student-report-table {
   width: 100%;
 
-  min-width:
-    720px;
+  min-width: 980px;
 
-  border-collapse:
-    collapse;
+  border-collapse: separate;
 
-  background:
-    #fff;
+  border-spacing: 0;
+
+  background: #fff;
 }
 
 .student-report-table th {
   padding:
-    9px 10px;
-
-  background:
-    #4b382e;
+    10px 9px;
 
   border-bottom:
-    1px solid
-    rgba(0, 0, 0, 0.08);
+    1px solid #e4ddd7;
 
-  color:
-    #fff;
+  background:
+    linear-gradient(
+      180deg,
+      #503a2f,
+      #443228
+    );
+
+  color: #fff;
 
   font-size: 8px;
-  font-weight: 850;
+
+  font-weight: 900;
+
+  line-height: 1.2;
 
   text-align: left;
+
+  white-space: nowrap;
+}
+
+.student-report-table th:first-child {
+  border-top-left-radius: 10px;
+}
+
+.student-report-table th:last-child {
+  border-top-right-radius: 10px;
 }
 
 .student-report-table td {
   padding:
-    9px 10px;
+    10px 9px;
 
   border-bottom:
-    1px solid
-    rgba(104, 76, 56, 0.08);
+    1px solid #eee8e3;
 
-  color:
-    #5a493e;
+  color: #5c4c42;
 
-  font-size: 9px;
+  font-size: 8.5px;
+
+  line-height: 1.35;
 
   font-weight: 650;
+
+  vertical-align: middle;
 }
 
 .student-report-table tbody tr:nth-child(even) {
-  background:
-    #fbf8f5;
+  background: #fcfaf8;
+}
+
+.student-report-table tbody tr:hover {
+  background: #f8f5f2;
 }
 
 .student-report-table tbody tr:last-child td {
-  border-bottom:
-    0;
+  border-bottom: 0;
 }
+
+.student-report-table td:nth-child(6),
+.student-report-table td:nth-child(7),
+.student-report-table td:nth-child(8),
+.student-report-table td:nth-child(9),
+.student-report-table td:nth-child(10) {
+  white-space: nowrap;
+}
+
+
+/* ============================================================
+   CATEGORY BADGE
+============================================================ */
+
+.student-report-category-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 22px;
+
+  padding:
+    0 7px;
+
+  border:
+    1px solid #e5dfd9;
+
+  border-radius: 7px;
+
+  background: #f5f3f0;
+
+  color: #5b4b40;
+
+  font-size: 8px;
+
+  font-weight: 900;
+
+  text-transform: uppercase;
+}
+
+
+/* ============================================================
+   EXAM TYPE BADGE
+============================================================ */
+
+.student-report-examtype-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 22px;
+
+  padding:
+    0 7px;
+
+  border:
+    1px solid #d8e5f6;
+
+  border-radius: 7px;
+
+  background: #eff6ff;
+
+  color: #265ea3;
+
+  font-size: 8px;
+
+  font-weight: 900;
+}
+
+
+/* ============================================================
+   SUBJECT LINK
+============================================================ */
+
+.student-report-subject-link {
+  padding: 0;
+
+  border: 0;
+
+  background: transparent;
+
+  color: #2765ad;
+
+  font-size: 9px;
+
+  font-weight: 900;
+
+  cursor: pointer;
+}
+
+.student-report-subject-link:hover {
+  text-decoration: underline;
+}
+
+
+/* ============================================================
+   EXAM NAME
+============================================================ */
+
+.student-report-exam-name {
+  display: block;
+
+  max-width: 245px;
+
+  color: #342920;
+
+  font-size: 9px;
+
+  line-height: 1.35;
+
+  font-weight: 850;
+}
+
 
 /* ============================================================
    STATUS
 ============================================================ */
 
 .student-report-status {
-  min-width:
-    48px;
+  min-width: 48px;
+
+  min-height: 21px;
 
   padding:
-    4px 7px;
+    0 7px;
 
-  border-radius:
-    999px;
+  border-radius: 999px;
 
-  display:
-    inline-flex;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 
-  align-items:
-    center;
+  font-size: 7px;
 
-  justify-content:
-    center;
+  font-weight: 900;
 
-  font-size:
-    7px;
+  letter-spacing: 0.03em;
 
-  font-weight:
-    850;
-
-  text-transform:
-    uppercase;
+  text-transform: uppercase;
 }
 
 .student-report-status.pass {
-  background:
-    #e9f5ec;
-
-  color:
-    #37754b;
+  background: #eaf6ee;
+  color: #36784d;
 }
 
 .student-report-status.fail {
-  background:
-    #f8e9e5;
-
-  color:
-    #965141;
+  background: #faece9;
+  color: #a05143;
 }
+
 
 /* ============================================================
    EMPTY
 ============================================================ */
 
 .student-report-empty-result {
-  min-height: 70px;
+  min-height: 76px;
 
-  padding: 14px;
+  padding:
+    16px;
 
   display: flex;
   align-items: center;
@@ -682,156 +1303,150 @@
 
   gap: 8px;
 
-  color:
-    #978678;
+  border:
+    1px dashed #ddd4cc;
+
+  border-radius: 11px;
 
   background:
-    #faf7f4;
+    #faf8f6;
 
-  border-radius:
-    10px;
+  color: #94847a;
 
-  font-size:
-    10px;
+  font-size: 9px;
 
-  font-weight:
-    700;
+  line-height: 1.45;
+
+  font-weight: 750;
+
+  text-align: center;
 }
+
 
 /* ============================================================
    LOADING
 ============================================================ */
 
 .student-report-loading {
-  min-height:
-    280px;
+  min-height: 300px;
 
   padding:
-    30px;
+    30px 22px;
 
-  display:
-    flex;
-    flex-direction:
-    column;
+  display: flex;
+  flex-direction: column;
 
-  align-items:
-    center;
+  align-items: center;
+  justify-content: center;
 
-  justify-content:
-    center;
+  text-align: center;
 
-  text-align:
-    center;
-
-  color:
-    #806d60;
+  color: #806f64;
 }
 
 .student-report-loading h3 {
   margin:
     12px 0 5px;
 
-  color:
-    #4a392f;
+  color: #48372e;
 
-  font-size:
-    15px;
+  font-size: 15px;
+
+  font-weight: 900;
 }
 
 .student-report-loading p {
-  margin:
-    0;
+  max-width: 440px;
 
-  max-width:
-    420px;
+  margin: 0;
 
-  color:
-    #998879;
+  color: #998a80;
 
-  font-size:
-    10px;
+  font-size: 9.5px;
 
-  line-height:
-    1.6;
+  line-height: 1.6;
+
+  font-weight: 600;
 }
+
 
 /* ============================================================
    ERROR
 ============================================================ */
 
 .student-report-error {
-  min-height:
-    280px;
+  min-height: 300px;
 
   padding:
-    25px;
+    30px 22px;
 
-  display:
-    flex;
-    flex-direction:
-    column;
+  display: flex;
+  flex-direction: column;
 
-  align-items:
-    center;
+  align-items: center;
+  justify-content: center;
 
-  justify-content:
-    center;
+  text-align: center;
 
-  text-align:
-    center;
-
-  color:
-    #8a493b;
+  color: #8b4d40;
 }
 
 .student-report-error h3 {
   margin:
     10px 0 5px;
 
-  color:
-    #4b352b;
+  color: #49372e;
 
-  font-size:
-    16px;
+  font-size: 16px;
+
+  font-weight: 900;
 }
 
 .student-report-error p {
   margin:
-    0 0 12px;
+    0 0 13px;
 
-  color:
-    #987e71;
+  color: #967f74;
 
-  font-size:
-    10px;
+  font-size: 9.5px;
+
+  line-height: 1.5;
 }
 
 .student-report-error button {
-  border:
-    1px solid
-    rgba(120, 78, 58, 0.2);
-
-  border-radius:
-    9px;
+  min-height: 36px;
 
   padding:
-    8px 13px;
+    0 13px;
 
-  background:
-    #fff;
+  border:
+    1px solid #d8c9bd;
 
-  color:
-    #5d4130;
+  border-radius: 9px;
 
-  font-size:
-    10px;
+  background: #fff;
 
-  font-weight:
-    800;
+  color: #644735;
 
-  cursor:
-    pointer;
+  font-size: 9px;
+
+  font-weight: 900;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
 }
+
+.student-report-error button:hover {
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 6px 15px
+    rgba(73, 49, 35, 0.08);
+}
+
 
 /* ============================================================
    FOOTER
@@ -840,110 +1455,111 @@
 .student-report-footer {
   flex-shrink: 0;
 
+  min-height: 66px;
+
   padding:
-    13px 22px;
+    12px 22px;
 
-  display:
-    flex;
+  display: flex;
 
-  justify-content:
-    flex-end;
+  align-items: center;
+  justify-content: flex-end;
 
-  gap:
-    9px;
+  gap: 9px;
 
   border-top:
     1px solid
     rgba(79, 59, 46, 0.09);
 
   background:
-    rgba(255, 255, 255, 0.95);
+    rgba(255, 255, 255, 0.97);
+
+  box-shadow:
+    0 -6px 20px
+    rgba(65, 44, 32, 0.025);
 }
 
 .student-report-download,
 .student-report-share {
-  min-height:
-    40px;
+  min-width: 138px;
+
+  min-height: 41px;
 
   padding:
     0 15px;
 
-  display:
-    inline-flex;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 
-  align-items:
-    center;
+  gap: 7px;
 
-  justify-content:
-    center;
+  border-radius: 10px;
 
-  gap:
-    7px;
+  font-size: 9px;
 
-  border-radius:
-    10px;
+  font-weight: 900;
 
-  font-size:
-    10px;
-
-  font-weight:
-    850;
-
-  cursor:
-    pointer;
+  cursor: pointer;
 
   transition:
     transform 0.18s ease,
-    box-shadow 0.18s ease;
+    box-shadow 0.18s ease,
+    opacity 0.18s ease;
 }
 
 .student-report-download {
   border:
-    1px solid
-    rgba(88, 65, 49, 0.15);
+    1px solid #dcd3cc;
 
   background:
     #fff;
 
-  color:
-    #5a4334;
+  color: #5e4636;
 }
 
 .student-report-share {
   border:
-    1px solid
-    #4c372a;
+    1px solid #493327;
 
   background:
     linear-gradient(
       135deg,
-      #4b3529,
-      #6c4a37
+      #493327,
+      #6b4a38
     );
 
-  color:
-    #fff;
+  color: #fff;
+
+  box-shadow:
+    0 5px 15px
+    rgba(74, 51, 38, 0.14);
 }
 
 .student-report-download:hover:not(:disabled),
 .student-report-share:hover:not(:disabled) {
-  transform:
-    translateY(-1px);
+  transform: translateY(-1px);
 
   box-shadow:
-    0 8px 18px
-    rgba(67, 45, 32, 0.11);
+    0 9px 20px
+    rgba(66, 44, 31, 0.11);
+}
+
+.student-report-download:active:not(:disabled),
+.student-report-share:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .student-report-download:disabled,
 .student-report-share:disabled,
 .student-report-close:disabled {
-  opacity:
-    0.55;
+  opacity: 0.52;
 
-  cursor:
-    not-allowed;
+  cursor: not-allowed;
+
+  box-shadow: none;
 }
+
 
 /* ============================================================
    SPINNER
@@ -959,15 +1575,71 @@
 
 @keyframes studentReportSpin {
   from {
-    transform:
-      rotate(0deg);
+    transform: rotate(0deg);
   }
 
   to {
-    transform:
-      rotate(360deg);
+    transform: rotate(360deg);
   }
 }
+
+
+/* ============================================================
+   ANIMATIONS
+============================================================ */
+
+@keyframes studentReportOverlayIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes studentReportModalIn {
+  from {
+    opacity: 0;
+    transform:
+      translateY(10px)
+      scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
+
+
+/* ============================================================
+   TABLET
+============================================================ */
+
+@media (max-width: 1000px) {
+  .student-report-overlay {
+    padding: 14px;
+  }
+
+  .student-report-modal {
+    max-height:
+      calc(100vh - 28px);
+  }
+
+  .student-report-subject-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .student-report-mini-subject-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
 
 /* ============================================================
    MOBILE
@@ -975,73 +1647,470 @@
 
 @media (max-width: 760px) {
   .student-report-overlay {
-    padding:
-      8px;
+    padding: 8px;
+
+    align-items: center;
   }
 
   .student-report-modal {
+    width: 100%;
+
     max-height:
       calc(100vh - 16px);
 
-    border-radius:
-      17px;
+    border-radius: 18px;
   }
 
   .student-report-header {
+    min-height: 78px;
+
     padding:
-      17px;
+      15px 14px;
+
+    gap: 12px;
+  }
+
+  .student-report-eyebrow {
+    margin-bottom: 5px;
+
+    font-size: 7.5px;
   }
 
   .student-report-header h2 {
-    font-size:
-      18px;
+    font-size: 17px;
+  }
+
+  .student-report-header p {
+    margin-top: 5px;
+
+    font-size: 9px;
+  }
+
+  .student-report-close {
+    width: 36px;
+    height: 36px;
+
+    flex-basis: 36px;
   }
 
   .student-report-summary {
     padding:
-      11px;
+      10px 11px;
 
     grid-template-columns:
-      1fr;
+      repeat(3, minmax(0, 1fr));
+
+    gap: 7px;
+  }
+
+  .student-report-stat {
+    min-height: 60px;
+
+    padding:
+      8px 8px;
+
+    gap: 6px;
+
+    border-radius: 10px;
+  }
+
+  .student-report-stat > svg {
+    display: none;
+  }
+
+  .student-report-stat span {
+    font-size: 6.5px;
+
+    letter-spacing: 0.05em;
+  }
+
+  .student-report-stat strong {
+    font-size: 15px;
   }
 
   .student-report-block {
     padding:
-      15px 12px 0;
+      15px 11px 0;
+  }
+
+  .student-report-block-heading {
+    align-items: center;
+
+    margin-bottom: 10px;
+  }
+
+  .student-report-block-heading span {
+    font-size: 7px;
+  }
+
+  .student-report-block-heading h3 {
+    font-size: 13px;
+  }
+
+  .student-report-block-heading p {
+    font-size: 8px;
+  }
+
+  .student-report-filter-grid {
+    grid-template-columns:
+      1fr;
+
+    gap: 8px;
+
+    margin-top: 10px;
+  }
+
+  .student-report-filter > span {
+    font-size: 8px;
+  }
+
+  .student-report-filter select {
+    min-height: 42px;
+
+    font-size: 10px;
+  }
+
+  .student-report-active-filter {
+    margin:
+      10px 11px 0;
+
+    padding:
+      8px 9px;
+
+    align-items: flex-start;
+
+    flex-direction: column;
+
+    gap: 3px;
+
+    font-size: 8px;
+  }
+
+  .student-report-active-filter span,
+  .student-report-active-filter span:first-child,
+  .student-report-active-filter span:last-child {
+    min-height: 16px;
+
+    padding:
+      0;
+
+    border-right: 0;
+  }
+
+  .student-report-reset-filter {
+    min-height: 31px;
+
+    padding:
+      0 10px;
+
+    font-size: 8px;
+  }
+
+  .student-report-subject-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    gap: 8px;
+  }
+
+  .student-report-subject-card {
+    padding: 11px;
+
+    border-radius: 12px;
+  }
+
+  .student-report-subject-card > span {
+    font-size: 7.5px;
+  }
+
+  .student-report-subject-card > strong {
+    font-size: 15px;
+  }
+
+  .student-report-subject-card > small {
+    font-size: 7.5px;
+  }
+
+  .student-report-list {
+    gap: 8px;
+
+    padding-bottom: 15px;
+  }
+
+  .student-report-student {
+    border-radius: 13px;
+  }
+
+  .student-report-student-head {
+    min-height: 61px;
+
+    padding:
+      10px 10px;
+
+    gap: 8px;
+  }
+
+  .student-report-avatar {
+    width: 37px;
+    height: 37px;
+
+    flex-basis: 37px;
+
+    border-radius: 10px;
+
+    font-size: 9px;
+  }
+
+  .student-report-student-info {
+    gap: 8px;
+  }
+
+  .student-report-student-info strong {
+    font-size: 10px;
+  }
+
+  .student-report-student-info span {
+    max-width:
+      170px;
+
+    font-size: 7px;
+  }
+
+  .student-report-student-average {
+    gap: 6px;
+  }
+
+  .student-report-student-average > div {
+    min-width: 48px;
+  }
+
+  .student-report-student-average span {
+    font-size: 5.5px;
+  }
+
+  .student-report-student-average strong {
+    font-size: 11px;
+  }
+
+  .student-report-student-average small {
+    font-size: 6px;
+  }
+
+  .student-report-student-body {
+    padding:
+      0 10px 10px;
+  }
+
+  .student-report-mini-subject-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    gap: 7px;
+
+    margin-bottom: 10px;
+  }
+
+  .student-report-mini-subject-card {
+    padding:
+      8px 9px;
+
+    border-radius: 9px;
+  }
+
+  .student-report-mini-subject-card span {
+    font-size: 6.5px;
+  }
+
+  .student-report-mini-subject-card strong {
+    font-size: 11px;
+  }
+
+  .student-report-mini-subject-card small {
+    font-size: 7px;
+  }
+
+  .student-report-table-wrap {
+    border-radius: 9px;
+  }
+
+  .student-report-table {
+    min-width: 940px;
+  }
+
+  .student-report-table th {
+    padding:
+      8px 7px;
+
+    font-size: 7px;
+  }
+
+  .student-report-table td {
+    padding:
+      8px 7px;
+
+    font-size: 7.5px;
+  }
+
+  .student-report-exam-name {
+    max-width: 210px;
+
+    font-size: 8px;
+  }
+
+  .student-report-category-badge,
+  .student-report-examtype-badge {
+    min-height: 19px;
+
+    padding:
+      0 6px;
+
+    font-size: 6.5px;
+  }
+
+  .student-report-subject-link {
+    font-size: 7.5px;
+  }
+
+  .student-report-status {
+    min-width: 42px;
+
+    min-height: 19px;
+
+    padding:
+      0 6px;
+
+    font-size: 6px;
   }
 
   .student-report-footer {
-    padding:
-      11px;
+    min-height: 58px;
 
-    display:
-      grid;
+    padding:
+      9px 10px;
+
+    display: grid;
 
     grid-template-columns:
-      1fr 1fr;
+      repeat(2, minmax(0, 1fr));
+
+    gap: 7px;
   }
 
   .student-report-download,
   .student-report-share {
-    width:
-      100%;
+    min-width: 0;
+
+    min-height: 38px;
+
+    width: 100%;
+
+    padding:
+      0 8px;
+
+    border-radius: 9px;
+
+    font-size: 8px;
   }
 }
 
-@media (max-width: 520px) {
-  .student-report-footer {
+
+/* ============================================================
+   SMALL MOBILE
+============================================================ */
+
+@media (max-width: 440px) {
+  .student-report-summary {
     grid-template-columns:
-      1fr;
+      1fr 1fr 1fr;
   }
 
-  .student-report-student-main span {
-    max-width:
-      170px;
+  .student-report-stat {
+    min-height: 56px;
+
+    padding:
+      7px 6px;
+  }
+
+  .student-report-stat span {
+    font-size: 5.8px;
+  }
+
+  .student-report-stat strong {
+    font-size: 13px;
+  }
+
+  .student-report-block-heading h3 {
+    font-size: 12px;
+  }
+
+  .student-report-block-heading p {
+    font-size: 7px;
   }
 
   .student-report-subject-grid {
     grid-template-columns:
       1fr 1fr;
   }
+
+  .student-report-subject-card {
+    padding:
+      10px;
+  }
+
+  .student-report-subject-card > strong {
+    font-size: 14px;
+  }
+
+  .student-report-student-head {
+    align-items: flex-start;
+  }
+
+  .student-report-student-info {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .student-report-student-average {
+    padding-top: 2px;
+  }
+
+  .student-report-student-average > svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .student-report-student-info span {
+    max-width:
+      145px;
+  }
+
+  .student-report-footer {
+    grid-template-columns:
+      1fr;
+
+    min-height: auto;
+  }
 }
 
+
+/* ============================================================
+   REDUCED MOTION
+============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .student-report-overlay,
+  .student-report-modal,
+  .student-report-spin {
+    animation: none;
+  }
+
+  .student-report-subject-card,
+  .student-report-mini-subject-card,
+  .student-report-download,
+  .student-report-share,
+  .student-report-close,
+  .student-report-reset-filter,
+  .student-report-error button {
+    transition: none;
+  }
+}

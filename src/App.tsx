@@ -12,6 +12,7 @@ const TeacherLogin = lazy(() => import("./pages/TeacherLogin"));
 const StaffLogin = lazy(() => import("./pages/StaffLogin"));
 const Register = lazy(() => import("./pages/Register"));
 const StaffRegister = lazy(() => import("./pages/StaffRegister"));
+import StudentForgotPassword from "./pages/StudentForgotPassword";
 const StudentRegister = lazy(() => import("./pages/StudentRegister"));
 
 // ================= STUDENT =================
@@ -384,12 +385,16 @@ function App() {
             path="/student/register"
             element={<StudentRegister />}
           />
+          <Route
+  path="/student/forgot-password"
+  element={<StudentForgotPassword />}
+/>
 
           <Route
             path="/staff/register"
             element={<StaffRegister />}
           />
-
+        
           {/* =====================================================
               COLLEGE ROUTES
           ====================================================== */}
@@ -651,23 +656,32 @@ function App() {
               RESULT
           ====================================================== */}
 
-          <Route
-            path="/result"
-            element={
-              <ProtectedRoute>
-                <Result />
-              </ProtectedRoute>
-            }
-          />
+         <Route
+  path="/result"
+  element={
+    <ProtectedRoute>
+      <Result />
+    </ProtectedRoute>
+  }
+/>
 
-          <Route
-            path="/results"
-            element={
-              <ProtectedRoute>
-                <ExamHistory />
-              </ProtectedRoute>
-            }
-          />
+<Route
+  path="/results"
+  element={
+    <ProtectedRoute>
+      <ExamHistory />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/exam-history"
+  element={
+    <ProtectedRoute>
+      <ExamHistory />
+    </ProtectedRoute>
+  }
+/>
 
           {/* =====================================================
               ANSWER REVIEW

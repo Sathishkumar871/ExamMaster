@@ -1,0 +1,1748 @@
+
+/* ============================================================
+   STG COLLEGE — STUDENT REGISTER
+   SINGLE PAGE
+   STEP 1 : GMAIL + OTP
+   STEP 2 : STUDENT REGISTRATION
+   ZERO DEPENDENCIES
+============================================================ */
+
+* {
+  box-sizing: border-box;
+}
+
+/* ============================================================
+   PAGE
+============================================================ */
+
+.student-register-page {
+  min-height: 100vh;
+  width: 100%;
+
+  position: relative;
+  overflow: hidden;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 24px;
+
+  background:
+    radial-gradient(
+      circle at 8% 8%,
+      rgba(255, 190, 95, 0.14),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 92% 92%,
+      rgba(100, 76, 255, 0.11),
+      transparent 30%
+    ),
+    linear-gradient(
+      145deg,
+      #05060a 0%,
+      #0b0d13 52%,
+      #06070b 100%
+    );
+
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+/* ============================================================
+   BACKGROUND GRID
+============================================================ */
+
+.register-grid {
+  position: absolute;
+  inset: 0;
+
+  pointer-events: none;
+
+  opacity: 0.16;
+
+  background-image:
+    linear-gradient(
+      rgba(255, 255, 255, 0.026) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.026) 1px,
+      transparent 1px
+    );
+
+  background-size: 46px 46px;
+
+  mask-image:
+    radial-gradient(
+      circle at center,
+      #000 5%,
+      transparent 82%
+    );
+}
+
+/* ============================================================
+   BACKGROUND ORBS
+============================================================ */
+
+.register-orb {
+  position: absolute;
+
+  width: 440px;
+  height: 440px;
+
+  border-radius: 50%;
+
+  pointer-events: none;
+
+  filter: blur(110px);
+
+  opacity: 0.8;
+
+  animation:
+    registerOrbFloat
+    11s
+    ease-in-out
+    infinite;
+}
+
+.register-orb-one {
+  top: -225px;
+  left: -210px;
+
+  background:
+    rgba(255, 174, 68, 0.10);
+}
+
+.register-orb-two {
+  right: -230px;
+  bottom: -230px;
+
+  background:
+    rgba(102, 78, 255, 0.085);
+
+  animation-delay: -5.5s;
+}
+
+/* ============================================================
+   MAIN CARD
+============================================================ */
+
+.student-register-card {
+  width: min(100%, 555px);
+
+  position: relative;
+  z-index: 5;
+
+  padding: 38px;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.075);
+
+  border-radius: 30px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(28, 30, 39, 0.965),
+      rgba(8, 10, 14, 0.985)
+    );
+
+  box-shadow:
+    0 45px 110px
+      rgba(0, 0, 0, 0.58),
+    inset
+      0 1px 0
+      rgba(255, 255, 255, 0.045);
+
+  backdrop-filter: blur(25px);
+
+  -webkit-backdrop-filter: blur(25px);
+
+  animation:
+    cardEnter
+    0.65s
+    cubic-bezier(.2, .8, .2, 1);
+}
+
+/* ============================================================
+   STG LOGO
+============================================================ */
+
+.stg-register-logo {
+  width: 68px;
+  height: 68px;
+
+  margin:
+    0 auto 16px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 21px;
+
+  color: #ffd27e;
+
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+
+  font-size: 25px;
+  font-weight: 900;
+
+  letter-spacing: 1px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 194, 100, 0.19),
+      rgba(255, 194, 100, 0.025)
+    );
+
+  border:
+    1px solid
+    rgba(255, 194, 100, 0.24);
+
+  box-shadow:
+    0 0 35px
+      rgba(255, 184, 77, 0.09),
+    inset
+      0 1px 0
+      rgba(255, 255, 255, 0.09);
+
+  animation:
+    logoGlow
+    3.5s
+    ease-in-out
+    infinite;
+}
+
+/* ============================================================
+   SECURITY BADGE
+============================================================ */
+
+.register-secure-badge {
+  width: fit-content;
+
+  margin: 0 auto;
+
+  padding:
+    7px 12px;
+
+  display: inline-flex;
+  align-items: center;
+
+  gap: 8px;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.065);
+
+  border-radius: 999px;
+
+  background:
+    rgba(255, 255, 255, 0.026);
+
+  color:
+    rgba(255, 255, 255, 0.48);
+
+  font-size: 9px;
+  font-weight: 850;
+
+  letter-spacing: 1.55px;
+}
+
+.register-secure-badge span {
+  width: 6px;
+  height: 6px;
+
+  border-radius: 50%;
+
+  background: #72e3a0;
+
+  box-shadow:
+    0 0 12px
+    rgba(114, 227, 160, 0.85);
+
+  animation:
+    badgePulse
+    1.8s
+    ease-in-out
+    infinite;
+}
+
+/* ============================================================
+   HEADINGS
+============================================================ */
+
+.student-register-card h1 {
+  margin:
+    23px 0 10px;
+
+  color: #ffffff;
+
+  font-size:
+    clamp(30px, 7vw, 43px);
+
+  line-height: 1.06;
+
+  letter-spacing: -1.6px;
+
+  text-align: center;
+}
+
+.student-register-card h1 strong {
+  color: #ffca73;
+
+  font-weight: 850;
+
+  text-shadow:
+    0 0 25px
+    rgba(255, 192, 97, 0.20);
+}
+
+.register-description {
+  max-width: 430px;
+
+  margin:
+    0 auto 25px;
+
+  color:
+    rgba(255, 255, 255, 0.46);
+
+  font-size: 13px;
+
+  line-height: 1.75;
+
+  text-align: center;
+}
+
+/* ============================================================
+   GMAIL INPUT
+============================================================ */
+
+.register-email-wrap {
+  width: 100%;
+
+  position: relative;
+
+  margin-bottom: 14px;
+}
+
+.email-symbol {
+  position: absolute;
+
+  left: 17px;
+  top: 50%;
+
+  transform:
+    translateY(-50%);
+
+  color: #ffcb73;
+
+  font-size: 18px;
+  font-weight: 900;
+
+  pointer-events: none;
+
+  z-index: 2;
+}
+
+.register-email-wrap input {
+  width: 100%;
+  height: 58px;
+
+  padding:
+    0 18px 0 48px;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.085);
+
+  border-radius: 15px;
+
+  outline: none;
+
+  color: #ffffff;
+
+  background:
+    rgba(255, 255, 255, 0.038);
+
+  font-size: 14px;
+
+  transition:
+    border-color .25s ease,
+    background .25s ease,
+    box-shadow .25s ease,
+    transform .25s ease;
+}
+
+.register-email-wrap input::placeholder {
+  color:
+    rgba(255, 255, 255, 0.27);
+}
+
+.register-email-wrap input:focus {
+  border-color:
+    rgba(255, 196, 108, 0.68);
+
+  background:
+    rgba(255, 255, 255, 0.06);
+
+  box-shadow:
+    0 0 0 4px
+      rgba(255, 193, 98, 0.065),
+    0 10px 25px
+      rgba(0, 0, 0, 0.15);
+}
+
+/* ============================================================
+   MAIN BUTTON
+============================================================ */
+
+.register-main-button {
+  width: 100%;
+  height: 57px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 11px;
+
+  border: 0;
+  border-radius: 15px;
+
+  cursor: pointer;
+
+  color: #211609;
+
+  background:
+    linear-gradient(
+      135deg,
+      #ffe0a4 0%,
+      #f5b355 48%,
+      #e99c3d 100%
+    );
+
+  font-size: 14px;
+  font-weight: 850;
+
+  box-shadow:
+    0 14px 32px
+      rgba(236, 159, 62, 0.17),
+    inset
+      0 1px 0
+      rgba(255, 255, 255, 0.48);
+
+  transition:
+    transform .2s ease,
+    box-shadow .2s ease,
+    filter .2s ease;
+}
+
+.register-main-button:hover:not(:disabled) {
+  transform:
+    translateY(-2px);
+
+  filter:
+    brightness(1.045);
+
+  box-shadow:
+    0 19px 43px
+      rgba(236, 159, 62, 0.25),
+    inset
+      0 1px 0
+      rgba(255, 255, 255, 0.50);
+}
+
+.register-main-button:active:not(:disabled) {
+  transform:
+    translateY(0);
+}
+
+.register-main-button:disabled {
+  opacity: 0.55;
+
+  cursor: not-allowed;
+
+  filter: none;
+}
+
+/* ============================================================
+   OTP AREA
+============================================================ */
+
+.otp-area {
+  margin-top: 23px;
+
+  animation:
+    otpAreaEnter
+    .42s
+    cubic-bezier(.2, .8, .2, 1);
+}
+
+.otp-top-line {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 5px;
+
+  color:
+    rgba(255, 255, 255, 0.72);
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.otp-top-line small {
+  color: #ffcb73;
+
+  font-size: 9px;
+
+  font-weight: 850;
+
+  letter-spacing: 1.2px;
+}
+
+.otp-sent-text {
+  margin:
+    0 0 20px;
+
+  color:
+    rgba(255, 255, 255, 0.40);
+
+  font-size: 12px;
+
+  text-align: left;
+}
+
+.otp-sent-text strong {
+  color:
+    rgba(255, 255, 255, 0.78);
+
+  margin-left: 5px;
+
+  font-weight: 750;
+}
+
+/* ============================================================
+   SIX OTP BOXES
+============================================================ */
+
+.otp-box-container {
+  width: 100%;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 9px;
+
+  margin-bottom: 14px;
+}
+
+.otp-box {
+  width: 58px;
+  height: 66px;
+
+  flex: 0 0 auto;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.085);
+
+  border-radius: 15px;
+
+  outline: none;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.045),
+      rgba(255, 255, 255, 0.025)
+    );
+
+  color: #ffffff;
+
+  font-size: 27px;
+  font-weight: 850;
+
+  text-align: center;
+
+  caret-color: #ffcb73;
+
+  box-shadow:
+    inset
+      0 1px 0
+      rgba(255, 255, 255, 0.035);
+
+  transition:
+    transform .18s ease,
+    border-color .22s ease,
+    background .22s ease,
+    box-shadow .22s ease;
+}
+
+.otp-box:hover {
+  border-color:
+    rgba(255, 255, 255, 0.15);
+}
+
+.otp-box:focus {
+  transform:
+    translateY(-4px);
+
+  border-color:
+    rgba(255, 198, 108, 0.90);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 195, 102, 0.075),
+      rgba(255, 195, 102, 0.035)
+    );
+
+  box-shadow:
+    0 0 0 4px
+      rgba(255, 194, 101, 0.065),
+    0 12px 27px
+      rgba(0, 0, 0, 0.24),
+    inset
+      0 1px 0
+      rgba(255, 255, 255, 0.08);
+}
+
+.otp-box.otp-filled {
+  color: #ffd88d;
+
+  border-color:
+    rgba(255, 195, 103, 0.45);
+
+  background:
+    rgba(255, 192, 96, 0.045);
+
+  animation:
+    otpFilled
+    .22s
+    ease;
+}
+
+/* ============================================================
+   OTP PROGRESS
+============================================================ */
+
+.otp-progress {
+  width: 100%;
+  height: 3px;
+
+  overflow: hidden;
+
+  margin-bottom: 17px;
+
+  border-radius: 999px;
+
+  background:
+    rgba(255, 255, 255, 0.065);
+}
+
+.otp-progress > div {
+  height: 100%;
+
+  border-radius: inherit;
+
+  background:
+    linear-gradient(
+      90deg,
+      #e99b3f,
+      #ffd992
+    );
+
+  box-shadow:
+    0 0 12px
+    rgba(255, 195, 104, 0.44);
+
+  transition:
+    width .25s ease;
+}
+
+/* ============================================================
+   MESSAGE
+============================================================ */
+
+.register-message {
+  width: 100%;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  margin-bottom: 14px;
+
+  padding:
+    10px 12px;
+
+  border-radius: 11px;
+
+  font-size: 11px;
+
+  line-height: 1.45;
+
+  animation:
+    messageIn
+    .28s
+    ease;
+}
+
+.register-message span {
+  width: 19px;
+  height: 19px;
+
+  flex: 0 0 19px;
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.register-info {
+  color: #b9edcb;
+
+  border:
+    1px solid
+    rgba(103, 226, 156, 0.14);
+
+  background:
+    rgba(103, 226, 156, 0.05);
+}
+
+.register-info span {
+  color: #06150c;
+
+  background: #76dfa2;
+}
+
+.register-error {
+  color: #ffc6c6;
+
+  border:
+    1px solid
+    rgba(247, 106, 106, 0.14);
+
+  background:
+    rgba(247, 106, 106, 0.05);
+}
+
+.register-error span {
+  color: #290909;
+
+  background: #fb8585;
+}
+
+/* ============================================================
+   TEXT BUTTONS
+============================================================ */
+
+.text-action-button,
+.change-email-action {
+  display: block;
+
+  margin-left: auto;
+  margin-right: auto;
+
+  border: 0;
+
+  background: transparent;
+
+  cursor: pointer;
+}
+
+.text-action-button {
+  margin-top: 14px;
+
+  color: #ffcb73;
+
+  font-size: 12px;
+  font-weight: 800;
+
+  transition:
+    color .2s ease,
+    opacity .2s ease;
+}
+
+.text-action-button:hover:not(:disabled) {
+  color: #ffe0a5;
+}
+
+.change-email-action {
+  margin-top: 12px;
+
+  color:
+    rgba(255, 255, 255, 0.34);
+
+  font-size: 11px;
+
+  transition:
+    color .2s ease;
+}
+
+.change-email-action:hover:not(:disabled) {
+  color:
+    rgba(255, 255, 255, 0.70);
+}
+
+.text-action-button:disabled,
+.change-email-action:disabled {
+  opacity: 0.45;
+
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   SUCCESS SCREEN
+============================================================ */
+
+.email-success-screen {
+  min-height: 375px;
+
+  position: relative;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  animation:
+    successScreenEnter
+    .55s
+    cubic-bezier(.2, .9, .3, 1);
+}
+
+/* ============================================================
+   SUCCESS RING — ONE PREMIUM RING
+============================================================ */
+
+.success-ring-outer {
+  width: 124px;
+  height: 124px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  border:
+    1px solid
+    rgba(116, 237, 166, 0.28);
+
+  box-shadow:
+    0 0 0 10px
+      rgba(116, 237, 166, 0.020),
+    0 0 0 20px
+      rgba(116, 237, 166, 0.012),
+    0 0 55px
+      rgba(116, 237, 166, 0.15);
+
+  animation:
+    ringPulse
+    2.2s
+    ease-in-out
+    infinite;
+}
+
+.success-ring-middle {
+  width: 94px;
+  height: 94px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  border:
+    1px solid
+    rgba(116, 237, 166, 0.37);
+}
+
+.success-ring-inner {
+  width: 68px;
+  height: 68px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  color: #07170e;
+
+  background:
+    linear-gradient(
+      145deg,
+      #a2f6c3,
+      #54d98e
+    );
+
+  font-size: 34px;
+  font-weight: 950;
+
+  box-shadow:
+    0 15px 38px
+      rgba(80, 217, 139, 0.22);
+
+  animation:
+    successCheck
+    .58s
+    .08s
+    both
+    cubic-bezier(.2, 1.45, .4, 1);
+}
+
+/* ============================================================
+   SUCCESS SPARKS
+============================================================ */
+
+.success-dot {
+  position: absolute;
+
+  width: 7px;
+  height: 7px;
+
+  border-radius: 50%;
+
+  background: #83efb1;
+
+  box-shadow:
+    0 0 17px
+    rgba(131, 239, 177, 0.85);
+
+  animation:
+    sparkFloat
+    1.9s
+    ease-out
+    infinite;
+}
+
+.success-dot-one {
+  top: 72px;
+  left: 102px;
+}
+
+.success-dot-two {
+  top: 108px;
+  right: 98px;
+
+  animation-delay: .35s;
+}
+
+.success-dot-three {
+  bottom: 95px;
+  left: 125px;
+
+  animation-delay: .7s;
+}
+
+/* ============================================================
+   SUCCESS TEXT
+============================================================ */
+
+.email-success-screen h1 {
+  margin-top: 29px;
+}
+
+.email-success-screen p {
+  margin: 0;
+
+  color:
+    rgba(255, 255, 255, 0.49);
+
+  font-size: 13px;
+}
+
+.success-email {
+  max-width: 100%;
+
+  margin-top: 17px;
+
+  padding:
+    9px 14px;
+
+  border-radius: 999px;
+
+  color: #baf1ce;
+
+  border:
+    1px solid
+    rgba(112, 228, 161, 0.14);
+
+  background:
+    rgba(112, 228, 161, 0.05);
+
+  font-size: 11px;
+  font-weight: 750;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.continue-line {
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  margin-top: 23px;
+
+  color:
+    rgba(255, 255, 255, 0.30);
+
+  font-size: 10px;
+}
+
+.continue-line span {
+  width: 6px;
+  height: 6px;
+
+  border-radius: 50%;
+
+  background: #78e3a5;
+
+  box-shadow:
+    0 0 10px
+    rgba(120, 227, 165, 0.85);
+
+  animation:
+    badgePulse
+    1s
+    ease-in-out
+    infinite;
+}
+
+/* ============================================================
+   VERIFIED HEADER
+============================================================ */
+
+.verified-header {
+  width: 100%;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 11px;
+
+  padding:
+    11px 13px;
+
+  margin-bottom: 21px;
+
+  border-radius: 14px;
+
+  border:
+    1px solid
+    rgba(106, 226, 158, 0.13);
+
+  background:
+    rgba(106, 226, 158, 0.045);
+
+  text-align: left;
+}
+
+.verified-mini-icon {
+  width: 35px;
+  height: 35px;
+
+  flex: 0 0 35px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 10px;
+
+  color: #07180e;
+
+  background:
+    linear-gradient(
+      145deg,
+      #8beeb5,
+      #5cdb91
+    );
+
+  font-size: 17px;
+  font-weight: 900;
+
+  box-shadow:
+    0 8px 20px
+    rgba(92, 219, 145, 0.15);
+}
+
+.verified-content {
+  min-width: 0;
+}
+
+.verified-title {
+  color: #adecc5;
+
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.verified-email {
+  max-width: 300px;
+
+  margin-top: 2px;
+
+  overflow: hidden;
+
+  color:
+    rgba(255, 255, 255, 0.40);
+
+  font-size: 10px;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.verified-check {
+  margin-left: auto;
+
+  color: #77e2a2;
+
+  font-size: 18px;
+
+  animation:
+    verifiedPop
+    .35s
+    ease;
+}
+
+/* ============================================================
+   REGISTRATION FORM
+============================================================ */
+
+.register-form-step {
+  margin-top: 23px;
+
+  animation:
+    formEnter
+    .48s
+    cubic-bezier(.2, .8, .2, 1);
+}
+
+.registration-heading {
+  margin-top: 0 !important;
+
+  text-align: left !important;
+}
+
+.register-form-step
+  > .register-description {
+  text-align: left;
+
+  margin-left: 0;
+
+  margin-bottom: 22px;
+}
+
+/* ============================================================
+   FIELD
+============================================================ */
+
+.register-form-step form {
+  width: 100%;
+
+  text-align: left;
+}
+
+.register-field {
+  width: 100%;
+
+  margin-bottom: 15px;
+}
+
+.register-field label {
+  display: block;
+
+  margin-bottom: 7px;
+
+  color:
+    rgba(255, 255, 255, 0.67);
+
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.register-field input,
+.register-field select {
+  width: 100%;
+  height: 53px;
+
+  padding:
+    0 15px;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.085);
+
+  border-radius: 14px;
+
+  outline: none;
+
+  color: #fff;
+
+  background:
+    rgba(255, 255, 255, 0.038);
+
+  font-size: 13px;
+
+  transition:
+    border-color .23s ease,
+    background .23s ease,
+    box-shadow .23s ease;
+}
+
+.register-field input::placeholder {
+  color:
+    rgba(255, 255, 255, 0.27);
+}
+
+.register-field input:focus,
+.register-field select:focus {
+  border-color:
+    rgba(255, 195, 104, 0.63);
+
+  background:
+    rgba(255, 255, 255, 0.055);
+
+  box-shadow:
+    0 0 0 4px
+    rgba(255, 194, 102, 0.055);
+}
+
+.register-field select {
+  cursor: pointer;
+}
+
+.register-field select option {
+  color: #fff;
+
+  background: #11131a;
+}
+
+.register-field small {
+  display: block;
+
+  margin-top: 6px;
+
+  color:
+    rgba(255, 255, 255, 0.28);
+
+  font-size: 10px;
+
+  line-height: 1.4;
+}
+
+/* ============================================================
+   SUBMIT
+============================================================ */
+
+.register-submit-button {
+  margin-top: 7px;
+}
+
+/* ============================================================
+   LOADER
+============================================================ */
+
+.button-loader {
+  width: 17px;
+  height: 17px;
+
+  flex: 0 0 17px;
+
+  border-radius: 50%;
+
+  border:
+    2px solid
+    rgba(0, 0, 0, 0.20);
+
+  border-top-color: #211609;
+
+  animation:
+    spinner
+    .65s
+    linear
+    infinite;
+}
+
+/* ============================================================
+   FOOTER
+============================================================ */
+
+.register-footer {
+  margin-top: 26px;
+
+  text-align: center;
+
+  color:
+    rgba(255, 255, 255, 0.22);
+
+  font-size: 8px;
+  font-weight: 850;
+
+  letter-spacing: 1.6px;
+}
+
+.register-footer span {
+  color: #ffc46d;
+}
+
+.register-footer b {
+  margin:
+    0 6px;
+
+  color: #ffc46d;
+}
+
+/* ============================================================
+   ANIMATIONS
+============================================================ */
+
+@keyframes cardEnter {
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(25px)
+      scale(.975);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
+
+@keyframes otpAreaEnter {
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0);
+  }
+}
+
+@keyframes formEnter {
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0);
+  }
+}
+
+@keyframes logoGlow {
+  0%,
+  100% {
+    box-shadow:
+      0 0 35px
+      rgba(255, 185, 82, 0.08),
+      inset
+        0 1px 0
+        rgba(255, 255, 255, 0.09);
+  }
+
+  50% {
+    box-shadow:
+      0 0 48px
+      rgba(255, 185, 82, 0.16),
+      inset
+        0 1px 0
+        rgba(255, 255, 255, 0.09);
+  }
+}
+
+@keyframes badgePulse {
+  0%,
+  100% {
+    opacity: .45;
+    transform: scale(.85);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.16);
+  }
+}
+
+@keyframes otpFilled {
+  from {
+    transform: scale(.92);
+  }
+
+  to {
+    transform: scale(1);
+  }
+}
+
+@keyframes messageIn {
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0);
+  }
+}
+
+@keyframes successScreenEnter {
+  from {
+    opacity: 0;
+
+    transform:
+      scale(.90)
+      translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      scale(1)
+      translateY(0);
+  }
+}
+
+@keyframes ringPulse {
+  0%,
+  100% {
+    transform: scale(1);
+
+    box-shadow:
+      0 0 0 10px
+        rgba(116, 237, 166, 0.020),
+      0 0 0 20px
+        rgba(116, 237, 166, 0.012),
+      0 0 55px
+        rgba(116, 237, 166, 0.15);
+  }
+
+  50% {
+    transform: scale(1.045);
+
+    box-shadow:
+      0 0 0 13px
+        rgba(116, 237, 166, 0.025),
+      0 0 0 25px
+        rgba(116, 237, 166, 0.015),
+      0 0 65px
+        rgba(116, 237, 166, 0.20);
+  }
+}
+
+@keyframes successCheck {
+  from {
+    opacity: 0;
+
+    transform:
+      scale(.25);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      scale(1);
+  }
+}
+
+@keyframes sparkFloat {
+  0% {
+    opacity: 0;
+
+    transform:
+      translateY(20px)
+      scale(.55);
+  }
+
+  30% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+
+    transform:
+      translateY(-52px)
+      scale(1.2);
+  }
+}
+
+@keyframes verifiedPop {
+  from {
+    opacity: 0;
+
+    transform:
+      scale(.65);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      scale(1);
+  }
+}
+
+@keyframes spinner {
+  to {
+    transform:
+      rotate(360deg);
+  }
+}
+
+@keyframes registerOrbFloat {
+  0%,
+  100% {
+    transform:
+      translate3d(0, 0, 0);
+  }
+
+  50% {
+    transform:
+      translate3d(25px, -20px, 0);
+  }
+}
+
+/* ============================================================
+   TABLET
+============================================================ */
+
+@media (max-width: 700px) {
+  .student-register-page {
+    padding: 16px;
+  }
+
+  .student-register-card {
+    padding: 30px 25px 23px;
+  }
+}
+
+/* ============================================================
+   MOBILE
+============================================================ */
+
+@media (max-width: 560px) {
+  .student-register-page {
+    align-items: flex-start;
+
+    min-height: 100dvh;
+
+    padding:
+      14px 12px 24px;
+  }
+
+  .student-register-card {
+    width: 100%;
+
+    margin-top: 8px;
+
+    padding:
+      27px 18px 22px;
+
+    border-radius: 23px;
+  }
+
+  .stg-register-logo {
+    width: 58px;
+    height: 58px;
+
+    border-radius: 18px;
+
+    font-size: 22px;
+  }
+
+  .register-secure-badge {
+    font-size: 8px;
+
+    letter-spacing: 1.2px;
+  }
+
+  .student-register-card h1 {
+    font-size: 31px;
+
+    letter-spacing: -1px;
+  }
+
+  .register-description {
+    font-size: 12px;
+  }
+
+  .otp-box-container {
+    gap: 6px;
+  }
+
+  .otp-box {
+    width: 46px;
+    height: 57px;
+
+    border-radius: 12px;
+
+    font-size: 23px;
+  }
+
+  .success-ring-outer {
+    width: 112px;
+    height: 112px;
+  }
+
+  .success-ring-middle {
+    width: 87px;
+    height: 87px;
+  }
+
+  .success-ring-inner {
+    width: 63px;
+    height: 63px;
+
+    font-size: 31px;
+  }
+}
+
+/* ============================================================
+   SMALL MOBILE
+============================================================ */
+
+@media (max-width: 390px) {
+  .student-register-card {
+    padding:
+      24px 14px 20px;
+  }
+
+  .otp-box-container {
+    gap: 4px;
+  }
+
+  .otp-box {
+    width: 42px;
+    height: 53px;
+
+    font-size: 21px;
+
+    border-radius: 11px;
+  }
+
+  .register-main-button {
+    height: 54px;
+
+    font-size: 13px;
+  }
+}
+
+/* ============================================================
+   VERY SMALL MOBILE
+============================================================ */
+
+@media (max-width: 340px) {
+  .otp-box {
+    width: 38px;
+    height: 50px;
+
+    font-size: 19px;
+  }
+
+  .otp-box-container {
+    gap: 3px;
+  }
+
+  .student-register-card h1 {
+    font-size: 28px;
+  }
+}
+
+/* ============================================================
+   REDUCED MOTION
+============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .student-register-card,
+  .register-orb,
+  .stg-register-logo,
+  .register-secure-badge span,
+  .otp-box.otp-filled,
+  .email-success-screen,
+  .success-ring-outer,
+  .success-ring-inner,
+  .success-dot,
+  .continue-line span,
+  .verified-check,
+  .button-loader {
+    animation: none !important;
+  }
+
+  .register-main-button,
+  .otp-box,
+  .register-email-wrap input,
+  .register-field input,
+  .register-field select {
+    transition: none !important;
+  }
+}
+

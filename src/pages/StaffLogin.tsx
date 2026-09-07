@@ -67,7 +67,7 @@ export default function StaffLogin() {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
-        credentials: "omit", // CORS సమస్యను నివారించడానికి 'include' బదులుగా 'omit' వాడాలి
+        credentials: "omit", 
         signal: controller.signal,
         body: JSON.stringify({
           email: cleanEmail,
