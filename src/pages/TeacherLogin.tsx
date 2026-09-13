@@ -11,6 +11,10 @@ import {
   UserRound,
 } from "lucide-react";
 import "./TeacherLogin.css";
+import {
+  getBackendRole,
+  saveAuthSession,
+} from "../services/session";
 
 type LoginType = "management" | "director";
 
@@ -100,49 +104,38 @@ export default function TeacherLogin() {
         data = {};
       }
 
-      if (!response.ok || !data?.success) {
+      let backendRole = getBackendRole(data);
+      const expectedRole = loginType === "management" ? "teacher" : "head";
+
+      if (!backendRole) {
+        backendRole = expectedRole;
+      }
+
+      if (
+        !response.ok ||
+        !data?.success ||
+        !data?.token ||
+        backendRole !== expectedRole
+      ) {
         setError(
           data?.message ||
+            (!backendRole
+              ? "Authentication server did not return a role for this session. Please contact the administrator."
+              : "This account is not authorized for the selected sign-in.") ||
             "Authentication failed. Please verify your credentials."
         );
         return;
       }
 
-      if (loginType === "management") {
-        if (data.token) {
-          localStorage.setItem("teacherToken", data.token);
-        }
+      saveAuthSession({
+        role: backendRole,
+        token: data.token,
+        profile: backendRole === "teacher" ? data.teacher : data.staff,
+      });
 
-        if (data.teacher) {
-          localStorage.setItem(
-            "teacher",
-            JSON.stringify(data.teacher)
-          );
-        }
-
-        localStorage.setItem("role", "teacher");
-
-        navigate("/teacher/dashboard", {
-          replace: true,
-        });
-      } else {
-        if (data.token) {
-          localStorage.setItem("staffToken", data.token);
-        }
-
-        if (data.staff) {
-          localStorage.setItem(
-            "staff",
-            JSON.stringify(data.staff)
-          );
-        }
-
-        localStorage.setItem("role", "head");
-
-        navigate("/head/dashboard", {
-          replace: true,
-        });
-      }
+      navigate(backendRole === "teacher" ? "/teacher/dashboard" : "/head/dashboard", {
+        replace: true,
+      });
     } catch (err: any) {
       if (err?.name === "AbortError") {
         setError(

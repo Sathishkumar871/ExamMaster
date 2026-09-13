@@ -1,3 +1,4 @@
+
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { lazy, Suspense } from "react";
 
@@ -38,54 +39,119 @@ const AboutCollege = lazy(() => import("./components/college/AboutCollege"));
 const Admission = lazy(() => import("./components/college/Admissions"));
 const Faculty = lazy(() => import("./components/college/Faculty"));
 const FAQ = lazy(() => import("./components/college/FAQ"));
+
 const PrivacyPolicy = lazy(
   () => import("./components/college/PrivacyPolicy")
 );
+
 const TermsConditions = lazy(
   () => import("./components/college/TermsConditions")
 );
 
 // ================= MENTOR / TEACHER =================
 const MentorDashboard = lazy(() => import("./pages/MentorDashboard"));
+
 const MentorStudentProgress = lazy(
   () => import("./pages/MentorStudentProgress")
 );
+
 const ProgressCard = lazy(() => import("./pages/ProgressCard"));
-const TeacherDashboard = lazy(() => import("./pages/TeacherDashboard"));
-const CreateDailyTest = lazy(() => import("./pages/CreateDailyTest"));
-const DailyTestsManager = lazy(() => import("./pages/DailyTestsManager"));
-const ExamManagement = lazy(() => import("./pages/ExamManagement"));
-const StudentManagement = lazy(() => import("./pages/StudentManagement"));
-const ResultsManagement = lazy(() => import("./pages/ResultsManagement"));
-const QuestionBank = lazy(() => import("./pages/QuestionBank"));
-const TeacherComplaints = lazy(() => import("./pages/TeacherComplaints"));
-const StudentHistory = lazy(() => import("./pages/StudentHistory"));
-const HealthEvaluation = lazy(() => import("./pages/HealthEvaluation"));
-const FoodEvaluation = lazy(() => import("./pages/FoodEvaluation"));
-const HostelEvaluation = lazy(() => import("./pages/HostelEvaluation"));
-const AcademicEvaluation = lazy(() => import("./pages/AcademicEvaluation"));
-const MentorActionPlan = lazy(() => import("./pages/MentorActionPlan"));
+
+const TeacherDashboard = lazy(
+  () => import("./pages/TeacherDashboard")
+);
+
+const CreateDailyTest = lazy(
+  () => import("./pages/CreateDailyTest")
+);
+
+const DailyTestsManager = lazy(
+  () => import("./pages/DailyTestsManager")
+);
+
+const ExamManagement = lazy(
+  () => import("./pages/ExamManagement")
+);
+
+const StudentManagement = lazy(
+  () => import("./pages/StudentManagement")
+);
+
+const ResultsManagement = lazy(
+  () => import("./pages/ResultsManagement")
+);
+
+const QuestionBank = lazy(
+  () => import("./pages/QuestionBank")
+);
+
+const TeacherComplaints = lazy(
+  () => import("./pages/TeacherComplaints")
+);
+
+const StudentHistory = lazy(
+  () => import("./pages/StudentHistory")
+);
+
+const HealthEvaluation = lazy(
+  () => import("./pages/HealthEvaluation")
+);
+
+const FoodEvaluation = lazy(
+  () => import("./pages/FoodEvaluation")
+);
+
+const HostelEvaluation = lazy(
+  () => import("./pages/HostelEvaluation")
+);
+
+const AcademicEvaluation = lazy(
+  () => import("./pages/AcademicEvaluation")
+);
+
+const MentorActionPlan = lazy(
+  () => import("./pages/MentorActionPlan")
+);
 
 // ================= HEAD =================
-const HeadDashboard = lazy(() => import("./pages/HeadDashboard"));
+const HeadDashboard = lazy(
+  () => import("./pages/HeadDashboard")
+);
 
 // ================= SUBJECTS =================
-const Physics = lazy(() => import("./pages/subjects/Physics"));
-const Chemistry = lazy(() => import("./pages/subjects/Chemistry"));
-const Botany = lazy(() => import("./pages/subjects/Botany"));
-const Zoology = lazy(() => import("./pages/subjects/Zoology"));
-const Mathematics = lazy(() => import("./pages/subjects/Mathematics"));
+const Physics = lazy(
+  () => import("./pages/subjects/Physics")
+);
+
+const Chemistry = lazy(
+  () => import("./pages/subjects/Chemistry")
+);
+
+const Botany = lazy(
+  () => import("./pages/subjects/Botany")
+);
+
+const Zoology = lazy(
+  () => import("./pages/subjects/Zoology")
+);
+
+const Mathematics = lazy(
+  () => import("./pages/subjects/Mathematics")
+);
 
 // ================= 404 =================
-const NotFound = lazy(() => import("./pages/NotFound"));
+const NotFound = lazy(
+  () => import("./pages/NotFound")
+);
 
 // ================= PROTECTED =================
 import ProtectedRoute from "./ProtectedRoute";
 
 // ============================================================
-// LOADING SCREEN
+// PREMIUM LOADING SCREEN
 // ============================================================
-   function PremiumPageLoader() {
+
+function PremiumPageLoader() {
   return (
     <div
       style={{
@@ -131,7 +197,8 @@ import ProtectedRoute from "./ProtectedRoute";
             borderRadius: "50%",
             border: "1px solid rgba(245, 158, 11, 0.18)",
             borderBottomColor: "#d97706",
-            animation: "loaderRotateReverse 1.2s linear infinite",
+            animation:
+              "loaderRotateReverse 1.2s linear infinite",
           }}
         />
 
@@ -142,8 +209,10 @@ import ProtectedRoute from "./ProtectedRoute";
             inset: "17px",
             borderRadius: "50%",
             background: "#f59e0b",
-            boxShadow: "0 0 18px rgba(245, 158, 11, 0.4)",
-            animation: "centerPulse 1.1s ease-in-out infinite",
+            boxShadow:
+              "0 0 18px rgba(245, 158, 11, 0.4)",
+            animation:
+              "centerPulse 1.1s ease-in-out infinite",
           }}
         />
       </div>
@@ -159,7 +228,10 @@ import ProtectedRoute from "./ProtectedRoute";
             "Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
         }}
       >
-        EXAM<span style={{ color: "#f59e0b" }}>MASTER</span>
+        EXAM
+        <span style={{ color: "#f59e0b" }}>
+          MASTER
+        </span>
       </div>
 
       {/* Loading Text */}
@@ -175,6 +247,7 @@ import ProtectedRoute from "./ProtectedRoute";
         }}
       >
         Loading
+
         <span
           style={{
             display: "inline-flex",
@@ -218,18 +291,22 @@ import ProtectedRoute from "./ProtectedRoute";
             height: "100%",
             borderRadius: "20px",
             background: "#f59e0b",
-            boxShadow: "0 0 8px rgba(245,158,11,0.5)",
-            animation: "progressMove 0.8s ease-in-out infinite",
+            boxShadow:
+              "0 0 8px rgba(245,158,11,0.5)",
+            animation:
+              "progressMove 0.8s ease-in-out infinite",
           }}
         />
       </div>
 
+      {/* Loader Animations */}
       <style>
         {`
           @keyframes loaderRotate {
             from {
               transform: rotate(0deg);
             }
+
             to {
               transform: rotate(360deg);
             }
@@ -239,6 +316,7 @@ import ProtectedRoute from "./ProtectedRoute";
             from {
               transform: rotate(360deg);
             }
+
             to {
               transform: rotate(0deg);
             }
@@ -294,11 +372,13 @@ import ProtectedRoute from "./ProtectedRoute";
 // ============================================================
 // APP
 // ============================================================
+
 function App() {
   return (
     <BrowserRouter>
       <Suspense fallback={<PremiumPageLoader />}>
         <Routes>
+
           {/* =====================================================
               PUBLIC ROUTES
           ====================================================== */}
@@ -315,7 +395,7 @@ function App() {
           <Route
             path="/subjects/physics"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["student"]}>
                 <Physics />
               </ProtectedRoute>
             }
@@ -324,7 +404,7 @@ function App() {
           <Route
             path="/subjects/chemistry"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["student"]}>
                 <Chemistry />
               </ProtectedRoute>
             }
@@ -333,7 +413,7 @@ function App() {
           <Route
             path="/subjects/botany"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["student"]}>
                 <Botany />
               </ProtectedRoute>
             }
@@ -342,7 +422,7 @@ function App() {
           <Route
             path="/subjects/zoology"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["student"]}>
                 <Zoology />
               </ProtectedRoute>
             }
@@ -351,7 +431,7 @@ function App() {
           <Route
             path="/subjects/mathematics"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["student"]}>
                 <Mathematics />
               </ProtectedRoute>
             }
@@ -385,16 +465,17 @@ function App() {
             path="/student/register"
             element={<StudentRegister />}
           />
+
           <Route
-  path="/student/forgot-password"
-  element={<StudentForgotPassword />}
-/>
+            path="/student/forgot-password"
+            element={<StudentForgotPassword />}
+          />
 
           <Route
             path="/staff/register"
             element={<StaffRegister />}
           />
-        
+
           {/* =====================================================
               COLLEGE ROUTES
           ====================================================== */}
@@ -441,7 +522,7 @@ function App() {
           <Route
             path="/dashboard"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["student"]}>
                 <Dashboard />
               </ProtectedRoute>
             }
@@ -450,7 +531,7 @@ function App() {
           <Route
             path="/leaderboard"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["student"]}>
                 <Leaderboard />
               </ProtectedRoute>
             }
@@ -459,7 +540,7 @@ function App() {
           <Route
             path="/profile"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["student"]}>
                 <Profile />
               </ProtectedRoute>
             }
@@ -468,27 +549,30 @@ function App() {
           <Route
             path="/study-materials"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["student"]}>
                 <AcademicHelp />
               </ProtectedRoute>
             }
           />
-                    <Route
-                 path="/study-planner"
-                 element={
-               <ProtectedRoute>
-               <StudyPlanner />
-           </ProtectedRoute>
-             }
-                 />
-               <Route 
-               path="/exam-strategy" 
-             element={ 
-              <ProtectedRoute> 
-             <AIExamStrategy /> 
-            </ProtectedRoute> 
-            } 
-            />
+
+          <Route
+            path="/study-planner"
+            element={
+              <ProtectedRoute allowedRoles={["student"]}>
+                <StudyPlanner />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/exam-strategy"
+            element={
+              <ProtectedRoute allowedRoles={["student"]}>
+                <AIExamStrategy />
+              </ProtectedRoute>
+            }
+          />
+
           {/* =====================================================
               DAILY TEST
           ====================================================== */}
@@ -496,7 +580,7 @@ function App() {
           <Route
             path="/student/daily-test"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["student"]}>
                 <DailyTest />
               </ProtectedRoute>
             }
@@ -509,7 +593,7 @@ function App() {
           <Route
             path="/mock-tests"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["student"]}>
                 <MockTests />
               </ProtectedRoute>
             }
@@ -518,7 +602,7 @@ function App() {
           <Route
             path="/student/mock-test"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["student"]}>
                 <MockTests />
               </ProtectedRoute>
             }
@@ -531,7 +615,7 @@ function App() {
           <Route
             path="/jee-mock-tests"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["student"]}>
                 <JEEMockTest />
               </ProtectedRoute>
             }
@@ -544,7 +628,7 @@ function App() {
           <Route
             path="/student/complaints"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["student"]}>
                 <StudentComplaints />
               </ProtectedRoute>
             }
@@ -557,7 +641,9 @@ function App() {
           <Route
             path="/mentor/student/:studentId/history"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute
+                allowedRoles={["staff", "mentor"]}
+              >
                 <StudentHistory />
               </ProtectedRoute>
             }
@@ -566,7 +652,9 @@ function App() {
           <Route
             path="/mentor/evaluation/:studentId/health"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute
+                allowedRoles={["staff", "mentor"]}
+              >
                 <HealthEvaluation />
               </ProtectedRoute>
             }
@@ -575,7 +663,9 @@ function App() {
           <Route
             path="/mentor/evaluation/:studentId/food"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute
+                allowedRoles={["staff", "mentor"]}
+              >
                 <FoodEvaluation />
               </ProtectedRoute>
             }
@@ -584,7 +674,9 @@ function App() {
           <Route
             path="/mentor/evaluation/:studentId/hostel"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute
+                allowedRoles={["staff", "mentor"]}
+              >
                 <HostelEvaluation />
               </ProtectedRoute>
             }
@@ -593,7 +685,9 @@ function App() {
           <Route
             path="/mentor/evaluation/:studentId/academic"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute
+                allowedRoles={["staff", "mentor"]}
+              >
                 <AcademicEvaluation />
               </ProtectedRoute>
             }
@@ -602,7 +696,9 @@ function App() {
           <Route
             path="/mentor/evaluation/:studentId/action"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute
+                allowedRoles={["staff", "mentor"]}
+              >
                 <MentorActionPlan />
               </ProtectedRoute>
             }
@@ -611,7 +707,9 @@ function App() {
           <Route
             path="/mentor/student/:studentId"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute
+                allowedRoles={["staff", "mentor"]}
+              >
                 <MentorStudentProgress />
               </ProtectedRoute>
             }
@@ -620,7 +718,9 @@ function App() {
           <Route
             path="/mentor/student/:studentId/progress-card"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute
+                allowedRoles={["staff", "mentor"]}
+              >
                 <ProgressCard />
               </ProtectedRoute>
             }
@@ -633,7 +733,7 @@ function App() {
           <Route
             path="/exam/:id"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["student"]}>
                 <Exam />
               </ProtectedRoute>
             }
@@ -646,7 +746,7 @@ function App() {
           <Route
             path="/subjects/:subject/exam/:id"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["student"]}>
                 <SubjectsExam />
               </ProtectedRoute>
             }
@@ -656,32 +756,32 @@ function App() {
               RESULT
           ====================================================== */}
 
-         <Route
-  path="/result"
-  element={
-    <ProtectedRoute>
-      <Result />
-    </ProtectedRoute>
-  }
-/>
+          <Route
+            path="/result"
+            element={
+              <ProtectedRoute allowedRoles={["student"]}>
+                <Result />
+              </ProtectedRoute>
+            }
+          />
 
-<Route
-  path="/results"
-  element={
-    <ProtectedRoute>
-      <ExamHistory />
-    </ProtectedRoute>
-  }
-/>
+          <Route
+            path="/results"
+            element={
+              <ProtectedRoute allowedRoles={["student"]}>
+                <ExamHistory />
+              </ProtectedRoute>
+            }
+          />
 
-<Route
-  path="/exam-history"
-  element={
-    <ProtectedRoute>
-      <ExamHistory />
-    </ProtectedRoute>
-  }
-/>
+          <Route
+            path="/exam-history"
+            element={
+              <ProtectedRoute allowedRoles={["student"]}>
+                <ExamHistory />
+              </ProtectedRoute>
+            }
+          />
 
           {/* =====================================================
               ANSWER REVIEW
@@ -690,7 +790,7 @@ function App() {
           <Route
             path="/review/:id"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["student"]}>
                 <AnswerReview />
               </ProtectedRoute>
             }
@@ -703,7 +803,7 @@ function App() {
           <Route
             path="/teacher/dashboard"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["teacher"]}>
                 <TeacherDashboard />
               </ProtectedRoute>
             }
@@ -712,7 +812,9 @@ function App() {
           <Route
             path="/mentor/dashboard"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute
+                allowedRoles={["staff", "mentor"]}
+              >
                 <MentorDashboard />
               </ProtectedRoute>
             }
@@ -723,18 +825,11 @@ function App() {
           ====================================================== */}
 
           <Route
-            path="/teacher/questions"
-            element={
-              <ProtectedRoute>
-                <QuestionBank />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
             path="/question-bank"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute
+                allowedRoles={["teacher", "head"]}
+              >
                 <QuestionBank />
               </ProtectedRoute>
             }
@@ -747,7 +842,7 @@ function App() {
           <Route
             path="/teacher/exams/create"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["teacher"]}>
                 <CreateDailyTest />
               </ProtectedRoute>
             }
@@ -756,7 +851,7 @@ function App() {
           <Route
             path="/teacher/exams"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["teacher"]}>
                 <DailyTestsManager />
               </ProtectedRoute>
             }
@@ -765,7 +860,7 @@ function App() {
           <Route
             path="/teacher/exam-management"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["teacher"]}>
                 <ExamManagement />
               </ProtectedRoute>
             }
@@ -778,7 +873,7 @@ function App() {
           <Route
             path="/teacher/students"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["teacher"]}>
                 <StudentManagement />
               </ProtectedRoute>
             }
@@ -791,7 +886,7 @@ function App() {
           <Route
             path="/teacher/results"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["teacher"]}>
                 <ResultsManagement />
               </ProtectedRoute>
             }
@@ -804,7 +899,7 @@ function App() {
           <Route
             path="/teacher/complaints"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["teacher"]}>
                 <TeacherComplaints />
               </ProtectedRoute>
             }
@@ -817,7 +912,7 @@ function App() {
           <Route
             path="/head/dashboard"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["head"]}>
                 <HeadDashboard />
               </ProtectedRoute>
             }
@@ -830,7 +925,7 @@ function App() {
           <Route
             path="/create-exam"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["teacher"]}>
                 <CreateDailyTest />
               </ProtectedRoute>
             }
@@ -852,3 +947,4 @@ function App() {
 }
 
 export default App;
+

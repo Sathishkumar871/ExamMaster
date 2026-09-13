@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 import {
   ArrowRight,
   Eye,
@@ -13,7 +12,10 @@ import {
 } from "lucide-react";
 
 import { loginStudent } from "../services/api";
-
+import {
+  getBackendRole,
+  saveAuthSession,
+} from "../services/session";
 import "./Login.css";
 
 export default function Login() {
@@ -22,43 +24,43 @@ export default function Login() {
   // =========================================
   // STATES
   // =========================================
+
   const [studentId, setStudentId] = useState("");
   const [password, setPassword] = useState("");
-
-  const [showPassword, setShowPassword] =
-    useState(false);
-
-  const [loading, setLoading] =
-    useState(false);
-
-  const [error, setError] =
-    useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   // =========================================
   // LOGIN SUBMIT
   // =========================================
+
   const submit = async (
     e: React.FormEvent<HTMLFormElement>
   ) => {
     e.preventDefault();
 
     if (loading) return;
-
     setError("");
 
     // =========================================
-    // CLEAN STUDENT ID
+    // CLEAN INPUT
     // =========================================
-    const cleanStudentId =
-      studentId.trim().toUpperCase();
+
+    const cleanStudentId = studentId.trim().toUpperCase();
+    const cleanPassword = password.trim();
 
     // =========================================
     // VALIDATION
     // =========================================
-    if (!cleanStudentId || !password) {
-      setError(
-        "Please enter your Student ID and password."
-      );
+
+    if (!cleanStudentId) {
+      setError("Please enter your Student ID.");
+      return;
+    }
+
+    if (!cleanPassword) {
+      setError("Please enter your password.");
       return;
     }
 
@@ -66,408 +68,231 @@ export default function Login() {
       setLoading(true);
 
       // =========================================
+      // DEVICE ID (Single-Device Security)
+      // =========================================
+
+      let deviceId = localStorage.getItem("studentDeviceId");
+
+      if (!deviceId) {
+        deviceId = `${crypto.randomUUID()}-${Date.now()}`;
+        localStorage.setItem("studentDeviceId", deviceId);
+      }
+
+      // =========================================
       // LOGIN API
       // =========================================
+
       const data = await loginStudent({
         studentId: cleanStudentId,
-        password,
+        password: cleanPassword,
+        deviceId,
       });
 
-      console.log(
-        "STUDENT LOGIN RESPONSE:",
-        data
-      );
-
       // =========================================
-      // LOGIN SUCCESS
+      // LOGIN SUCCESS & SECURE SESSION SAVE
       // =========================================
-      if (
-        data?.success &&
-        data?.token
-      ) {
-        // =========================================
-        // CLEAR OLD MANAGEMENT / STAFF SESSION
-        // =========================================
-        localStorage.removeItem(
-          "teacher"
-        );
 
-        localStorage.removeItem(
-          "teacherToken"
-        );
+      const backendRole = getBackendRole(data) || "student";
 
-        localStorage.removeItem(
-          "staff"
-        );
+      if (data?.success && data?.token) {
+        saveAuthSession({
+          role: backendRole,
+          token: data.token,
+          profile: data.student,
+        });
 
-        localStorage.removeItem(
-          "staffToken"
-        );
-
-        // =========================================
-        // SAVE STUDENT TOKEN
-        // =========================================
-        localStorage.setItem(
-          "token",
-          data.token
-        );
-
-        localStorage.setItem(
-          "studentToken",
-          data.token
-        );
-
-        // =========================================
-        // SAVE ROLE
-        // =========================================
-        localStorage.setItem(
-          "role",
-          "student"
-        );
-
-        // =========================================
-        // SAVE STUDENT DATA
-        // =========================================
-        if (data.student) {
-          localStorage.setItem(
-            "student",
-            JSON.stringify(
-              data.student
-            )
-          );
-
-          // =========================================
-          // SAVE STUDENT ID
-          // =========================================
-          if (
-            data.student.studentId
-          ) {
-            localStorage.setItem(
-              "studentId",
-              data.student.studentId
-            );
-          }
+        if (data.student?.studentId) {
+          localStorage.setItem("studentId", data.student.studentId);
         }
 
-        // =========================================
-        // GO TO DASHBOARD
-        // =========================================
+        // ---------------------------------------
+        // DASHBOARD REDIRECTION
+        // ---------------------------------------
+
         navigate("/dashboard", {
           replace: true,
         });
-      } else {
-        setError(
-          data?.message ||
-            "Login failed. Please check your credentials."
-        );
+
+        return;
       }
-    } catch (err) {
-      console.error(
-        "Student login error:",
-        err
-      );
+
+      // =========================================
+      // BACKEND ERROR HANDLING
+      // =========================================
 
       setError(
-        "Unable to connect to the server. Please try again."
+        data?.message ||
+          "Login failed. The server did not return a valid session."
+      );
+    } catch (err: any) {
+      console.error("STUDENT LOGIN ERROR:", err);
+
+      const backendMessage =
+        err?.response?.data?.message ||
+        err?.message ||
+        "";
+
+      setError(
+        backendMessage ||
+          "Unable to connect to the server. Please try again."
       );
     } finally {
       setLoading(false);
     }
   };
 
+  // =========================================
+  // UI
+  // =========================================
+
   return (
     <main className="auth-page">
-      {/* =========================================
-          BACKGROUND
-      ========================================= */}
       <div className="auth-grid" />
-
       <div className="auth-orb auth-orb-one" />
-
       <div className="auth-orb auth-orb-two" />
 
       <section className="student-login-shell">
-
-        {/* =========================================
+        {/* =====================================
             LEFT BRAND PANEL
-        ========================================= */}
-        <aside className="student-brand-panel">
+        ===================================== */}
 
+        <aside className="student-brand-panel">
           <div className="brand-glow" />
 
           <div className="student-brand-top">
-
             <div className="student-brand-logo">
-              <GraduationCap
-                size={29}
-                strokeWidth={2.2}
-              />
+              <GraduationCap size={29} strokeWidth={2.2} />
             </div>
-
             <div>
               <span className="student-brand-mini">
                 STG COLLEGE
               </span>
-
-              <h2>
-                PRE-UNIVERSITY
-              </h2>
+              <h2>PRE-UNIVERSITY</h2>
             </div>
-
           </div>
 
           <div className="student-brand-content">
-
             <span className="student-brand-pill">
               Student Learning Platform
             </span>
-
             <h1>
-              Your
-              <span> Academic </span>
-              Journey Starts Here.
+              Your <span> Academic </span> Journey Starts Here.
             </h1>
-
             <p>
-              Access examinations, results,
-              academic progress and your
-              complete student learning
-              experience from one secure
+              Access examinations, results, academic progress and your
+              complete student learning experience from one secure
               platform.
             </p>
-
           </div>
 
-          {/* SECURITY */}
           <div className="student-security">
-
             <div className="student-security-icon">
               <ShieldCheck size={20} />
             </div>
-
             <div>
-              <strong>
-                Secure Student Access
-              </strong>
-
-              <span>
-                Protected academic environment
-              </span>
+              <strong>Secure Student Access</strong>
+              <span>Protected academic environment</span>
             </div>
-
           </div>
 
           <div className="student-brand-footer">
             <span>STG COLLEGE</span>
-
             <span className="student-footer-dot" />
-
             <span>EDU DESK</span>
           </div>
-
         </aside>
 
-        {/* =========================================
+        {/* =====================================
             RIGHT LOGIN PANEL
-        ========================================= */}
+        ===================================== */}
+
         <section className="student-login-panel">
-
-          {/* MOBILE BRANDING */}
+          {/* MOBILE BRAND */}
           <div className="student-mobile-brand">
-
             <div className="student-mobile-logo">
               <GraduationCap size={24} />
             </div>
-
             <div>
-              <strong>
-                STG COLLEGE
-              </strong>
-
-              <span>
-                PRE UNIVERSITY
-              </span>
+              <strong>STG COLLEGE</strong>
+              <span>PRE UNIVERSITY</span>
             </div>
-
           </div>
 
           {/* HEADER */}
           <div className="student-login-header">
-
-            <span className="student-welcome">
-              WELCOME BACK
-            </span>
-
-            <h1>
-              STUDENT LOGIN
-            </h1>
-
+            <span className="student-welcome">WELCOME BACK</span>
+            <h1>STUDENT LOGIN</h1>
             <p>
-              Sign in using your Student ID
-              to continue your academic journey.
+              Sign in using your Student ID and password to continue your
+              academic journey.
             </p>
-
           </div>
 
-          {/* FORM */}
+          {/* LOGIN FORM */}
           <form
             className="student-login-form"
             onSubmit={submit}
             autoComplete="on"
           >
-
-            {/* =========================================
-                STUDENT ID
-            ========================================= */}
+            {/* STUDENT ID */}
             <div className="student-field">
-
-              <label htmlFor="student-id">
-                Student ID
-              </label>
-
+              <label htmlFor="student-id">Student ID</label>
               <div className="student-input">
-
                 <UserRound size={18} />
-
                 <input
                   id="student-id"
                   type="text"
                   placeholder="Enter your Student ID"
                   value={studentId}
                   onChange={(e) => {
-                    setStudentId(
-                      e.target.value.toUpperCase()
-                    );
-
-                    if (error) {
-                      setError("");
-                    }
+                    setStudentId(e.target.value.toUpperCase());
+                    if (error) setError("");
                   }}
                   autoComplete="username"
                   disabled={loading}
                 />
-
               </div>
-
             </div>
 
-            {/* =========================================
-                PASSWORD
-            ========================================= */}
+            {/* PASSWORD */}
             <div className="student-field">
-
-              <label htmlFor="student-password">
-                Password
-              </label>
-
+              <label htmlFor="student-password">Password</label>
               <div className="student-input">
-
                 <KeyRound size={18} />
-
                 <input
                   id="student-password"
-                  type={
-                    showPassword
-                      ? "text"
-                      : "password"
-                  }
+                  type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => {
-                    setPassword(
-                      e.target.value
-                    );
-
-                    if (error) {
-                      setError("");
-                    }
+                    setPassword(e.target.value);
+                    if (error) setError("");
                   }}
                   autoComplete="current-password"
                   disabled={loading}
                 />
-
                 <button
                   type="button"
                   className="student-password-toggle"
-                  onClick={() =>
-                    setShowPassword(
-                      (prev) => !prev
-                    )
-                  }
+                  onClick={() => setShowPassword((prev) => !prev)}
                   disabled={loading}
                   aria-label={
-                    showPassword
-                      ? "Hide password"
-                      : "Show password"
+                    showPassword ? "Hide password" : "Show password"
                   }
                 >
-                  {showPassword ? (
-                    <EyeOff size={18} />
-                  ) : (
-                    <Eye size={18} />
-                  )}
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
-
               </div>
-
             </div>
 
-            {/* =========================================
-                FORGOT PASSWORD
-            ========================================= */}
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "flex-end",
-                marginTop: "-4px",
-                marginBottom: "8px",
-              }}
-            >
-              <button
-                type="button"
-                onClick={() =>
-                  navigate(
-                    "/student/forgot-password"
-                  )
-                }
-                disabled={loading}
-                style={{
-                  border: "none",
-                  background: "transparent",
-                  cursor: loading
-                    ? "not-allowed"
-                    : "pointer",
-                  padding: 0,
-                  fontSize: "13px",
-                  color: "#2563eb",
-                  fontWeight: 600,
-                }}
-              >
-                Forgot Password?
-              </button>
-            </div>
-
-            {/* =========================================
-                ERROR
-            ========================================= */}
             {error && (
-              <div
-                className="student-login-error"
-                role="alert"
-              >
-                <span className="student-error-mark">
-                  !
-                </span>
-
-                <span>
-                  {error}
-                </span>
+              <div className="student-login-error" role="alert">
+                <span className="student-error-mark">!</span>
+                <span>{error}</span>
               </div>
             )}
 
-            {/* =========================================
-                LOGIN BUTTON
-            ========================================= */}
+            {/* LOGIN BUTTON */}
             <button
               type="submit"
               className="student-login-button"
@@ -476,86 +301,44 @@ export default function Login() {
               {loading ? (
                 <>
                   <span className="student-spinner" />
-
-                  <span>
-                    Authenticating...
-                  </span>
+                  <span>Authenticating...</span>
                 </>
               ) : (
                 <>
-                  <LockKeyhole
-                    size={18}
-                  />
-
-                  <span>
-                    Secure Login
-                  </span>
-
-                  <ArrowRight
-                    size={18}
-                  />
+                  <LockKeyhole size={18} />
+                  <span>Secure Login</span>
+                  <ArrowRight size={18} />
                 </>
               )}
             </button>
-
           </form>
 
-          {/* =========================================
-              REGISTER
-          ========================================= */}
+          {/* REGISTER */}
           <div className="student-register">
-
-            <span>
-              New student?
-            </span>
-
+            <span>New student?</span>
             <button
               type="button"
-              onClick={() =>
-                navigate(
-                  "/student/register"
-                )
-              }
+              onClick={() => navigate("/student/register")}
               disabled={loading}
             >
-              Create your account
-
-              <ArrowRight size={14} />
+              Create your account <ArrowRight size={14} />
             </button>
-
           </div>
 
-          {/* =========================================
-              SECURITY
-          ========================================= */}
+          {/* SECURITY */}
           <div className="student-security-note">
-
             <ShieldCheck size={15} />
-
             <span>
-              Your academic credentials are
-              protected with secure authentication.
+              Your academic credentials are protected with secure authentication.
             </span>
-
           </div>
 
-          {/* =========================================
-              FOOTER
-          ========================================= */}
+          {/* FOOTER */}
           <div className="student-login-footer">
-
-            <span>
-              © 2026 STG NEXUS
-            </span>
-
-            <span>
-              STG COLLEGE • STUDENT ACCESS
-            </span>
-
+            <span>© 2026 STG NEXUS</span>
+            <span>STG COLLEGE • STUDENT ACCESS</span>
           </div>
-
         </section>
-
       </section>
     </main>
   );

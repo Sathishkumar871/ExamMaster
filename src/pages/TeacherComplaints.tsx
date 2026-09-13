@@ -8,6 +8,7 @@ import {
 import {
   useNavigate,
 } from "react-router-dom";
+import { clearAuthSession } from "../services/session";
 
 import {
   Archive,
@@ -104,13 +105,10 @@ const getStoredUser = () => {
 const clearAuthAndRedirect = (
   navigate: ReturnType<typeof useNavigate>
 ) => {
-  localStorage.removeItem("teacherToken");
-  localStorage.removeItem("staffToken");
-  localStorage.removeItem("teacher");
-  localStorage.removeItem("staff");
+  clearAuthSession();
 
   navigate(
-    "/management/login",
+    "/teacher/login",
     {
       replace: true,
     }

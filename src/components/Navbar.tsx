@@ -15,6 +15,7 @@ import {
   ClipboardCheck,
 } from "lucide-react";
 import "./Navbar.css";
+import { clearAuthSession } from "../services/session";
 
 interface User {
   name: string;
@@ -180,25 +181,13 @@ export default function Navbar() {
   // ============================================================
 
   const logout = () => {
-    localStorage.removeItem("student");
-    localStorage.removeItem("studentToken");
-
-    localStorage.removeItem("teacher");
-    localStorage.removeItem("teacherToken");
-
-    localStorage.removeItem("staff");
-    localStorage.removeItem("staffToken");
-
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
+    clearAuthSession();
 
     setUser(null);
 
     setMobileMenuOpen(false);
     setUserMenuOpen(false);
     setLoginMenuOpen(false);
-
-    window.dispatchEvent(new Event("authChanged"));
 
     navigate("/login");
   };

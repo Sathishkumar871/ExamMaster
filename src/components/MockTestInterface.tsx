@@ -19,9 +19,12 @@ import {
   Flag,
   LayoutGrid,
   Loader2,
+  Maximize2,
   RotateCcw,
   Send,
   ShieldCheck,
+  Wifi,
+  WifiOff,
   X,
   Zap,
 } from "lucide-react";
@@ -57,10 +60,6 @@ interface Question {
 
   options: string[] | Option[] | any[];
 
-  /*
-   * Backend display endpoint intentionally does not
-   * return correctAnswer.
-   */
   correctAnswer?: string;
 
   subject?: string;
@@ -98,6 +97,12 @@ interface MockTestInterfaceProps {
 type AnswerMap = Record<string, string>;
 type ReviewMap = Record<string, boolean>;
 
+type SaveState =
+  | "saved"
+  | "saving"
+  | "offline"
+  | "error";
+
 interface ReviewItem {
   questionId: string;
   question: string;
@@ -131,10 +136,6 @@ interface ResultSummary {
   resultAvailableAt?: string;
   isResultPublished?: boolean;
 
-  /*
-   * Review is kept for results/history handling,
-   * but is NOT displayed on this component.
-   */
   reviewList: ReviewItem[];
 }
 
@@ -216,6 +217,9 @@ export default function MockTestInterface({
   const currentQuestionStorageKey =
     `${testKey}_current_question`;
 
+  const currentQuestionIdStorageKey =
+    `${testKey}_current_question_id`;
+
   const statusStorageKey =
     `${testKey}_status`;
 
@@ -292,6 +296,25 @@ export default function MockTestInterface({
   const [serverInitializing, setServerInitializing] =
     useState(true);
 
+  const [saveState, setSaveState] =
+    useState<SaveState>("saved");
+
+  const [isOnline, setIsOnline] =
+    useState<boolean>(
+      typeof navigator === "undefined"
+        ? true
+        : navigator.onLine
+    );
+
+  const [imageViewerUrl, setImageViewerUrl] =
+    useState("");
+
+  const [imageViewerAlt, setImageViewerAlt] =
+    useState("");
+
+  const [activeSection, setActiveSection] =
+    useState("ALL");
+
   // ====================================================
   // REFS
   // ====================================================
@@ -301,14 +324,21 @@ export default function MockTestInterface({
 
   const timerInitializedRef =
     useRef(false);
-const examTabIdRef =
-  useRef<string>("");
 
-const serverTimerReadyRef =
-  useRef(false);
+  const examTabIdRef =
+    useRef<string>("");
+
+  const serverTimerReadyRef =
+    useRef(false);
 
   const progressRequestRef =
     useRef<number | null>(null);
+
+  const progressAbortRef =
+    useRef<AbortController | null>(null);
+
+  const progressSequenceRef =
+    useRef(0);
 
   const warningRef =
     useRef(0);
@@ -330,6 +360,24 @@ const serverTimerReadyRef =
 
   const autoSubmitStartedRef =
     useRef(false);
+
+  const restoredQuestionIdRef =
+    useRef("");
+
+  const lastSavedQuestionIdRef =
+    useRef("");
+
+  const latestAnswersRef =
+    useRef<AnswerMap>({});
+
+  const latestReviewRef =
+    useRef<ReviewMap>({});
+
+  const currentQuestionIdRef =
+    useRef("");
+
+  const isOnlineRef =
+    useRef(isOnline);
 
   // ====================================================
   // QUESTION ID
@@ -375,21 +423,15 @@ const serverTimerReadyRef =
         return option;
       }
 
-      if (
-        option?.text !== undefined
-      ) {
+      if (option?.text !== undefined) {
         return String(option.text);
       }
 
-      if (
-        option?.value !== undefined
-      ) {
+      if (option?.value !== undefined) {
         return String(option.value);
       }
 
-      if (
-        option?.label !== undefined
-      ) {
+      if (option?.label !== undefined) {
         return String(option.label);
       }
 
@@ -412,9 +454,7 @@ const serverTimerReadyRef =
         return value;
       }
 
-      if (
-        typeof value === "object"
-      ) {
+      if (typeof value === "object") {
         return (
           value.url ||
           value.imageUrl ||
@@ -443,9 +483,7 @@ const serverTimerReadyRef =
       const images: string[] = [];
 
       if (question.imageUrl) {
-        images.push(
-          question.imageUrl
-        );
+        images.push(question.imageUrl);
       }
 
       if (question.questionImage) {
@@ -470,21 +508,15 @@ const serverTimerReadyRef =
         }
       }
 
-      if (
-        Array.isArray(
-          question.images
-        )
-      ) {
-        question.images.forEach(
-          (item) => {
-            const url =
-              getImageUrl(item);
+      if (Array.isArray(question.images)) {
+        question.images.forEach((item) => {
+          const url =
+            getImageUrl(item);
 
-            if (url) {
-              images.push(url);
-            }
+          if (url) {
+            images.push(url);
           }
-        );
+        });
       }
 
       return Array.from(
@@ -509,10 +541,10 @@ const serverTimerReadyRef =
         return "";
       }
 
-      return (
+      return String(
         option.imageUrl ||
-        option.image ||
-        ""
+          option.image ||
+          ""
       );
     },
     []
@@ -526,18 +558,14 @@ const serverTimerReadyRef =
     useCallback(
       (question: Question) => {
         const questionText =
-          getQuestionText(
-            question
-          )
+          getQuestionText(question)
             .toLowerCase()
             .replace(/\s+/g, " ")
             .replace(/\s+([,.!?;:])/g, "$1")
             .trim();
 
         const optionText =
-          Array.isArray(
-            question?.options
-          )
+          Array.isArray(question?.options)
             ? question.options
                 .map((option) =>
                   getOptionText(option)
@@ -548,10 +576,6 @@ const serverTimerReadyRef =
                 .join("|")
             : "";
 
-        /*
-         * Question text + options combination
-         * gives a stronger duplicate key.
-         */
         return `${questionText}||${optionText}`;
       },
       [
@@ -562,7 +586,6 @@ const serverTimerReadyRef =
 
   // ====================================================
   // SUBJECT PRIORITY
-  // PHYSICS -> CHEMISTRY -> BOTANY -> ZOOLOGY
   // ====================================================
 
   const getSubjectPriority =
@@ -570,43 +593,34 @@ const serverTimerReadyRef =
       (question: Question) => {
         const value =
           String(
-            question?.subject ||
-              ""
+            question?.subject || ""
           )
             .trim()
             .toLowerCase();
 
         if (
-          value.includes(
-            "physics"
-          ) ||
+          value.includes("physics") ||
           value === "phy"
         ) {
           return 1;
         }
 
         if (
-          value.includes(
-            "chemistry"
-          ) ||
+          value.includes("chemistry") ||
           value === "chem"
         ) {
           return 2;
         }
 
         if (
-          value.includes(
-            "botany"
-          ) ||
+          value.includes("botany") ||
           value === "bot"
         ) {
           return 3;
         }
 
         if (
-          value.includes(
-            "zoology"
-          ) ||
+          value.includes("zoology") ||
           value === "zoo"
         ) {
           return 4;
@@ -618,21 +632,29 @@ const serverTimerReadyRef =
     );
 
   // ====================================================
+  // SUBJECT LABEL
+  // ====================================================
+
+  const getSubjectLabel =
+    useCallback(
+      (question?: Question) => {
+        const value =
+          String(
+            question?.subject || ""
+          ).trim();
+
+        return value || subject;
+      },
+      [subject]
+    );
+
+  // ====================================================
   // PREPARE QUESTIONS
-  //
-  // 1. Remove duplicate questions
-  // 2. Physics first
-  // 3. Chemistry second
-  // 4. Botany third
-  // 5. Zoology fourth
-  // 6. Keep original relative order
   // ====================================================
 
   const prepareQuestions =
     useCallback(
-      (
-        source: Question[]
-      ) => {
+      (source: Question[]) => {
         const uniqueQuestions: Question[] =
           [];
 
@@ -644,62 +666,46 @@ const serverTimerReadyRef =
 
         source
           .filter(Boolean)
-          .forEach(
-            (question) => {
-              const id =
-                getQuestionId(
-                  question
-                );
+          .forEach((question) => {
+            const id =
+              getQuestionId(question);
 
-              const duplicateKey =
-                normalizeQuestionKey(
-                  question
-                );
+            const duplicateKey =
+              normalizeQuestionKey(
+                question
+              );
 
-              /*
-               * Remove exact duplicate by ID.
-               */
-              if (
-                id &&
-                usedIds.has(id)
-              ) {
-                return;
-              }
-
-              /*
-               * Remove duplicate even when
-               * database IDs differ.
-               */
-              if (
-                duplicateKey &&
-                usedDuplicateKeys.has(
-                  duplicateKey
-                )
-              ) {
-                return;
-              }
-
-              if (id) {
-                usedIds.add(id);
-              }
-
-              if (duplicateKey) {
-                usedDuplicateKeys.add(
-                  duplicateKey
-                );
-              }
-
-              uniqueQuestions.push({
-                ...question,
-              });
+            if (
+              id &&
+              usedIds.has(id)
+            ) {
+              return;
             }
-          );
 
-        /*
-         * JS Array.sort is stable in modern browsers.
-         * Therefore questions inside the same subject
-         * maintain the original backend order.
-         */
+            if (
+              duplicateKey &&
+              usedDuplicateKeys.has(
+                duplicateKey
+              )
+            ) {
+              return;
+            }
+
+            if (id) {
+              usedIds.add(id);
+            }
+
+            if (duplicateKey) {
+              usedDuplicateKeys.add(
+                duplicateKey
+              );
+            }
+
+            uniqueQuestions.push({
+              ...question,
+            });
+          });
+
         return uniqueQuestions.sort(
           (a, b) =>
             getSubjectPriority(a) -
@@ -719,23 +725,73 @@ const serverTimerReadyRef =
 
   const displayQuestions = useMemo(() => {
     const source =
-      Array.isArray(
-        serverQuestions
-      ) &&
+      Array.isArray(serverQuestions) &&
       serverQuestions.length > 0
         ? serverQuestions
         : Array.isArray(questions)
         ? questions
         : [];
 
-    return prepareQuestions(
-      source
-    );
+    return prepareQuestions(source);
   }, [
     prepareQuestions,
     questions,
     serverQuestions,
   ]);
+
+  // ====================================================
+  // SECTIONS
+  // ====================================================
+
+  const sections = useMemo(() => {
+    const result: string[] = [];
+
+    displayQuestions.forEach((question) => {
+      const section =
+        getSubjectLabel(question);
+
+      if (
+        section &&
+        !result.includes(section)
+      ) {
+        result.push(section);
+      }
+    });
+
+    return result;
+  }, [
+    displayQuestions,
+    getSubjectLabel,
+  ]);
+
+  const filteredQuestionIndexes =
+    useMemo(() => {
+      if (
+        activeSection === "ALL"
+      ) {
+        return displayQuestions.map(
+          (_, index) => index
+        );
+      }
+
+      return displayQuestions
+        .map((question, index) => ({
+          question,
+          index,
+        }))
+        .filter(
+          ({ question }) =>
+            getSubjectLabel(question) ===
+            activeSection
+        )
+        .map(
+          ({ index }) => index
+        );
+    }, [
+      activeSection,
+      displayQuestions,
+      getSubjectLabel,
+    ]);
 
   // ====================================================
   // CURRENT QUESTION
@@ -751,8 +807,30 @@ const serverTimerReadyRef =
       ? getQuestionId(currentQ)
       : "";
 
+  currentQuestionIdRef.current =
+    currentQuestionId;
+
   const currentDisplayQuestionNumber =
     currentQuestion + 1;
+
+  // ====================================================
+  // REF TRACKERS
+  // ====================================================
+
+  useEffect(() => {
+    latestAnswersRef.current =
+      answers;
+  }, [answers]);
+
+  useEffect(() => {
+    latestReviewRef.current =
+      markedForReview;
+  }, [markedForReview]);
+
+  useEffect(() => {
+    isOnlineRef.current =
+      isOnline;
+  }, [isOnline]);
 
   // ====================================================
   // COUNTS
@@ -762,18 +840,11 @@ const serverTimerReadyRef =
     return displayQuestions.reduce(
       (count, question) => {
         const id =
-          getQuestionId(
-            question
-          );
+          getQuestionId(question);
 
-        if (
-          id &&
-          answers[id]
-        ) {
-          return count + 1;
-        }
-
-        return count;
+        return id && answers[id]
+          ? count + 1
+          : count;
       },
       0
     );
@@ -787,18 +858,11 @@ const serverTimerReadyRef =
     return displayQuestions.reduce(
       (count, question) => {
         const id =
-          getQuestionId(
-            question
-          );
+          getQuestionId(question);
 
-        if (
-          id &&
-          markedForReview[id]
-        ) {
-          return count + 1;
-        }
-
-        return count;
+        return id && markedForReview[id]
+          ? count + 1
+          : count;
       },
       0
     );
@@ -874,6 +938,91 @@ const serverTimerReadyRef =
     );
 
   // ====================================================
+  // LOCAL SAVE HELPERS
+  // ====================================================
+
+  const writeLocalProgress =
+    useCallback(
+      (
+        nextAnswers: AnswerMap,
+        nextReview: ReviewMap,
+        questionId: string,
+        questionIndex: number,
+        nextTimeLeft?: number
+      ) => {
+        try {
+          sessionStorage.setItem(
+            answerStorageKey,
+            JSON.stringify(nextAnswers)
+          );
+
+          sessionStorage.setItem(
+            reviewStorageKey,
+            JSON.stringify(nextReview)
+          );
+
+          sessionStorage.setItem(
+            currentQuestionStorageKey,
+            String(questionIndex)
+          );
+
+          if (questionId) {
+            sessionStorage.setItem(
+              currentQuestionIdStorageKey,
+              questionId
+            );
+          }
+
+          if (
+            typeof nextTimeLeft ===
+            "number"
+          ) {
+            sessionStorage.setItem(
+              timerStorageKey,
+              String(
+                Math.max(
+                  0,
+                  Math.floor(
+                    nextTimeLeft
+                  )
+                )
+              )
+            );
+
+            if (nextTimeLeft > 0) {
+              sessionStorage.setItem(
+                timerEndStorageKey,
+                String(
+                  Date.now() +
+                    nextTimeLeft *
+                      1000
+                )
+              );
+            }
+          }
+
+          sessionStorage.setItem(
+            warningStorageKey,
+            String(
+              warningRef.current
+            )
+          );
+        } catch {
+          // Ignore local storage failures.
+        }
+      },
+      [
+        answerStorageKey,
+        currentQuestionIdStorageKey,
+        currentQuestionStorageKey,
+        reviewStorageKey,
+        timerEndStorageKey,
+        timerStorageKey,
+        warningStorageKey,
+      ]
+    );
+
+  // ====================================================
   // WARNING COUNT
   // ====================================================
 
@@ -942,22 +1091,22 @@ const serverTimerReadyRef =
         );
 
         sessionStorage.removeItem(
+          currentQuestionIdStorageKey
+        );
+
+        sessionStorage.removeItem(
           deviceSessionStorageKey
         );
       } catch {
         // Ignore.
       }
 
-      /*
-       * IMPORTANT:
-       * Do not clear student login merely because
-       * another exam device took over.
-       */
       window.setTimeout(() => {
         onBack();
       }, 900);
     }, [
       answerStorageKey,
+      currentQuestionIdStorageKey,
       currentQuestionStorageKey,
       deviceSessionStorageKey,
       onBack,
@@ -1015,14 +1164,12 @@ const serverTimerReadyRef =
 
                   marks:
                     Number(
-                      item?.marks ??
-                        0
+                      item?.marks ?? 0
                     ),
 
                   result:
                     String(
-                      item?.result ??
-                        ""
+                      item?.result ?? ""
                     ),
                 })
               )
@@ -1153,7 +1300,7 @@ const serverTimerReadyRef =
     );
 
   // ====================================================
-  // RESULT TIME
+  // RESULT
   // ====================================================
 
   const isResultActuallyAvailable =
@@ -1219,7 +1366,6 @@ const serverTimerReadyRef =
               : " - Full Assessment"),
 
           testCategory: "mock",
-
           subject,
 
           chapter:
@@ -1259,10 +1405,6 @@ const serverTimerReadyRef =
             new Date().toISOString(),
         };
 
-        /*
-         * Detailed result/review will only be saved
-         * after result publication.
-         */
         if (published) {
           historyItem.correct =
             result.correct;
@@ -1335,12 +1477,9 @@ const serverTimerReadyRef =
                 );
 
               if (
-                Array.isArray(
-                  parsed
-                )
+                Array.isArray(parsed)
               ) {
-                history =
-                  parsed;
+                history = parsed;
               }
             } catch {
               history = [];
@@ -1384,6 +1523,323 @@ const serverTimerReadyRef =
     );
 
   // ====================================================
+  // ONLINE / OFFLINE
+  // ====================================================
+
+  useEffect(() => {
+    const handleOnline = () => {
+      isOnlineRef.current = true;
+      setIsOnline(true);
+      setSaveState("saved");
+    };
+
+    const handleOffline = () => {
+      isOnlineRef.current = false;
+      setIsOnline(false);
+      setSaveState("offline");
+    };
+
+    window.addEventListener(
+      "online",
+      handleOnline
+    );
+
+    window.addEventListener(
+      "offline",
+      handleOffline
+    );
+
+    return () => {
+      window.removeEventListener(
+        "online",
+        handleOnline
+      );
+
+      window.removeEventListener(
+        "offline",
+        handleOffline
+      );
+    };
+  }, []);
+
+  // ====================================================
+  // IMMEDIATE SERVER PROGRESS SAVE
+  //
+  // IMPORTANT:
+  // Every answer click can call this directly.
+  //
+  // We send the FULL answer map each time.
+  // Therefore aborting an old request is safe.
+  // The latest request contains the complete state.
+  // ====================================================
+
+  const persistExamProgress =
+    useCallback(
+      async ({
+        nextAnswers,
+        nextReview,
+        nextQuestionIndex,
+        nextQuestionId,
+        force = false,
+        keepalive = false,
+      }: {
+        nextAnswers: AnswerMap;
+        nextReview: ReviewMap;
+        nextQuestionIndex: number;
+        nextQuestionId: string;
+        force?: boolean;
+        keepalive?: boolean;
+      }) => {
+        const safeAnswers =
+          nextAnswers || {};
+
+        const safeReview =
+          nextReview || {};
+
+        // Always save local state first.
+        writeLocalProgress(
+          safeAnswers,
+          safeReview,
+          nextQuestionId,
+          nextQuestionIndex
+        );
+
+        latestAnswersRef.current =
+          safeAnswers;
+
+        latestReviewRef.current =
+          safeReview;
+
+        lastSavedQuestionIdRef.current =
+          nextQuestionId;
+
+        if (
+          submitted ||
+          !serverReady ||
+          !serverSessionReady ||
+          !serverSessionIdRef.current ||
+          !cleanApiBase
+        ) {
+          return false;
+        }
+
+        if (
+          !isOnlineRef.current
+        ) {
+          setSaveState("offline");
+          return false;
+        }
+
+        // Manual retry / force save should always happen.
+        if (
+          progressAbortRef.current
+        ) {
+          try {
+            progressAbortRef.current.abort();
+          } catch {
+            // Ignore.
+          }
+        }
+
+        const controller =
+          new AbortController();
+
+        progressAbortRef.current =
+          controller;
+
+        const sequence =
+          ++progressSequenceRef.current;
+
+        setSaveState("saving");
+
+        try {
+          const response =
+            await fetch(
+              `${cleanApiBase}/mock-test/progress`,
+              {
+                method: "POST",
+                headers: getBackendHeaders(),
+
+                body: JSON.stringify({
+                  studentId,
+
+                  sessionId:
+                    serverSessionIdRef.current,
+
+                  deviceId:
+                    deviceIdRef.current,
+
+                  deviceSessionId:
+                    deviceSessionIdRef.current,
+
+                  /*
+                   * Keep old numeric index for
+                   * backend compatibility.
+                   */
+                  currentQuestion:
+                    nextQuestionIndex,
+
+                  /*
+                   * NEW:
+                   * Save stable question ID.
+                   */
+                  currentQuestionId:
+                    nextQuestionId,
+
+                  answers:
+                    Object.entries(
+                      safeAnswers
+                    ).map(
+                      ([
+                        questionId,
+                        answer,
+                      ]) => ({
+                        questionId,
+                        answer,
+                      })
+                    ),
+
+                  markedForReview:
+                    safeReview,
+
+                  warnings:
+                    warningRef.current,
+                }),
+
+                signal:
+                  controller.signal,
+
+                keepalive,
+              }
+            );
+
+          const data =
+            await response
+              .json()
+              .catch(
+                () => null
+              );
+
+          if (
+            sequence !==
+            progressSequenceRef.current
+          ) {
+            return false;
+          }
+
+          if (
+            response.status === 409 &&
+            data?.code ===
+              "SESSION_REPLACED"
+          ) {
+            handleSessionReplacement();
+            return false;
+          }
+
+          if (
+            response.status === 409 &&
+            data?.code ===
+              "EXAM_ALREADY_SUBMITTED"
+          ) {
+            hasSubmittedRef.current =
+              true;
+
+            setSubmitted(true);
+            return false;
+          }
+
+          if (
+            response.status === 410 &&
+            data?.code ===
+              "EXAM_TIME_EXPIRED"
+          ) {
+            serverTimerReadyRef.current =
+              true;
+
+            setTimeLeft(0);
+            return false;
+          }
+
+          if (!response.ok) {
+            console.warn(
+              "Exam progress save failed:",
+              data?.message ||
+                response.status
+            );
+
+            setSaveState("error");
+            return false;
+          }
+
+          if (
+            typeof data?.remainingSeconds ===
+            "number"
+          ) {
+            setTimeLeft(
+              Math.max(
+                0,
+                Math.floor(
+                  data.remainingSeconds
+                )
+              )
+            );
+
+            serverTimerReadyRef.current =
+              true;
+          }
+
+          setSaveState("saved");
+
+          return true;
+        } catch (error: any) {
+          if (
+            error?.name ===
+            "AbortError"
+          ) {
+            /*
+             * Another newer request has
+             * already replaced this one.
+             */
+            return false;
+          }
+
+          console.warn(
+            "Exam progress sync error:",
+            error
+          );
+
+          if (
+            !isOnlineRef.current
+          ) {
+            setSaveState("offline");
+          } else {
+            setSaveState("error");
+          }
+
+          return false;
+        } finally {
+          if (
+            progressAbortRef.current ===
+            controller
+          ) {
+            progressAbortRef.current =
+              null;
+          }
+        }
+      },
+      [
+        cleanApiBase,
+        getBackendHeaders,
+        handleSessionReplacement,
+        serverReady,
+        serverSessionReady,
+        studentId,
+        submitted,
+        writeLocalProgress,
+      ]
+    );
+
+  // ====================================================
   // CREATE / RESUME SERVER SESSION
   // ====================================================
 
@@ -1393,9 +1849,7 @@ const serverTimerReadyRef =
       !studentId ||
       !cleanApiBase
     ) {
-      setServerInitializing(
-        false
-      );
+      setServerInitializing(false);
       return;
     }
 
@@ -1403,9 +1857,7 @@ const serverTimerReadyRef =
 
     const initializeServerSession =
       async () => {
-        setServerInitializing(
-          true
-        );
+        setServerInitializing(true);
 
         try {
           // ------------------------------------------
@@ -1427,16 +1879,12 @@ const serverTimerReadyRef =
           if (!storedDeviceId) {
             const randomPart =
               typeof globalThis
-                .crypto
-                ?.randomUUID ===
+                .crypto?.randomUUID ===
               "function"
                 ? globalThis.crypto.randomUUID()
                 : Math.random()
                     .toString(36)
-                    .slice(
-                      2,
-                      14
-                    );
+                    .slice(2, 14);
 
             storedDeviceId =
               `${Date.now()}-${randomPart}`;
@@ -1455,7 +1903,7 @@ const serverTimerReadyRef =
             storedDeviceId;
 
           // ------------------------------------------
-          // DEVICE SESSION TOKEN
+          // DEVICE SESSION
           // ------------------------------------------
 
           let storedDeviceSession =
@@ -1497,28 +1945,25 @@ const serverTimerReadyRef =
                     : {}),
                 },
 
-                body:
-                  JSON.stringify({
-                    studentId,
+                body: JSON.stringify({
+                  studentId,
 
-                    examId,
+                  examId,
 
-                    deviceId:
-                      storedDeviceId,
+                  deviceId:
+                    storedDeviceId,
 
-                    deviceSessionId:
-                      storedDeviceSession ||
-                      undefined,
-                  }),
+                  deviceSessionId:
+                    storedDeviceSession ||
+                    undefined,
+                }),
               }
             );
 
           const data =
             await response
               .json()
-              .catch(
-                () => null
-              );
+              .catch(() => null);
 
           if (cancelled) {
             return;
@@ -1529,8 +1974,7 @@ const serverTimerReadyRef =
           // ------------------------------------------
 
           if (
-            response.status ===
-              409 &&
+            response.status === 409 &&
             data?.code ===
               "EXAM_ALREADY_SUBMITTED"
           ) {
@@ -1538,10 +1982,7 @@ const serverTimerReadyRef =
               true;
 
             setSubmitted(true);
-
-            setServerInitializing(
-              false
-            );
+            setServerInitializing(false);
 
             setSubmitError(
               "This exam has already been submitted and cannot be reopened."
@@ -1555,8 +1996,7 @@ const serverTimerReadyRef =
           // ------------------------------------------
 
           if (
-            response.status ===
-              409 &&
+            response.status === 409 &&
             data?.code ===
               "SESSION_REPLACED"
           ) {
@@ -1565,18 +2005,15 @@ const serverTimerReadyRef =
           }
 
           // ------------------------------------------
-          // TIME EXPIRED ON START
+          // TIME EXPIRED
           // ------------------------------------------
 
           if (
-            response.status ===
-              410 &&
+            response.status === 410 &&
             data?.code ===
               "EXAM_TIME_EXPIRED"
           ) {
-            if (
-              data?.sessionId
-            ) {
+            if (data?.sessionId) {
               serverSessionIdRef.current =
                 String(
                   data.sessionId
@@ -1585,9 +2022,10 @@ const serverTimerReadyRef =
 
             setTimeLeft(0);
 
-            setServerReady(
-              true
-            );
+            serverTimerReadyRef.current =
+              true;
+
+            setServerReady(true);
 
             setServerSessionReady(
               Boolean(
@@ -1598,16 +2036,10 @@ const serverTimerReadyRef =
             backendInitializedRef.current =
               true;
 
-            setServerInitializing(
-              false
-            );
+            setServerInitializing(false);
 
             return;
           }
-
-          // ------------------------------------------
-          // OTHER SERVER ERROR
-          // ------------------------------------------
 
           if (!response.ok) {
             throw new Error(
@@ -1624,8 +2056,7 @@ const serverTimerReadyRef =
             Array.isArray(
               data?.questions
             ) &&
-            data.questions.length >
-              0
+            data.questions.length > 0
           ) {
             const normalizedQuestions:
               Question[] =
@@ -1645,14 +2076,12 @@ const serverTimerReadyRef =
 
                   question:
                     String(
-                      item?.question ??
-                        ""
+                      item?.question ?? ""
                     ),
 
                   questionText:
                     String(
-                      item?.question ??
-                        ""
+                      item?.question ?? ""
                     ),
 
                   options:
@@ -1664,14 +2093,12 @@ const serverTimerReadyRef =
 
                   subject:
                     String(
-                      item?.subject ??
-                        ""
+                      item?.subject ?? ""
                     ),
 
                   chapter:
                     String(
-                      item?.chapter ??
-                        ""
+                      item?.chapter ?? ""
                     ),
 
                   chapterName:
@@ -1688,14 +2115,8 @@ const serverTimerReadyRef =
 
                   imageUrl:
                     String(
-                      item?.imageUrl ??
-                        ""
+                      item?.imageUrl ?? ""
                     ),
-
-                  /*
-                   * Correct answer is intentionally NOT
-                   * sent to the browser.
-                   */
                 })
               );
 
@@ -1710,13 +2131,10 @@ const serverTimerReadyRef =
 
           const returnedSessionId =
             String(
-              data?.sessionId ||
-                ""
+              data?.sessionId || ""
             ).trim();
 
-          if (
-            !returnedSessionId
-          ) {
+          if (!returnedSessionId) {
             throw new Error(
               "Mock test server did not return a sessionId."
             );
@@ -1725,9 +2143,7 @@ const serverTimerReadyRef =
           serverSessionIdRef.current =
             returnedSessionId;
 
-          setServerSessionReady(
-            true
-          );
+          setServerSessionReady(true);
 
           // ------------------------------------------
           // DEVICE SESSION
@@ -1740,9 +2156,7 @@ const serverTimerReadyRef =
                 ""
             ).trim();
 
-          if (
-            returnedDeviceSessionId
-          ) {
+          if (returnedDeviceSessionId) {
             deviceSessionIdRef.current =
               returnedDeviceSessionId;
 
@@ -1756,10 +2170,6 @@ const serverTimerReadyRef =
             }
           }
 
-          // ------------------------------------------
-          // DEVICE ID
-          // ------------------------------------------
-
           deviceIdRef.current =
             String(
               data?.deviceId ||
@@ -1770,47 +2180,50 @@ const serverTimerReadyRef =
           // SESSION NOTICE
           // ------------------------------------------
 
+          // ------------------------------------------
+          // SERVER CURRENT QUESTION ID
+          //
+          // NEW:
+          // Exact question is restored by stable ID.
+          // ------------------------------------------
+
+          const returnedCurrentQuestionId =
+            String(
+              data?.currentQuestionId ||
+                ""
+            ).trim();
+
           if (
-            data?.code ===
-            "SESSION_TAKEN_OVER"
+            returnedCurrentQuestionId
           ) {
-            setSessionNotice(
-              "This exam session was transferred to this device. The previous device is no longer authorized."
-            );
-          } else if (
-            data?.code ===
-            "EXAM_STARTED"
-          ) {
-            setSessionNotice(
-              "Exam session started securely."
-            );
-          } else if (
-            data?.code ===
-            "EXAM_RESUMED"
-          ) {
-            setSessionNotice(
-              "Your previous exam session has been restored."
-            );
-          } else {
-            setSessionNotice("");
+            restoredQuestionIdRef.current =
+              returnedCurrentQuestionId;
+
+            try {
+              sessionStorage.setItem(
+                currentQuestionIdStorageKey,
+                returnedCurrentQuestionId
+              );
+            } catch {
+              // Ignore.
+            }
           }
 
           // ------------------------------------------
-          // SERVER CURRENT QUESTION
+          // SERVER NUMERIC QUESTION FALLBACK
           // ------------------------------------------
 
           if (
             typeof data?.currentQuestion ===
-            "number"
+            "number" &&
+            !returnedCurrentQuestionId
           ) {
             const serverQuestionCount =
               Array.isArray(
                 data?.questions
               )
                 ? data.questions.length
-                : Array.isArray(
-                    questions
-                  )
+                : Array.isArray(questions)
                 ? questions.length
                 : 0;
 
@@ -1823,8 +2236,7 @@ const serverTimerReadyRef =
                   ),
                   Math.max(
                     0,
-                    serverQuestionCount -
-                      1
+                    serverQuestionCount - 1
                   )
                 )
               );
@@ -1837,28 +2249,38 @@ const serverTimerReadyRef =
           // ------------------------------------------
           // SERVER ANSWERS
           // ------------------------------------------
-         if (
-  Array.isArray(data?.answers)
-) {
-  const restoredAnswers: AnswerMap = {};
 
-  data.answers.forEach(
-    (item: any) => {
-      if (item?.questionId) {
-        restoredAnswers[
-          String(item.questionId)
-        ] = String(
-          item.answer || ""
-        );
-      }
-    }
-  );
+          if (
+            Array.isArray(data?.answers)
+          ) {
+            const restoredAnswers:
+              AnswerMap = {};
 
-  setAnswers((previous) => ({
-    ...previous,
-    ...restoredAnswers,
-  }));
-}
+            data.answers.forEach(
+              (item: any) => {
+                if (
+                  item?.questionId
+                ) {
+                  restoredAnswers[
+                    String(
+                      item.questionId
+                    )
+                  ] =
+                    String(
+                      item.answer || ""
+                    );
+                }
+              }
+            );
+
+            setAnswers(
+              restoredAnswers
+            );
+
+            latestAnswersRef.current =
+              restoredAnswers;
+          }
+
           // ------------------------------------------
           // SERVER REVIEW
           // ------------------------------------------
@@ -1869,8 +2291,7 @@ const serverTimerReadyRef =
               "object"
           ) {
             const restoredReview:
-              ReviewMap =
-              {};
+              ReviewMap = {};
 
             Object.entries(
               data.markedForReview
@@ -1882,73 +2303,74 @@ const serverTimerReadyRef =
                 restoredReview[
                   String(id)
                 ] =
-                  Boolean(
-                    marked
-                  );
+                  Boolean(marked);
               }
             );
 
             setMarkedForReview(
               restoredReview
             );
+
+            latestReviewRef.current =
+              restoredReview;
           }
 
           // ------------------------------------------
           // SERVER TIMER
           // ------------------------------------------
-         if (
-  typeof data?.remainingSeconds ===
-  "number"
-) {
-  const remaining =
-    Math.max(
-      0,
-      Math.floor(
-        data.remainingSeconds
-      )
-    );
 
-  // IMPORTANT:
-  // From this point onwards, 0 means actual server
-  // timer expiry, not initial React state.
-  serverTimerReadyRef.current =
-    true;
+          if (
+            typeof data?.remainingSeconds ===
+            "number"
+          ) {
+            const remaining =
+              Math.max(
+                0,
+                Math.floor(
+                  data.remainingSeconds
+                )
+              );
 
-  setTimeLeft(
-    remaining
-  );
+            serverTimerReadyRef.current =
+              true;
 
-  try {
-    sessionStorage.setItem(
-      timerEndStorageKey,
-      String(
-        Date.now() +
-          remaining * 1000
-      )
-    );
+            setTimeLeft(
+              remaining
+            );
 
-    sessionStorage.setItem(
-      timerStorageKey,
-      String(
-        remaining
-      )
-    );
-  } catch {
-    // Ignore.
-  }
-}
-          
+            try {
+              sessionStorage.setItem(
+                timerEndStorageKey,
+                String(
+                  Date.now() +
+                    remaining *
+                      1000
+                )
+              );
+
+              sessionStorage.setItem(
+                timerStorageKey,
+                String(
+                  remaining
+                )
+              );
+            } catch {
+              // Ignore.
+            }
+          }
 
           // ------------------------------------------
-          // WARNING RESTORE
+          // WARNINGS
           // ------------------------------------------
 
           try {
             const savedWarnings =
               Number(
-                sessionStorage.getItem(
-                  warningStorageKey
-                ) || "0"
+                data?.warnings ??
+                  sessionStorage.getItem(
+                    warningStorageKey
+                  ) ??
+                  "0"
               );
 
             if (
@@ -1967,16 +2389,9 @@ const serverTimerReadyRef =
           backendInitializedRef.current =
             true;
 
-          setServerReady(
-            true
-          );
-
-          setServerSessionReady(
-            true
-          );
-        } catch (
-          error: any
-        ) {
+          setServerReady(true);
+          setServerSessionReady(true);
+        } catch (error: any) {
           if (cancelled) {
             return;
           }
@@ -1986,13 +2401,8 @@ const serverTimerReadyRef =
             error
           );
 
-          setServerSessionReady(
-            false
-          );
-
-          setServerReady(
-            false
-          );
+          setServerSessionReady(false);
+          setServerReady(false);
 
           setSubmitError(
             error?.message ||
@@ -2017,6 +2427,7 @@ const serverTimerReadyRef =
     };
   }, [
     cleanApiBase,
+    currentQuestionIdStorageKey,
     deviceIdStorageKey,
     deviceSessionStorageKey,
     examId,
@@ -2055,9 +2466,7 @@ const serverTimerReadyRef =
             hasSubmittedRef.current =
               true;
 
-            setSubmitted(
-              true
-            );
+            setSubmitted(true);
 
             if (
               parsedStatus?.result
@@ -2098,12 +2507,14 @@ const serverTimerReadyRef =
 
           if (
             parsed &&
-            typeof parsed ===
-              "object"
+            typeof parsed === "object"
           ) {
             setAnswers(
               parsed as AnswerMap
             );
+
+            latestAnswersRef.current =
+              parsed as AnswerMap;
           }
         } catch {
           console.warn(
@@ -2126,12 +2537,14 @@ const serverTimerReadyRef =
 
           if (
             parsed &&
-            typeof parsed ===
-              "object"
+            typeof parsed === "object"
           ) {
             setMarkedForReview(
               parsed as ReviewMap
             );
+
+            latestReviewRef.current =
+              parsed as ReviewMap;
           }
         } catch {
           console.warn(
@@ -2140,35 +2553,51 @@ const serverTimerReadyRef =
         }
       }
 
-      const savedCurrentQuestion =
+      // ------------------------------------------
+      // RESTORE EXACT QUESTION BY ID FIRST
+      // ------------------------------------------
+
+      const savedQuestionId =
         sessionStorage.getItem(
-          currentQuestionStorageKey
+          currentQuestionIdStorageKey
         );
 
       if (
-        savedCurrentQuestion !==
-          null &&
-        !Number.isNaN(
-          Number(
-            savedCurrentQuestion
-          )
-        )
+        savedQuestionId
       ) {
-        setCurrentQuestion(
-          Math.max(
-            0,
-            Math.min(
-              Number(
-                savedCurrentQuestion
-              ),
-              Math.max(
-                0,
-                displayQuestions.length -
-                  1
-              )
+        restoredQuestionIdRef.current =
+          savedQuestionId;
+      } else {
+        // Numeric index only as fallback.
+        const savedCurrentQuestion =
+          sessionStorage.getItem(
+            currentQuestionStorageKey
+          );
+
+        if (
+          savedCurrentQuestion !== null &&
+          !Number.isNaN(
+            Number(
+              savedCurrentQuestion
             )
           )
-        );
+        ) {
+          setCurrentQuestion(
+            Math.max(
+              0,
+              Math.min(
+                Number(
+                  savedCurrentQuestion
+                ),
+                Math.max(
+                  0,
+                  displayQuestions.length -
+                    1
+                )
+              )
+            )
+          );
+        }
       }
 
       const savedTimerEnd =
@@ -2209,14 +2638,10 @@ const serverTimerReadyRef =
         )
       ) {
         saveWarningCount(
-          Number(
-            savedWarnings
-          )
+          Number(savedWarnings)
         );
       }
-    } catch (
-      error
-    ) {
+    } catch (error) {
       console.warn(
         "Unable to restore exam state:",
         error
@@ -2227,6 +2652,7 @@ const serverTimerReadyRef =
     }
   }, [
     answerStorageKey,
+    currentQuestionIdStorageKey,
     currentQuestionStorageKey,
     displayQuestions.length,
     mapServerResult,
@@ -2238,7 +2664,157 @@ const serverTimerReadyRef =
   ]);
 
   // ====================================================
+  // RESTORE CURRENT QUESTION BY EXACT ID
+  // ====================================================
+
+  useEffect(() => {
+    if (
+      !restoredQuestionIdRef.current ||
+      displayQuestions.length === 0
+    ) {
+      return;
+    }
+
+    const desiredId =
+      restoredQuestionIdRef.current;
+
+    const restoredIndex =
+      displayQuestions.findIndex(
+        (question) =>
+          getQuestionId(question) ===
+          desiredId
+      );
+
+    if (
+      restoredIndex >= 0 &&
+      restoredIndex !== currentQuestion
+    ) {
+      setCurrentQuestion(
+        restoredIndex
+      );
+    }
+  }, [
+    currentQuestion,
+    displayQuestions,
+    getQuestionId,
+  ]);
+
+  // ====================================================
   // SAVE CURRENT QUESTION
+  // ====================================================
+
+  useEffect(() => {
+    if (
+      !timerInitializedRef.current ||
+      submitted ||
+      displayQuestions.length === 0
+    ) {
+      return;
+    }
+
+    const safeIndex =
+      Math.max(
+        0,
+        Math.min(
+          currentQuestion,
+          displayQuestions.length - 1
+        )
+      );
+
+    const safeQuestion =
+      displayQuestions[safeIndex];
+
+    const safeQuestionId =
+      safeQuestion
+        ? getQuestionId(
+            safeQuestion
+          )
+        : "";
+
+    if (
+      safeIndex !== currentQuestion
+    ) {
+      setCurrentQuestion(
+        safeIndex
+      );
+
+      return;
+    }
+
+    try {
+      sessionStorage.setItem(
+        currentQuestionStorageKey,
+        String(safeIndex)
+      );
+
+      if (safeQuestionId) {
+        sessionStorage.setItem(
+          currentQuestionIdStorageKey,
+          safeQuestionId
+        );
+      }
+    } catch {
+      // Ignore.
+    }
+  }, [
+    currentQuestion,
+    currentQuestionIdStorageKey,
+    currentQuestionStorageKey,
+    displayQuestions,
+    getQuestionId,
+    submitted,
+  ]);
+
+  // ====================================================
+  // LOCAL ANSWERS SAVE
+  // ====================================================
+
+  useEffect(() => {
+    if (submitted) {
+      return;
+    }
+
+    try {
+      sessionStorage.setItem(
+        answerStorageKey,
+        JSON.stringify(answers)
+      );
+    } catch {
+      // Ignore.
+    }
+  }, [
+    answerStorageKey,
+    answers,
+    submitted,
+  ]);
+
+  // ====================================================
+  // LOCAL REVIEW SAVE
+  // ====================================================
+
+  useEffect(() => {
+    if (submitted) {
+      return;
+    }
+
+    try {
+      sessionStorage.setItem(
+        reviewStorageKey,
+        JSON.stringify(
+          markedForReview
+        )
+      );
+    } catch {
+      // Ignore.
+    }
+  }, [
+    markedForReview,
+    reviewStorageKey,
+    submitted,
+  ]);
+
+  // ====================================================
+  // LOCAL TIMER SAVE
   // ====================================================
 
   useEffect(() => {
@@ -2250,59 +2826,30 @@ const serverTimerReadyRef =
     }
 
     try {
-      const safeIndex =
-        Math.max(
-          0,
-          Math.min(
-            currentQuestion,
-            Math.max(
-              0,
-              displayQuestions.length -
-                1
-            )
-          )
-        );
-
-      if (
-        safeIndex !==
-        currentQuestion
-      ) {
-        setCurrentQuestion(
-          safeIndex
-        );
-        return;
-      }
-
       sessionStorage.setItem(
-        currentQuestionStorageKey,
-        String(
-          safeIndex
-        )
+        timerStorageKey,
+        String(timeLeft)
       );
     } catch {
       // Ignore.
     }
   }, [
-    currentQuestion,
-    currentQuestionStorageKey,
-    displayQuestions.length,
     submitted,
+    timeLeft,
+    timerStorageKey,
   ]);
 
   // ====================================================
   // FALLBACK TIMER
   //
-  // IMPORTANT:
-  // This timer NEVER submits.
-  // It is only used until server timer is ready.
+  // This NEVER submits.
   // ====================================================
 
   useEffect(() => {
     if (
       serverReady ||
       submitted ||
-      displayQuestions.length ===
-        0
+      displayQuestions.length === 0
     ) {
       return;
     }
@@ -2316,9 +2863,7 @@ const serverTimerReadyRef =
       if (
         existingDeadline &&
         !Number.isNaN(
-          Number(
-            existingDeadline
-          )
+          Number(existingDeadline)
         )
       ) {
         setTimeLeft(
@@ -2346,8 +2891,7 @@ const serverTimerReadyRef =
         timerEndStorageKey,
         String(
           Date.now() +
-            fallbackSeconds *
-              1000
+            fallbackSeconds * 1000
         )
       );
 
@@ -2365,85 +2909,10 @@ const serverTimerReadyRef =
   ]);
 
   // ====================================================
-  // SAVE ANSWERS
-  // ====================================================
-
-  useEffect(() => {
-    if (submitted) {
-      return;
-    }
-
-    try {
-      sessionStorage.setItem(
-        answerStorageKey,
-        JSON.stringify(
-          answers
-        )
-      );
-    } catch {
-      // Ignore.
-    }
-  }, [
-    answerStorageKey,
-    answers,
-    submitted,
-  ]);
-
-  // ====================================================
-  // SAVE REVIEW
-  // ====================================================
-
-  useEffect(() => {
-    if (submitted) {
-      return;
-    }
-
-    try {
-      sessionStorage.setItem(
-        reviewStorageKey,
-        JSON.stringify(
-          markedForReview
-        )
-      );
-    } catch {
-      // Ignore.
-    }
-  }, [
-    markedForReview,
-    reviewStorageKey,
-    submitted,
-  ]);
-
-  // ====================================================
-  // SAVE TIMER
-  // ====================================================
-
-  useEffect(() => {
-    if (
-      !timerInitializedRef.current ||
-      submitted
-    ) {
-      return;
-    }
-
-    try {
-      sessionStorage.setItem(
-        timerStorageKey,
-        String(
-          timeLeft
-        )
-      );
-    } catch {
-      // Ignore.
-    }
-  }, [
-    submitted,
-    timeLeft,
-    timerStorageKey,
-  ]);
-
-  // ====================================================
-  // SERVER PROGRESS SYNC
+  // PERIODIC SERVER PROGRESS SYNC
+  //
+  // Immediate answer save already happens.
+  // This extra sync is safety-net persistence.
   // ====================================================
 
   useEffect(() => {
@@ -2467,136 +2936,23 @@ const serverTimerReadyRef =
     }
 
     progressRequestRef.current =
-      window.setTimeout(
-        async () => {
-          try {
-            const response =
-              await fetch(
-                `${cleanApiBase}/mock-test/progress`,
-                {
-                  method: "POST",
+      window.setTimeout(() => {
+        void persistExamProgress({
+          nextAnswers:
+            latestAnswersRef.current,
 
-                  headers:
-                    getBackendHeaders(),
+          nextReview:
+            latestReviewRef.current,
 
-                  body:
-                    JSON.stringify({
-                      studentId,
+          nextQuestionIndex:
+            currentQuestion,
 
-                      sessionId:
-                        serverSessionIdRef.current,
+          nextQuestionId:
+            currentQuestionIdRef.current,
 
-                      deviceId:
-                        deviceIdRef.current,
-
-                      deviceSessionId:
-                        deviceSessionIdRef.current,
-
-                      currentQuestion,
-
-                      answers:
-                        Object.entries(
-                          answers
-                        ).map(
-                          ([
-                            questionId,
-                            answer,
-                          ]) => ({
-                            questionId,
-                            answer,
-                          })
-                        ),
-
-                      markedForReview,
-
-                      warnings:
-                        warningRef.current,
-                    }),
-                }
-              );
-
-            const data =
-              await response
-                .json()
-                .catch(
-                  () => null
-                );
-
-            if (
-              response.status ===
-                409 &&
-              data?.code ===
-                "SESSION_REPLACED"
-            ) {
-              handleSessionReplacement();
-              return;
-            }
-
-            if (
-              response.status ===
-                409 &&
-              data?.code ===
-                "EXAM_ALREADY_SUBMITTED"
-            ) {
-              hasSubmittedRef.current =
-                true;
-
-              setSubmitted(
-                true
-              );
-
-              return;
-            }
-
-            if (
-  response.status ===
-    410 &&
-  data?.code ===
-    "EXAM_TIME_EXPIRED"
-) {
-  serverTimerReadyRef.current =
-    true;
-
-  setTimeLeft(0);
-
-  return;
-}
-            if (
-              !response.ok
-            ) {
-              console.warn(
-                "Exam progress save failed:",
-                data?.message ||
-                  response.status
-              );
-
-              return;
-            }
-
-            if (
-              typeof data?.remainingSeconds ===
-              "number"
-            ) {
-              setTimeLeft(
-                Math.max(
-                  0,
-                  Math.floor(
-                    data.remainingSeconds
-                  )
-                )
-              );
-            }
-          } catch (
-            error
-          ) {
-            console.warn(
-              "Exam progress sync error:",
-              error
-            );
-          }
-        },
-        400
-      );
+          force: false,
+        });
+      }, 1500);
 
     return () => {
       if (
@@ -2611,13 +2967,12 @@ const serverTimerReadyRef =
     answers,
     cleanApiBase,
     currentQuestion,
-    getBackendHeaders,
-    handleSessionReplacement,
+    currentQuestionId,
     isSubmitting,
     markedForReview,
+    persistExamProgress,
     serverReady,
     serverSessionReady,
-    studentId,
     submitted,
   ]);
 
@@ -2639,6 +2994,12 @@ const serverTimerReadyRef =
     const heartbeat =
       window.setInterval(
         async () => {
+          if (
+            !isOnlineRef.current
+          ) {
+            return;
+          }
+
           try {
             const response =
               await fetch(
@@ -2691,28 +3052,26 @@ const serverTimerReadyRef =
               hasSubmittedRef.current =
                 true;
 
-              setSubmitted(
-                true
-              );
+              setSubmitted(true);
 
               return;
             }
-           if (
-  response.status === 410 &&
-  data?.code === "EXAM_TIME_EXPIRED"
-) {
-  serverTimerReadyRef.current = true;
 
-  setTimeLeft(0);
-
-  return;
-}
-           
-
-             
             if (
-              !response.ok
+              response.status ===
+                410 &&
+              data?.code ===
+                "EXAM_TIME_EXPIRED"
             ) {
+              serverTimerReadyRef.current =
+                true;
+
+              setTimeLeft(0);
+
+              return;
+            }
+
+            if (!response.ok) {
               return;
             }
 
@@ -2728,14 +3087,21 @@ const serverTimerReadyRef =
                   )
                 )
               );
+
+              serverTimerReadyRef.current =
+                true;
             }
-          } catch (
-            error
-          ) {
-            console.warn(
-              "Exam heartbeat failed:",
-              error
-            );
+
+            if (
+              typeof data?.currentQuestionId ===
+              "string" &&
+              data.currentQuestionId
+            ) {
+              restoredQuestionIdRef.current =
+                data.currentQuestionId;
+            }
+          } catch {
+            // Normal heartbeat will retry.
           }
         },
         5000
@@ -2766,15 +3132,12 @@ const serverTimerReadyRef =
       isSubmitting ||
       !serverReady ||
       !serverSessionReady ||
-      displayQuestions.length ===
-        0
+      displayQuestions.length === 0
     ) {
       return;
     }
 
-    if (
-      timeLeft <= 0
-    ) {
+    if (timeLeft <= 0) {
       return;
     }
 
@@ -2806,7 +3169,7 @@ const serverTimerReadyRef =
   ]);
 
   // ====================================================
-  // FORMAT TIMER
+  // TIMER FORMAT
   // ====================================================
 
   const formatTime =
@@ -2874,82 +3237,153 @@ const serverTimerReadyRef =
     timeLeft > 60;
 
   // ====================================================
+  // SAVE STATE LABEL
+  // ====================================================
+
+  const saveStateLabel =
+    saveState === "saving"
+      ? "Saving..."
+      : saveState === "offline"
+      ? "Offline • Local copy saved"
+      : saveState === "error"
+      ? "Sync delayed"
+      : "Saved";
+
+  // ====================================================
   // SELECT OPTION
   // ====================================================
-const handleSelectOption = useCallback(
-  (option: string) => {
-    if (
-      !currentQuestionId ||
-      tabBlocked ||
-      submitted ||
-      isSubmitting ||
-      !serverSessionReady
-    ) {
-      return;
-    }
 
-    const nextAnswers = {
-      ...answers,
-      [currentQuestionId]: option,
-    };
+  const handleSelectOption =
+    useCallback(
+      (option: string) => {
+        if (
+          !currentQuestionId ||
+          tabBlocked ||
+          submitted ||
+          isSubmitting ||
+          !serverSessionReady
+        ) {
+          return;
+        }
 
-    setAnswers(nextAnswers);
+        const nextAnswers: AnswerMap =
+          {
+            ...latestAnswersRef.current,
 
-    // Refresh ayina latest selected answer lose kakunda immediate ga save
-    try {
-      sessionStorage.setItem(
+            [currentQuestionId]:
+              option,
+          };
+
+        latestAnswersRef.current =
+          nextAnswers;
+
+        setAnswers(
+          nextAnswers
+        );
+
+        // Immediate local save.
+        try {
+          sessionStorage.setItem(
+            answerStorageKey,
+            JSON.stringify(
+              nextAnswers
+            )
+          );
+        } catch {
+          // Ignore.
+        }
+
+        /*
+         * IMPORTANT:
+         * Save immediately to backend too.
+         *
+         * Refresh immediately after clicking
+         * will therefore have a much better chance
+         * of restoring the latest click.
+         */
+        void persistExamProgress({
+          nextAnswers,
+
+          nextReview:
+            latestReviewRef.current,
+
+          nextQuestionIndex:
+            currentQuestion,
+
+          nextQuestionId:
+            currentQuestionId,
+
+          force: true,
+        });
+      },
+      [
         answerStorageKey,
-        JSON.stringify(nextAnswers)
-      );
-    } catch {}
-  },
-  [
-    answerStorageKey,
-    answers,
-    currentQuestionId,
-    isSubmitting,
-    serverSessionReady,
-    submitted,
-    tabBlocked,
-  ]
-);
+        currentQuestion,
+        currentQuestionId,
+        isSubmitting,
+        persistExamProgress,
+        serverSessionReady,
+        submitted,
+        tabBlocked,
+      ]
+    );
+
   // ====================================================
   // CLEAR ANSWER
   // ====================================================
-const handleClearAnswer = useCallback(() => {
-  if (
-    !currentQuestionId ||
-    tabBlocked ||
-    submitted ||
-    isSubmitting ||
-    !serverSessionReady
-  ) {
-    return;
-  }
 
-  const nextAnswers = {
-    ...answers,
-  };
+  const handleClearAnswer =
+    useCallback(() => {
+      if (
+        !currentQuestionId ||
+        tabBlocked ||
+        submitted ||
+        isSubmitting ||
+        !serverSessionReady
+      ) {
+        return;
+      }
 
-  delete nextAnswers[currentQuestionId];
+      const nextAnswers: AnswerMap =
+        {
+          ...latestAnswersRef.current,
+        };
 
-  setAnswers(nextAnswers);
+      delete nextAnswers[
+        currentQuestionId
+      ];
 
-  try {
-    sessionStorage.setItem(
-      answerStorageKey,
-      JSON.stringify(nextAnswers)
-    );
-  } catch {}
-}, [
-  answerStorageKey,
-  answers,
-  currentQuestionId,
-  isSubmitting,
-  serverSessionReady,
-  submitted,
-  tabBlocked,
-]);
+      latestAnswersRef.current =
+        nextAnswers;
+
+      setAnswers(
+        nextAnswers
+      );
+
+      void persistExamProgress({
+        nextAnswers,
+
+        nextReview:
+          latestReviewRef.current,
+
+        nextQuestionIndex:
+          currentQuestion,
+
+        nextQuestionId:
+          currentQuestionId,
+
+        force: true,
+      });
+    }, [
+      currentQuestion,
+      currentQuestionId,
+      isSubmitting,
+      persistExamProgress,
+      serverSessionReady,
+      submitted,
+      tabBlocked,
+    ]);
+
   // ====================================================
   // TOGGLE REVIEW
   // ====================================================
@@ -2966,22 +3400,133 @@ const handleClearAnswer = useCallback(() => {
         return;
       }
 
-      setMarkedForReview(
-        (previous) => ({
-          ...previous,
+      const nextReview: ReviewMap =
+        {
+          ...latestReviewRef.current,
+
           [currentQuestionId]:
-            !previous[
+            !latestReviewRef.current[
               currentQuestionId
             ],
-        })
+        };
+
+      latestReviewRef.current =
+        nextReview;
+
+      setMarkedForReview(
+        nextReview
       );
+
+      void persistExamProgress({
+        nextAnswers:
+          latestAnswersRef.current,
+
+        nextReview,
+
+        nextQuestionIndex:
+          currentQuestion,
+
+        nextQuestionId:
+          currentQuestionId,
+
+        force: true,
+      });
     }, [
+      currentQuestion,
       currentQuestionId,
       isSubmitting,
+      persistExamProgress,
       serverSessionReady,
       submitted,
       tabBlocked,
     ]);
+
+  // ====================================================
+  // GOTO QUESTION
+  // ====================================================
+
+  const goToQuestion =
+    useCallback(
+      (index: number) => {
+        if (
+          submitted ||
+          isSubmitting ||
+          tabBlocked ||
+          !serverSessionReady
+        ) {
+          return;
+        }
+
+        const safeIndex =
+          Math.max(
+            0,
+            Math.min(
+              index,
+              displayQuestions.length - 1
+            )
+          );
+
+        const question =
+          displayQuestions[safeIndex];
+
+        const questionId =
+          question
+            ? getQuestionId(
+                question
+              )
+            : "";
+
+        setCurrentQuestion(
+          safeIndex
+        );
+
+        restoredQuestionIdRef.current =
+          questionId;
+
+        try {
+          sessionStorage.setItem(
+            currentQuestionStorageKey,
+            String(safeIndex)
+          );
+
+          if (questionId) {
+            sessionStorage.setItem(
+              currentQuestionIdStorageKey,
+              questionId
+            );
+          }
+        } catch {
+          // Ignore.
+        }
+
+        void persistExamProgress({
+          nextAnswers:
+            latestAnswersRef.current,
+
+          nextReview:
+            latestReviewRef.current,
+
+          nextQuestionIndex:
+            safeIndex,
+
+          nextQuestionId:
+            questionId,
+
+          force: true,
+        });
+      },
+      [
+        currentQuestionIdStorageKey,
+        currentQuestionStorageKey,
+        displayQuestions,
+        getQuestionId,
+        isSubmitting,
+        persistExamProgress,
+        serverSessionReady,
+        submitted,
+        tabBlocked,
+      ]
+    );
 
   // ====================================================
   // NEXT
@@ -2992,22 +3537,27 @@ const handleClearAnswer = useCallback(() => {
       if (
         submitted ||
         isSubmitting ||
-        tabBlocked
+        tabBlocked ||
+        !serverSessionReady
       ) {
         return;
       }
 
-      setCurrentQuestion(
-        (previous) =>
-          Math.min(
-            displayQuestions.length -
-              1,
-            previous + 1
-          )
+      const nextIndex =
+        Math.min(
+          displayQuestions.length - 1,
+          currentQuestion + 1
+        );
+
+      goToQuestion(
+        nextIndex
       );
     }, [
+      currentQuestion,
       displayQuestions.length,
+      goToQuestion,
       isSubmitting,
+      serverSessionReady,
       submitted,
       tabBlocked,
     ]);
@@ -3021,20 +3571,26 @@ const handleClearAnswer = useCallback(() => {
       if (
         submitted ||
         isSubmitting ||
-        tabBlocked
+        tabBlocked ||
+        !serverSessionReady
       ) {
         return;
       }
 
-      setCurrentQuestion(
-        (previous) =>
-          Math.max(
-            0,
-            previous - 1
-          )
+      const previousIndex =
+        Math.max(
+          0,
+          currentQuestion - 1
+        );
+
+      goToQuestion(
+        previousIndex
       );
     }, [
+      currentQuestion,
+      goToQuestion,
       isSubmitting,
+      serverSessionReady,
       submitted,
       tabBlocked,
     ]);
@@ -3049,33 +3605,73 @@ const handleClearAnswer = useCallback(() => {
         !currentQuestionId ||
         tabBlocked ||
         submitted ||
-        isSubmitting
+        isSubmitting ||
+        !serverSessionReady
       ) {
         return;
       }
 
-      setMarkedForReview(
-        (previous) => ({
-          ...previous,
+      const nextReview: ReviewMap =
+        {
+          ...latestReviewRef.current,
+
           [currentQuestionId]:
             true,
-        })
+        };
+
+      latestReviewRef.current =
+        nextReview;
+
+      setMarkedForReview(
+        nextReview
       );
 
-      if (
-        currentQuestion <
-        displayQuestions.length - 1
-      ) {
-        setCurrentQuestion(
-          (previous) =>
-            previous + 1
+      const nextIndex =
+        Math.min(
+          displayQuestions.length - 1,
+          currentQuestion + 1
         );
-      }
+
+      const nextQuestion =
+        displayQuestions[
+          nextIndex
+        ];
+
+      const nextQuestionId =
+        nextQuestion
+          ? getQuestionId(
+              nextQuestion
+            )
+          : currentQuestionId;
+
+      setCurrentQuestion(
+        nextIndex
+      );
+
+      restoredQuestionIdRef.current =
+        nextQuestionId;
+
+      void persistExamProgress({
+        nextAnswers:
+          latestAnswersRef.current,
+
+        nextReview,
+
+        nextQuestionIndex:
+          nextIndex,
+
+        nextQuestionId,
+
+        force: true,
+      });
     }, [
       currentQuestion,
       currentQuestionId,
-      displayQuestions.length,
+      displayQuestions,
+      getQuestionId,
       isSubmitting,
+      persistExamProgress,
+      serverSessionReady,
       submitted,
       tabBlocked,
     ]);
@@ -3096,10 +3692,6 @@ const handleClearAnswer = useCallback(() => {
           return;
         }
 
-        /*
-         * Auto-submit is allowed ONLY when
-         * timer reaches zero.
-         */
         if (
           isAutoSubmit &&
           timeLeft > 0
@@ -3119,25 +3711,37 @@ const handleClearAnswer = useCallback(() => {
           return;
         }
 
+        /*
+         * One final progress sync before submit.
+         * This is especially useful when student
+         * clicks Submit immediately after selecting
+         * an answer.
+         */
+        await persistExamProgress({
+          nextAnswers:
+            latestAnswersRef.current,
+
+          nextReview:
+            latestReviewRef.current,
+
+          nextQuestionIndex:
+            currentQuestion,
+
+          nextQuestionId:
+            currentQuestionIdRef.current,
+
+          force: true,
+        });
+
         hasSubmittedRef.current =
           true;
 
-        setIsSubmitting(
-          true
-        );
-
+        setIsSubmitting(true);
         setSubmitError("");
 
-        if (
-          isAutoSubmit
-        ) {
-          setAutoSubmitted(
-            true
-          );
-
-          setShowSubmitModal(
-            false
-          );
+        if (isAutoSubmit) {
+          setAutoSubmitted(true);
+          setShowSubmitModal(false);
         }
 
         try {
@@ -3157,40 +3761,39 @@ const handleClearAnswer = useCallback(() => {
                     deviceSessionIdRef.current,
                 },
 
-                body:
-                  JSON.stringify({
-                    studentId,
+                body: JSON.stringify({
+                  studentId,
 
-                    studentName,
+                  studentName,
 
-                    sessionId:
-                      serverSessionIdRef.current,
+                  sessionId:
+                    serverSessionIdRef.current,
 
-                    deviceId:
-                      deviceIdRef.current,
+                  deviceId:
+                    deviceIdRef.current,
 
-                    deviceSessionId:
-                      deviceSessionIdRef.current,
+                  deviceSessionId:
+                    deviceSessionIdRef.current,
 
-                    answers:
-                      Object.entries(
-                        answers
-                      ).map(
-                        ([
-                          questionId,
-                          answer,
-                        ]) => ({
-                          questionId,
-                          answer,
-                        })
-                      ),
+                  answers:
+                    Object.entries(
+                      latestAnswersRef.current
+                    ).map(
+                      ([
+                        questionId,
+                        answer,
+                      ]) => ({
+                        questionId,
+                        answer,
+                      })
+                    ),
 
-                    warnings:
-                      warningRef.current,
+                  warnings:
+                    warningRef.current,
 
-                    autoSubmitted:
-                      isAutoSubmit,
-                  }),
+                  autoSubmitted:
+                    isAutoSubmit,
+                }),
               }
             );
 
@@ -3201,13 +3804,8 @@ const handleClearAnswer = useCallback(() => {
                 () => null
               );
 
-          // ------------------------------------------
-          // SESSION REPLACED
-          // ------------------------------------------
-
           if (
-            response.status ===
-              409 &&
+            response.status === 409 &&
             data?.code ===
               "SESSION_REPLACED"
           ) {
@@ -3215,50 +3813,28 @@ const handleClearAnswer = useCallback(() => {
             return;
           }
 
-          // ------------------------------------------
-          // ALREADY SUBMITTED
-          // ------------------------------------------
-
           if (
-            response.status ===
-              409 &&
+            response.status === 409 &&
             data?.code ===
               "EXAM_ALREADY_SUBMITTED"
           ) {
             hasSubmittedRef.current =
               true;
 
-            setSubmitted(
-              true
-            );
-
-            setIsSubmitting(
-              false
-            );
+            setSubmitted(true);
+            setIsSubmitting(false);
 
             return;
           }
 
-          // ------------------------------------------
-          // SERVER ERROR
-          // ------------------------------------------
-
-          if (
-            !response.ok
-          ) {
+          if (!response.ok) {
             throw new Error(
               data?.message ||
                 `Exam submission failed (${response.status}).`
             );
           }
 
-          // ------------------------------------------
-          // SERVER RESULT
-          // ------------------------------------------
-
-          if (
-            !data?.result
-          ) {
+          if (!data?.result) {
             throw new Error(
               "Exam was submitted but no result was returned by the server."
             );
@@ -3290,19 +3866,9 @@ const handleClearAnswer = useCallback(() => {
             )
           );
 
-          // ------------------------------------------
-          // SAVE RESULT
-          // ------------------------------------------
-
           saveLocalResult(
             serverSummary
           );
-
-          // ------------------------------------------
-          // SAFE SUBMITTED CACHE
-          //
-          // NO REVIEW DETAILS while result is pending.
-          // ------------------------------------------
 
           const safeStoredResult:
             Partial<ResultSummary> =
@@ -3331,10 +3897,6 @@ const handleClearAnswer = useCallback(() => {
                 ),
             };
 
-          /*
-           * Only save detailed evaluation
-           * after publication.
-           */
           if (
             serverSummary.isResultPublished
           ) {
@@ -3372,16 +3934,11 @@ const handleClearAnswer = useCallback(() => {
               serverSummary.reviewList;
           }
 
-          // ------------------------------------------
-          // STATUS CACHE
-          // ------------------------------------------
-
           try {
             sessionStorage.setItem(
               statusStorageKey,
               JSON.stringify({
-                submitted:
-                  true,
+                submitted: true,
 
                 autoSubmitted:
                   finalAutoSubmitted,
@@ -3396,10 +3953,6 @@ const handleClearAnswer = useCallback(() => {
           } catch {
             // Ignore.
           }
-
-          // ------------------------------------------
-          // CLEAR LIVE EXAM STORAGE
-          // ------------------------------------------
 
           try {
             sessionStorage.removeItem(
@@ -3423,38 +3976,34 @@ const handleClearAnswer = useCallback(() => {
             );
 
             sessionStorage.removeItem(
+              currentQuestionIdStorageKey
+            );
+
+            sessionStorage.removeItem(
               deviceSessionStorageKey
             );
           } catch {
             // Ignore.
           }
 
-          // ------------------------------------------
-          // FINAL STATE
-          // ------------------------------------------
-
-          setSubmitted(
-            true
-          );
-
-          setShowSubmitModal(
-            false
-          );
-
-          setIsSubmitting(
-            false
-          );
-
+          setSubmitted(true);
+          setShowSubmitModal(false);
+          setIsSubmitting(false);
           setAutoSubmitted(
             finalAutoSubmitted
           );
-          window.location.assign("/exam-history");
 
           autoSubmitStartedRef.current =
             false;
-        } catch (
-          error: any
-        ) {
+
+          /*
+           * Keep your existing behavior:
+           * redirect after successful submission.
+           */
+          window.location.assign(
+            "/exam-history"
+          );
+        } catch (error: any) {
           console.error(
             "MOCK TEST BACKEND SUBMISSION ERROR:",
             error
@@ -3463,16 +4012,10 @@ const handleClearAnswer = useCallback(() => {
           hasSubmittedRef.current =
             false;
 
-          setIsSubmitting(
-            false
-          );
+          setIsSubmitting(false);
 
-          if (
-            isAutoSubmit
-          ) {
-            setAutoSubmitted(
-              false
-            );
+          if (isAutoSubmit) {
+            setAutoSubmitted(false);
 
             autoSubmitStartedRef.current =
               false;
@@ -3486,14 +4029,16 @@ const handleClearAnswer = useCallback(() => {
       },
       [
         answerStorageKey,
-        answers,
         cleanApiBase,
+        currentQuestion,
+        currentQuestionIdStorageKey,
         currentQuestionStorageKey,
         deviceSessionStorageKey,
         getBackendHeaders,
         handleSessionReplacement,
         isSubmitting,
         mapServerResult,
+        persistExamProgress,
         reviewStorageKey,
         saveLocalResult,
         saveWarningCount,
@@ -3508,106 +4053,73 @@ const handleClearAnswer = useCallback(() => {
     );
 
   // ====================================================
-  // ONLY AUTO SUBMIT WHEN TIMER = 00:00
-  // ====================================================
-      // ====================================================
-// AUTO SUBMIT
-//
-// ONLY when the SERVER timer actually reaches 00:00.
-//
-// Refresh      -> NO auto submit
-// Back         -> NO auto submit
-// Exit         -> NO auto submit
-// Tab switch   -> NO auto submit
-// Timer 00:00  -> AUTO submit
-// ====================================================
-
-useEffect(() => {
-  if (
-    submitted ||
-    isSubmitting
-  ) {
-    return;
-  }
-
-  if (
-    !serverReady ||
-    !serverSessionReady ||
-    !serverSessionIdRef.current
-  ) {
-    return;
-  }
-
-  /*
-   * Prevent initial React state 0 from
-   * being interpreted as timer expiry.
-   */
-  if (
-    !serverTimerReadyRef.current
-  ) {
-    return;
-  }
-
-  /*
-   * Timer must actually be zero.
-   */
-  if (
-    timeLeft !== 0
-  ) {
-    return;
-  }
-
-  if (
-    autoSubmitStartedRef.current
-  ) {
-    return;
-  }
-
-  autoSubmitStartedRef.current =
-    true;
-
-  setAutoSubmitted(
-    true
-  );
-
-  setSubmitError(
-    "Time is over. Your exam is being submitted automatically."
-  );
-
-  void submitExamData(
-    true
-  );
-}, [
-  isSubmitting,
-  serverReady,
-  serverSessionReady,
-  submitExamData,
-  submitted,
-  timeLeft,
-]);
-  // ====================================================
-  // BROWSER BACK
-  //
-  // IMPORTANT:
-  // BACK MUST NOT AUTO-SUBMIT.
+  // AUTO SUBMIT
   // ====================================================
 
   useEffect(() => {
     if (
-      submitted
+      submitted ||
+      isSubmitting
     ) {
       return;
     }
 
+    if (
+      !serverReady ||
+      !serverSessionReady ||
+      !serverSessionIdRef.current
+    ) {
+      return;
+    }
+
+    if (
+      !serverTimerReadyRef.current
+    ) {
+      return;
+    }
+
+    if (timeLeft !== 0) {
+      return;
+    }
+
+    if (
+      autoSubmitStartedRef.current
+    ) {
+      return;
+    }
+
+    autoSubmitStartedRef.current =
+      true;
+
+    setAutoSubmitted(true);
+
+    setSubmitError(
+      "Time is over. Your exam is being submitted automatically."
+    );
+
+    void submitExamData(true);
+  }, [
+    isSubmitting,
+    serverReady,
+    serverSessionReady,
+    submitExamData,
+    submitted,
+    timeLeft,
+  ]);
+
+  // ====================================================
+  // BROWSER BACK LOCK
+  // ====================================================
+
+  useEffect(() => {
+    if (submitted) {
+      return;
+    }
+
     const stateMarker = {
-      examLock:
-        testKey,
+      examLock: testKey,
     };
 
-    /*
-     * Push a history entry so pressing browser
-     * back does not immediately leave the exam.
-     */
     window.history.pushState(
       stateMarker,
       "",
@@ -3616,16 +4128,10 @@ useEffect(() => {
 
     const handlePopState =
       () => {
-        if (
-          submitted
-        ) {
+        if (submitted) {
           return;
         }
 
-        /*
-         * Put the history lock back.
-         * DO NOT call submitExamData().
-         */
         window.history.pushState(
           stateMarker,
           "",
@@ -3654,83 +4160,98 @@ useEffect(() => {
   ]);
 
   // ====================================================
-  // REFRESH / CLOSE WARNING
-  //
-  // IMPORTANT:
-  // REFRESH NEVER AUTO-SUBMITS.
+  // REFRESH / CLOSE
   // ====================================================
 
   useEffect(() => {
-    if (
-      submitted
-    ) {
+    if (submitted) {
       return;
     }
 
     const handleBeforeUnload =
-      (
-        event: BeforeUnloadEvent
-      ) => {
+      (event: BeforeUnloadEvent) => {
         try {
-          sessionStorage.setItem(
-            answerStorageKey,
-            JSON.stringify(
-              answers
-            )
-          );
-
-          sessionStorage.setItem(
-            reviewStorageKey,
-            JSON.stringify(
-              markedForReview
-            )
-          );
-
-          sessionStorage.setItem(
-            currentQuestionStorageKey,
-            String(
-              currentQuestion
-            )
-          );
-
-          sessionStorage.setItem(
-            timerStorageKey,
-            String(
-              timeLeft
-            )
+          writeLocalProgress(
+            latestAnswersRef.current,
+            latestReviewRef.current,
+            currentQuestionIdRef.current,
+            currentQuestion,
+            timeLeft
           );
 
           /*
-           * Keep absolute end time too.
+           * Save a final best-effort heartbeat/progress
+           * request using keepalive.
+           *
+           * We do NOT depend on this request for safety;
+           * local sessionStorage is already saved.
            */
           if (
-            timeLeft > 0
+            cleanApiBase &&
+            serverSessionReady &&
+            serverSessionIdRef.current &&
+            isOnlineRef.current
           ) {
-            sessionStorage.setItem(
-              timerEndStorageKey,
-              String(
-                Date.now() +
-                  timeLeft *
-                    1000
-              )
-            );
-          }
+            const body =
+              JSON.stringify({
+                studentId,
 
-          sessionStorage.setItem(
-            warningStorageKey,
-            String(
-              warningRef.current
-            )
-          );
+                sessionId:
+                  serverSessionIdRef.current,
+
+                deviceId:
+                  deviceIdRef.current,
+
+                deviceSessionId:
+                  deviceSessionIdRef.current,
+
+                currentQuestion,
+
+                currentQuestionId:
+                  currentQuestionIdRef.current,
+
+                answers:
+                  Object.entries(
+                    latestAnswersRef.current
+                  ).map(
+                    ([
+                      questionId,
+                      answer,
+                    ]) => ({
+                      questionId,
+                      answer,
+                    })
+                  ),
+
+                markedForReview:
+                  latestReviewRef.current,
+
+                warnings:
+                  warningRef.current,
+              });
+
+            try {
+              void fetch(
+                `${cleanApiBase}/mock-test/progress`,
+                {
+                  method: "POST",
+                  headers:
+                    getBackendHeaders(),
+                  body,
+                  keepalive: true,
+                }
+              );
+            } catch {
+              // Local storage is the fallback.
+            }
+          }
         } catch {
           // Ignore.
         }
 
         /*
-         * Browser shows its own native refresh/close
-         * confirmation.
-         *
-         * NEVER call submitExamData here.
+         * Browser shows its own native warning.
+         * NEVER submit here.
          */
         event.preventDefault();
         event.returnValue = "";
@@ -3748,51 +4269,104 @@ useEffect(() => {
       );
     };
   }, [
-    answerStorageKey,
-    answers,
+    cleanApiBase,
     currentQuestion,
-    currentQuestionStorageKey,
-    markedForReview,
-    reviewStorageKey,
+    getBackendHeaders,
+    serverSessionReady,
+    studentId,
     submitted,
     timeLeft,
-    timerEndStorageKey,
-    timerStorageKey,
-    warningStorageKey,
+    writeLocalProgress,
   ]);
 
+  // ====================================================
+  // TAB SWITCH WARNING
+  //
+  // Switching away from exam:
+  // -> warning count +1
+  // -> progress immediately saved
+  // -> NEVER auto submit
+  // ====================================================
 
-    // ====================================================
-// VISIBILITY WARNING
-//
-// Refresh -> NO WARNING
-// Tab switch -> WARNING
-// ====================================================
-useEffect(() => {
-  if (submitted) {
-    return;
-  }
-
-  const handleVisibilityChange = () => {
-    // Tab switch ayina submit cheyyadu.
-    // Refresh ayina warning count cheyyadu.
-    if (document.visibilityState !== "visible") {
+  useEffect(() => {
+    if (submitted) {
       return;
     }
-  };
 
-  document.addEventListener(
-    "visibilitychange",
-    handleVisibilityChange
-  );
+    const handleVisibilityChange =
+      () => {
+        if (
+          document.visibilityState ===
+          "hidden"
+        ) {
+          wasHiddenRef.current =
+            true;
 
-  return () => {
-    document.removeEventListener(
+          return;
+        }
+
+        if (
+          document.visibilityState !==
+          "visible"
+        ) {
+          return;
+        }
+
+        if (
+          !wasHiddenRef.current
+        ) {
+          return;
+        }
+
+        wasHiddenRef.current =
+          false;
+
+        const nextWarnings =
+          warningRef.current + 1;
+
+        saveWarningCount(
+          nextWarnings
+        );
+
+        setSubmitError(
+          `Tab switch detected. Warning ${nextWarnings} recorded.`
+        );
+
+        void persistExamProgress({
+          nextAnswers:
+            latestAnswersRef.current,
+
+          nextReview:
+            latestReviewRef.current,
+
+          nextQuestionIndex:
+            currentQuestion,
+
+          nextQuestionId:
+            currentQuestionIdRef.current,
+
+          force: true,
+        });
+      };
+
+    document.addEventListener(
       "visibilitychange",
       handleVisibilityChange
     );
-  };
-}, [submitted]);
+
+    return () => {
+      document.removeEventListener(
+        "visibilitychange",
+        handleVisibilityChange
+      );
+    };
+  }, [
+    currentQuestion,
+    persistExamProgress,
+    saveWarningCount,
+    submitted,
+  ]);
+
   // ====================================================
   // RE-SYNC AFTER RETURNING TO TAB
   // ====================================================
@@ -3807,6 +4381,12 @@ useEffect(() => {
           !serverSessionReady ||
           !serverSessionIdRef.current ||
           !cleanApiBase
+        ) {
+          return;
+        }
+
+        if (
+          !isOnlineRef.current
         ) {
           return;
         }
@@ -3863,9 +4443,7 @@ useEffect(() => {
             hasSubmittedRef.current =
               true;
 
-            setSubmitted(
-              true
-            );
+            setSubmitted(true);
 
             return;
           }
@@ -3876,10 +4454,10 @@ useEffect(() => {
             data?.code ===
               "EXAM_TIME_EXPIRED"
           ) {
-            serverTimerReadyRef.current = true;
-            setTimeLeft(
-              0
-            );
+            serverTimerReadyRef.current =
+              true;
+
+            setTimeLeft(0);
 
             return;
           }
@@ -3896,9 +4474,21 @@ useEffect(() => {
                 )
               )
             );
+
+            serverTimerReadyRef.current =
+              true;
+          }
+
+          if (
+            data?.currentQuestionId
+          ) {
+            restoredQuestionIdRef.current =
+              String(
+                data.currentQuestionId
+              );
           }
         } catch {
-          // Normal heartbeat will retry.
+          // Normal heartbeat continues.
         }
       };
 
@@ -3947,304 +4537,260 @@ useEffect(() => {
   // ====================================================
   // ONE ACTIVE TAB
   // ====================================================
-// ====================================================
-// ONE ACTIVE TAB
-//
-// Refresh:
-//   SAME tab ID because sessionStorage survives refresh
-//
-// New tab:
-//   DIFFERENT sessionStorage -> DIFFERENT tab ID
-//
-// Therefore refresh will NOT show:
-// "another browser tab is controlling this exam"
-// ====================================================
 
-useEffect(() => {
-  if (submitted) {
-    return;
-  }
-
-  const tabStorageKey =
-    `${testKey}_exam_tab_id`;
-
-  let tabId = "";
-
-  try {
-    tabId =
-      sessionStorage.getItem(
-        tabStorageKey
-      ) || "";
-  } catch {
-    tabId = "";
-  }
-
-  // Create tab ID only once for this browser tab.
-  if (!tabId) {
-    const randomPart =
-      typeof globalThis.crypto
-        ?.randomUUID === "function"
-        ? globalThis.crypto.randomUUID()
-        : Math.random()
-            .toString(36)
-            .slice(2, 14);
-
-    tabId =
-      `${Date.now()}-${randomPart}`;
-
-    try {
-      sessionStorage.setItem(
-        tabStorageKey,
-        tabId
-      );
-    } catch {
-      // Ignore.
+  useEffect(() => {
+    if (submitted) {
+      return;
     }
-  }
 
-  examTabIdRef.current =
-    tabId;
+    const tabStorageKey =
+      `${testKey}_exam_tab_id`;
 
-  const registerTab = () => {
+    let tabId = "";
+
     try {
-      const existing =
-        localStorage.getItem(
-          activeTabStorageKey
-        );
+      tabId =
+        sessionStorage.getItem(
+          tabStorageKey
+        ) || "";
+    } catch {
+      tabId = "";
+    }
 
-      // ----------------------------------------------
-      // No active tab yet
-      // ----------------------------------------------
+    if (!tabId) {
+      const randomPart =
+        typeof globalThis
+          .crypto?.randomUUID ===
+        "function"
+          ? globalThis.crypto.randomUUID()
+          : Math.random()
+              .toString(36)
+              .slice(2, 14);
 
-      if (!existing) {
-        localStorage.setItem(
-          activeTabStorageKey,
-          JSON.stringify({
-            tabId,
-            timestamp: Date.now(),
-          })
-        );
-
-        setTabBlocked(false);
-        return true;
-      }
-
-      // ----------------------------------------------
-      // Read existing lock
-      // ----------------------------------------------
-
-      let parsed: any = null;
+      tabId =
+        `${Date.now()}-${randomPart}`;
 
       try {
-        parsed =
-          JSON.parse(existing);
+        sessionStorage.setItem(
+          tabStorageKey,
+          tabId
+        );
       } catch {
-        parsed = null;
+        // Ignore.
       }
+    }
 
-      const existingTabId =
-        String(
-          parsed?.tabId || ""
-        );
+    examTabIdRef.current =
+      tabId;
 
-      const existingTimestamp =
-        Number(
-          parsed?.timestamp || 0
-        );
+    const registerTab = () => {
+      try {
+        const existing =
+          localStorage.getItem(
+            activeTabStorageKey
+          );
 
-      const isFresh =
-        Boolean(
-          existingTabId &&
-            existingTimestamp >
-              Date.now() - 15000
-        );
+        if (!existing) {
+          localStorage.setItem(
+            activeTabStorageKey,
+            JSON.stringify({
+              tabId,
+              timestamp:
+                Date.now(),
+            })
+          );
 
-      // ----------------------------------------------
-      // SAME TAB
-      //
-      // This is what makes refresh safe.
-      // ----------------------------------------------
+          setTabBlocked(false);
+          return true;
+        }
 
-      if (
-        isFresh &&
-        existingTabId === tabId
-      ) {
+        let parsed: any = null;
+
+        try {
+          parsed =
+            JSON.parse(existing);
+        } catch {
+          parsed = null;
+        }
+
+        const existingTabId =
+          String(
+            parsed?.tabId || ""
+          );
+
+        const existingTimestamp =
+          Number(
+            parsed?.timestamp || 0
+          );
+
+        const isFresh =
+          Boolean(
+            existingTabId &&
+              existingTimestamp >
+                Date.now() - 15000
+          );
+
+        if (
+          isFresh &&
+          existingTabId ===
+            tabId
+        ) {
+          localStorage.setItem(
+            activeTabStorageKey,
+            JSON.stringify({
+              tabId,
+              timestamp:
+                Date.now(),
+            })
+          );
+
+          setTabBlocked(false);
+
+          setSubmitError(
+            (previous) =>
+              previous.includes(
+                "another browser tab"
+              )
+                ? ""
+                : previous
+          );
+
+          return true;
+        }
+
+        if (
+          isFresh &&
+          existingTabId !==
+            tabId
+        ) {
+          setTabBlocked(true);
+
+          setSubmitError(
+            "This exam is already open in another browser tab. Continue in the original tab."
+          );
+
+          return false;
+        }
+
         localStorage.setItem(
           activeTabStorageKey,
           JSON.stringify({
             tabId,
-            timestamp: Date.now(),
+            timestamp:
+              Date.now(),
           })
         );
 
         setTabBlocked(false);
 
-        /*
-         * Clear stale "another tab" message
-         * when the same tab is restored.
-         */
-        setSubmitError(
-          (previous) =>
-            previous.includes(
-              "another browser tab"
-            )
-              ? ""
-              : previous
-        );
-
+        return true;
+      } catch {
+        setTabBlocked(false);
         return true;
       }
+    };
 
-      // ----------------------------------------------
-      // DIFFERENT ACTIVE TAB
-      // ----------------------------------------------
+    registerTab();
 
-      if (
-        isFresh &&
-        existingTabId !== tabId
-      ) {
-        setTabBlocked(true);
+    const heartbeat =
+      window.setInterval(() => {
+        try {
+          const current =
+            localStorage.getItem(
+              activeTabStorageKey
+            );
 
-        setSubmitError(
-          "This exam is already open in another browser tab. Continue in the original tab."
-        );
+          if (!current) {
+            registerTab();
+            return;
+          }
 
-        return false;
-      }
+          let parsed: any = null;
 
-      // ----------------------------------------------
-      // OLD / EXPIRED LOCK
-      // ----------------------------------------------
+          try {
+            parsed =
+              JSON.parse(current);
+          } catch {
+            parsed = null;
+          }
 
-      localStorage.setItem(
-        activeTabStorageKey,
-        JSON.stringify({
-          tabId,
-          timestamp: Date.now(),
-        })
+          const currentTabId =
+            String(
+              parsed?.tabId || ""
+            );
+
+          if (
+            currentTabId ===
+            tabId
+          ) {
+            localStorage.setItem(
+              activeTabStorageKey,
+              JSON.stringify({
+                tabId,
+                timestamp:
+                  Date.now(),
+              })
+            );
+
+            setTabBlocked(false);
+
+            return;
+          }
+
+          setTabBlocked(true);
+        } catch {
+          // Ignore.
+        }
+      }, 5000);
+
+    return () => {
+      window.clearInterval(
+        heartbeat
       );
 
-      setTabBlocked(false);
-
-      return true;
-    } catch {
-      /*
-       * If localStorage is unavailable,
-       * don't lock the student out.
-       */
-      setTabBlocked(false);
-      return true;
-    }
-  };
-
-  registerTab();
-
-  const heartbeat =
-    window.setInterval(() => {
       try {
         const current =
           localStorage.getItem(
             activeTabStorageKey
           );
 
-        if (!current) {
-          registerTab();
-          return;
+        if (current) {
+          let parsed: any = null;
+
+          try {
+            parsed =
+              JSON.parse(current);
+          } catch {
+            parsed = null;
+          }
+
+          if (
+            String(
+              parsed?.tabId || ""
+            ) === tabId
+          ) {
+            localStorage.removeItem(
+              activeTabStorageKey
+            );
+          }
         }
-
-        let parsed: any = null;
-
-        try {
-          parsed =
-            JSON.parse(current);
-        } catch {
-          parsed = null;
-        }
-
-        const currentTabId =
-          String(
-            parsed?.tabId || ""
-          );
-
-        /*
-         * This tab still owns the lock.
-         */
-        if (
-          currentTabId === tabId
-        ) {
-          localStorage.setItem(
-            activeTabStorageKey,
-            JSON.stringify({
-              tabId,
-              timestamp: Date.now(),
-            })
-          );
-
-          setTabBlocked(false);
-          return;
-        }
-
-        /*
-         * Another tab owns the lock.
-         */
-        setTabBlocked(true);
       } catch {
         // Ignore.
       }
-    }, 5000);
+    };
+  }, [
+    activeTabStorageKey,
+    submitted,
+    testKey,
+  ]);
 
-  return () => {
-    window.clearInterval(
-      heartbeat
-    );
-
-    /*
-     * Remove lock only if THIS tab owns it.
-     */
-    try {
-      const current =
-        localStorage.getItem(
-          activeTabStorageKey
-        );
-
-      if (current) {
-        let parsed: any = null;
-
-        try {
-          parsed =
-            JSON.parse(current);
-        } catch {
-          parsed = null;
-        }
-
-        if (
-          String(
-            parsed?.tabId || ""
-          ) === tabId
-        ) {
-          localStorage.removeItem(
-            activeTabStorageKey
-          );
-        }
-      }
-    } catch {
-      // Ignore.
-    }
-  };
-}, [
-  activeTabStorageKey,
-  submitted,
-  testKey,
-]);
   // ====================================================
   // KEYBOARD
   // ====================================================
 
   useEffect(() => {
     const handleKeyboard =
-      (
-        event: KeyboardEvent
-      ) => {
+      (event: KeyboardEvent) => {
         if (
           submitted ||
           isSubmitting ||
@@ -4272,6 +4818,7 @@ useEffect(() => {
         ) {
           event.preventDefault();
           goNext();
+          return;
         }
 
         if (
@@ -4280,21 +4827,19 @@ useEffect(() => {
         ) {
           event.preventDefault();
           goPrevious();
+          return;
         }
 
         if (
           event.key ===
           "Escape"
         ) {
-          setShowSubmitModal(
-            false
-          );
+          setShowSubmitModal(false);
+          setImageViewerUrl("");
         }
 
         const number =
-          Number(
-            event.key
-          );
+          Number(event.key);
 
         if (
           number >= 1 &&
@@ -4339,94 +4884,64 @@ useEffect(() => {
 
   // ====================================================
   // EXIT
-  //
-  // IMPORTANT:
-  // Manual Exit DOES NOT auto-submit.
-  // It simply asks user to leave the exam.
   // ====================================================
 
   const handleExit =
     useCallback(() => {
-      if (
-        isSubmitting
-      ) {
+      if (isSubmitting) {
         return;
       }
 
-      if (
-        submitted
-      ) {
+      if (submitted) {
         onBack();
         return;
       }
 
-      /*
-       * No auto submit here.
-       *
-       * Save current local state first.
-       */
-      try {
-        sessionStorage.setItem(
-          answerStorageKey,
-          JSON.stringify(
-            answers
-          )
-        );
-
-        sessionStorage.setItem(
-          reviewStorageKey,
-          JSON.stringify(
-            markedForReview
-          )
-        );
-
-        sessionStorage.setItem(
-          currentQuestionStorageKey,
-          String(
-            currentQuestion
-          )
-        );
-
-        sessionStorage.setItem(
-          timerStorageKey,
-          String(
-            timeLeft
-          )
-        );
-
-        if (
-          timeLeft > 0
-        ) {
-          sessionStorage.setItem(
-            timerEndStorageKey,
-            String(
-              Date.now() +
-                timeLeft *
-                  1000
-            )
-          );
-        }
-      } catch {
-        // Ignore.
-      }
+      writeLocalProgress(
+        latestAnswersRef.current,
+        latestReviewRef.current,
+        currentQuestionIdRef.current,
+        currentQuestion,
+        timeLeft
+      );
 
       setSubmitError(
         "Exit is disabled while the exam is in progress. Your session and progress will be restored when you return."
       );
     }, [
-      answerStorageKey,
-      answers,
       currentQuestion,
-      currentQuestionStorageKey,
       isSubmitting,
-      markedForReview,
       onBack,
-      reviewStorageKey,
       submitted,
       timeLeft,
-      timerEndStorageKey,
-      timerStorageKey,
+      writeLocalProgress,
     ]);
+
+  // ====================================================
+  // IMAGE VIEWER
+  // ====================================================
+
+  const openImageViewer =
+    useCallback(
+      (
+        url: string,
+        alt: string
+      ) => {
+        if (!url) {
+          return;
+        }
+
+        setImageViewerUrl(url);
+        setImageViewerAlt(alt);
+      },
+      []
+    );
+
+  const closeImageViewer =
+    useCallback(() => {
+      setImageViewerUrl("");
+      setImageViewerAlt("");
+    }, []);
 
   // ====================================================
   // RESULT HISTORY
@@ -4435,17 +4950,53 @@ useEffect(() => {
   const handleGoToHistory =
     useCallback(() => {
       window.location.assign(
-         "/exam-history"
+        "/exam-history"
       );
     }, []);
+
+  // ====================================================
+  // SECTION SELECT
+  // ====================================================
+
+  const handleSectionChange =
+    useCallback(
+      (section: string) => {
+        setActiveSection(section);
+
+        if (
+          section === "ALL"
+        ) {
+          return;
+        }
+
+        const firstIndex =
+          displayQuestions.findIndex(
+            (question) =>
+              getSubjectLabel(
+                question
+              ) === section
+          );
+
+        if (
+          firstIndex >= 0
+        ) {
+          goToQuestion(
+            firstIndex
+          );
+        }
+      },
+      [
+        displayQuestions,
+        getSubjectLabel,
+        goToQuestion,
+      ]
+    );
 
   // ====================================================
   // EMPTY
   // ====================================================
 
-  if (
-    !displayQuestions.length
-  ) {
+  if (!displayQuestions.length) {
     return (
       <div className="exam-page exam-empty">
         <div className="exam-empty-card">
@@ -4476,9 +5027,6 @@ useEffect(() => {
 
   // ====================================================
   // RESULT SCREEN
-  //
-  // REVIEW IS NOT SHOWN HERE.
-  // Student goes to /results.
   // ====================================================
 
   if (
@@ -4491,7 +5039,6 @@ useEffect(() => {
     return (
       <div className="exam-page result-page">
         <div className="result-card">
-
           <div className="result-success-icon">
             <CheckCircle2 size={42} />
           </div>
@@ -4510,17 +5057,9 @@ useEffect(() => {
             successfully.
           </p>
 
-          {resultSummary.autoSubmitted && (
-            <div className="result-info">
-              <Clock3 size={18} />
-
-              <span>
-                The exam was automatically
-                submitted because the timer
-                reached 00:00.
-              </span>
-            </div>
-          )}
+          
+             
+            
 
           {!published ? (
             <>
@@ -4841,22 +5380,17 @@ useEffect(() => {
         } as React.CSSProperties
       }
     >
-
       {/* ==================================================
           HEADER
       ================================================== */}
 
       <header className="exam-header">
-
         <div className="exam-header-left">
-
           <button
             className="header-back-btn"
             onClick={handleExit}
             title="Exit exam"
-            disabled={
-              isSubmitting
-            }
+            disabled={isSubmitting}
           >
             <ChevronLeft size={20} />
           </button>
@@ -4866,7 +5400,6 @@ useEffect(() => {
           </div>
 
           <div className="exam-heading">
-
             <div className="exam-title-row">
               <h3>
                 {subject} Mock Test
@@ -4890,12 +5423,10 @@ useEffect(() => {
                 "Full Assessment"}{" "}
               • {className}
             </span>
-
           </div>
         </div>
 
         <div className="exam-header-right">
-
           <div className="live-status">
             <span />
             LIVE
@@ -4925,45 +5456,61 @@ useEffect(() => {
             </div>
           </div>
 
+          <div
+            className={`exam-save-status ${
+              saveState
+            }`}
+            title={saveStateLabel}
+          >
+            {saveState ===
+            "saving" ? (
+              <Loader2
+                size={14}
+                className="spin"
+              />
+            ) : saveState ===
+              "offline" ? (
+              <WifiOff size={14} />
+            ) : (
+              <Check size={14} />
+            )}
+
+            <span>
+              {saveStateLabel}
+            </span>
+          </div>
+
+          <div
+            className={`exam-connection-status ${
+              isOnline
+                ? "online"
+                : "offline"
+            }`}
+            title={
+              isOnline
+                ? "Internet connected"
+                : "No internet connection"
+            }
+          >
+            {isOnline ? (
+              <Wifi size={14} />
+            ) : (
+              <WifiOff size={14} />
+            )}
+          </div>
+
           <button
             className="header-exit-btn"
             onClick={handleExit}
-            disabled={
-              isSubmitting
-            }
+            disabled={isSubmitting}
           >
             Exit
           </button>
-
         </div>
       </header>
 
-      {/* ==================================================
-          SECURITY BANNER
-      ================================================== */}
+      
 
-      <div
-        className="exam-security-banner"
-        role="alert"
-      >
-        <div className="exam-security-icon">
-          <AlertTriangle size={18} />
-        </div>
-
-        <div className="exam-security-content">
-          <strong>
-            EXAM IN PROGRESS
-          </strong>
-
-          <span>
-            Do not leave this exam page.
-            Refresh safely restores your
-            saved session and progress.
-            The exam is automatically submitted
-            only when the timer reaches 00:00.
-          </span>
-        </div>
-      </div>
 
       {/* ==================================================
           SERVER INITIALIZING
@@ -4985,25 +5532,6 @@ useEffect(() => {
           </span>
         </div>
       )}
-
-      {/* ==================================================
-          SERVER READY
-      ================================================== */}
-
-      {!serverInitializing &&
-        serverSessionReady &&
-        !sessionNotice && (
-          <div
-            className="exam-security-error"
-            role="status"
-          >
-            <ShieldCheck size={16} />
-
-            <span>
-              Secure exam session is active.
-            </span>
-          </div>
-        )}
 
       {/* ==================================================
           SESSION NOTICE
@@ -5083,17 +5611,67 @@ useEffect(() => {
       ================================================== */}
 
       <div className="exam-body">
-
         {/* ==================================================
             QUESTION PANEL
         ================================================== */}
 
         <main className="question-panel">
+          {/* SECTION NAVIGATION */}
+
+          {sections.length > 1 && (
+            <div className="exam-section-tabs">
+              <button
+                type="button"
+                className={
+                  activeSection === "ALL"
+                    ? "active"
+                    : ""
+                }
+                onClick={() =>
+                  handleSectionChange(
+                    "ALL"
+                  )
+                }
+                disabled={
+                  tabBlocked ||
+                  isSubmitting ||
+                  !serverSessionReady
+                }
+              >
+                All
+              </button>
+
+              {sections.map(
+                (section) => (
+                  <button
+                    key={section}
+                    type="button"
+                    className={
+                      activeSection ===
+                      section
+                        ? "active"
+                        : ""
+                    }
+                    onClick={() =>
+                      handleSectionChange(
+                        section
+                      )
+                    }
+                    disabled={
+                      tabBlocked ||
+                      isSubmitting ||
+                      !serverSessionReady
+                    }
+                  >
+                    {section}
+                  </button>
+                )
+              )}
+            </div>
+          )}
 
           <div className="question-topbar">
-
             <div className="question-topbar-left">
-
               <div className="question-progress-label">
                 QUESTION{" "}
                 {
@@ -5106,9 +5684,18 @@ useEffect(() => {
               </div>
 
               <div className="question-subject-badge">
-                {currentQ?.subject ||
-                  subject}
+                {getSubjectLabel(
+                  currentQ
+                )}
               </div>
+
+              {currentQ?.chapter ||
+                currentQ?.chapterName ? (
+                <div className="question-chapter-label">
+                  {currentQ.chapter ||
+                    currentQ.chapterName}
+                </div>
+              ) : null}
 
               <div className="question-progress">
                 <div
@@ -5124,11 +5711,9 @@ useEffect(() => {
                   }}
                 />
               </div>
-
             </div>
 
             <div className="question-top-actions">
-
               <button
                 className={`small-action ${
                   markedForReview[
@@ -5155,14 +5740,12 @@ useEffect(() => {
                   ? "Review Marked"
                   : "Mark Review"}
               </button>
-
             </div>
           </div>
 
           {/* QUESTION */}
 
           <section className="question-content">
-
             <div className="question-number">
               Q
               {
@@ -5171,7 +5754,6 @@ useEffect(() => {
             </div>
 
             <div className="question-main">
-
               <h1>
                 {getQuestionText(
                   currentQ
@@ -5189,127 +5771,155 @@ useEffect(() => {
                     className="question-image-wrapper"
                     key={`${currentQuestionId}-image-${index}`}
                   >
-                    <img
-                      src={imageUrl}
-                      alt={`Question ${
-                        currentDisplayQuestionNumber
-                      } figure ${
-                        index + 1
-                      }`}
-                      className="question-image"
-                      loading="lazy"
-                      onError={(
-                        event
-                      ) => {
-                        event.currentTarget.style.display =
-                          "none";
-                      }}
-                    />
+                    <button
+                      type="button"
+                      className="question-image-button"
+                      onClick={() =>
+                        openImageViewer(
+                          imageUrl,
+                          `Question ${
+                            currentDisplayQuestionNumber
+                          } figure ${
+                            index + 1
+                          }`
+                        )
+                      }
+                      title="Open image"
+                    >
+                      <img
+                        src={imageUrl}
+                        alt={`Question ${
+                          currentDisplayQuestionNumber
+                        } figure ${
+                          index + 1
+                        }`}
+                        className="question-image"
+                        loading="lazy"
+                        onError={(
+                          event
+                        ) => {
+                          event.currentTarget.style.display =
+                            "none";
+                        }}
+                      />
+
+                      <span className="question-image-zoom">
+                        <Maximize2
+                          size={16}
+                        />
+                        View
+                      </span>
+                    </button>
                   </div>
                 )
               )}
 
               <div className="question-hint">
-                Select your option
+                Select your option • Keyboard
+                1–4 also works
               </div>
-
             </div>
-
           </section>
 
-         
-           
-{/* OPTIONS */}
+          {/* OPTIONS */}
 
-<div className="options-list">
+          <div className="options-list">
+            {currentQ?.options?.map(
+              (
+                option,
+                index
+              ) => {
+                const optionText =
+                  getOptionText(
+                    option
+                  );
 
-  {currentQ?.options?.map(
-    (
-      option,
-      index
-    ) => {
-      const optionText =
-        getOptionText(
-          option
-        );
+                const optionImage =
+                  getOptionImage(
+                    option
+                  );
 
-      const optionImage =
-        getOptionImage(
-          option
-        );
+                const isSelected =
+                  answers[
+                    currentQuestionId
+                  ] === optionText;
 
-      const isSelected =
-        answers[
-          currentQuestionId
-        ] ===
-        optionText;
+                const optionNumber =
+                  index + 1;
 
-      const optionNumber =
-        index + 1;
+                return (
+                  <button
+                    key={`${currentQuestionId}-${index}`}
+                    type="button"
+                    className={`answer-option ${
+                      isSelected
+                        ? "selected"
+                        : ""
+                    }`}
+                    onClick={() =>
+                      handleSelectOption(
+                        optionText
+                      )
+                    }
+                    disabled={
+                      tabBlocked ||
+                      submitted ||
+                      isSubmitting ||
+                      !serverSessionReady
+                    }
+                  >
+                    <span className="option-letter">
+                      {isSelected ? (
+                        <Check size={16} />
+                      ) : (
+                        optionNumber
+                      )}
+                    </span>
 
-      return (
-        <button
-          key={`${currentQuestionId}-${index}`}
-          type="button"
-          className={`answer-option ${
-            isSelected
-              ? "selected"
-              : ""
-          }`}
-          onClick={() =>
-            handleSelectOption(
-              optionText
-            )
-          }
-          disabled={
-            tabBlocked ||
-            submitted ||
-            isSubmitting ||
-            !serverSessionReady
-          }
-        >
+                    <span className="option-text">
+                      {optionText}
 
-          <span className="option-letter">
-            {isSelected ? (
-              <Check size={16} />
-            ) : (
-              optionNumber
+                      {optionImage && (
+                        <button
+                          type="button"
+                          className="option-image-open"
+                          onClick={(
+                            event
+                          ) => {
+                            event.stopPropagation();
+
+                            openImageViewer(
+                              optionImage,
+                              `Option ${optionNumber}`
+                            );
+                          }}
+                        >
+                          <img
+                            src={
+                              optionImage
+                            }
+                            alt={`Option ${optionNumber}`}
+                            className="option-image"
+                            loading="lazy"
+                          />
+                        </button>
+                      )}
+                    </span>
+
+                    {isSelected && (
+                      <span className="selected-check">
+                        <Check size={15} />
+                      </span>
+                    )}
+                  </button>
+                );
+              }
             )}
-          </span>
-
-          <span className="option-text">
-            {optionText}
-
-            {optionImage && (
-              <img
-                src={
-                  optionImage
-                }
-                alt={`Option ${optionNumber}`}
-                className="option-image"
-                loading="lazy"
-              />
-            )}
-          </span>
-
-          {isSelected && (
-            <span className="selected-check">
-              <Check size={15} />
-            </span>
-          )}
-
-        </button>
-      );
-    }
-  )}
-
-</div>
-
+          </div>
 
           {/* ACTION BAR */}
 
           <div className="question-actions">
-
             <button
               className="text-action danger-text"
               onClick={
@@ -5319,7 +5929,10 @@ useEffect(() => {
                 tabBlocked ||
                 submitted ||
                 isSubmitting ||
-                !serverSessionReady
+                !serverSessionReady ||
+                !answers[
+                  currentQuestionId
+                ]
               }
             >
               <RotateCcw size={15} />
@@ -5346,13 +5959,11 @@ useEffect(() => {
                 ? "Marked • Next"
                 : "Mark & Next"}
             </button>
-
           </div>
 
           {/* NAVIGATION */}
 
           <div className="question-navigation">
-
             <button
               className="nav-btn secondary"
               disabled={
@@ -5371,7 +5982,6 @@ useEffect(() => {
             </button>
 
             <div className="keyboard-hint">
-
               <span>
                 ← →
               </span>
@@ -5386,7 +5996,8 @@ useEffect(() => {
             </div>
 
             {currentQuestion <
-            displayQuestions.length - 1 ? (
+            displayQuestions.length -
+              1 ? (
               <button
                 className="nav-btn primary"
                 onClick={
@@ -5423,9 +6034,7 @@ useEffect(() => {
                 <Send size={17} />
               </button>
             )}
-
           </div>
-
         </main>
 
         {/* ==================================================
@@ -5434,11 +6043,9 @@ useEffect(() => {
 
         {showPalette && (
           <aside className="exam-sidebar">
-
             {/* STUDENT */}
 
             <div className="student-card">
-
               <div className="student-avatar">
                 {studentName
                   ?.charAt(0)
@@ -5447,7 +6054,6 @@ useEffect(() => {
               </div>
 
               <div className="student-info">
-
                 <strong>
                   {studentName}
                 </strong>
@@ -5455,20 +6061,17 @@ useEffect(() => {
                 <span>
                   {studentId}
                 </span>
-
               </div>
 
               <ShieldCheck
                 size={17}
                 className="verified-icon"
               />
-
             </div>
 
             {/* MAIN STATS */}
 
             <div className="exam-stats">
-
               <div className="stat-card answered">
                 <strong>
                   {answeredCount}
@@ -5498,13 +6101,11 @@ useEffect(() => {
                   Remaining
                 </span>
               </div>
-
             </div>
 
             {/* SECURITY STATS */}
 
             <div className="exam-stats">
-
               <div className="stat-card review">
                 <strong>
                   {warningCount}
@@ -5538,13 +6139,50 @@ useEffect(() => {
                   Server Time
                 </span>
               </div>
+            </div>
 
+            {/* SAVE STATUS */}
+
+            <div className="sidebar-save-card">
+              <div>
+                {saveState ===
+                "saving" ? (
+                  <Loader2
+                    size={15}
+                    className="spin"
+                  />
+                ) : saveState ===
+                  "offline" ? (
+                  <WifiOff size={15} />
+                ) : (
+                  <CheckCircle2
+                    size={15}
+                  />
+                )}
+              </div>
+
+              <span>
+                <strong>
+                  {saveState ===
+                  "saving"
+                    ? "Saving progress"
+                    : saveState ===
+                      "offline"
+                    ? "Offline backup active"
+                    : "Progress saved"}
+                </strong>
+
+                <small>
+                  {isOnline
+                    ? "Server sync enabled"
+                    : "Will sync when connection returns"}
+                </small>
+              </span>
             </div>
 
             {/* PALETTE HEADER */}
 
             <div className="palette-header">
-
               <div>
                 <h4>
                   Question Palette
@@ -5556,13 +6194,11 @@ useEffect(() => {
               </div>
 
               <LayoutGrid size={18} />
-
             </div>
 
             {/* PALETTE */}
 
             <div className="question-palette">
-
               {displayQuestions.map(
                 (
                   question,
@@ -5624,7 +6260,7 @@ useEffect(() => {
                           : ""
                       }`}
                       onClick={() =>
-                        setCurrentQuestion(
+                        goToQuestion(
                           index
                         )
                       }
@@ -5635,20 +6271,67 @@ useEffect(() => {
                       }
                       title={`Question ${
                         index + 1
-                      }`}
+                      } • ${getSubjectLabel(
+                        question
+                      )}`}
                     >
                       {index + 1}
                     </button>
                   );
                 }
               )}
-
             </div>
+
+            {/* SECTION FILTER */}
+
+            {sections.length > 1 && (
+              <div className="palette-section-summary">
+                <strong>
+                  Sections
+                </strong>
+
+                <div>
+                  {sections.map(
+                    (
+                      section
+                    ) => {
+                      const sectionCount =
+                        displayQuestions.filter(
+                          (
+                            question
+                          ) =>
+                            getSubjectLabel(
+                              question
+                            ) === section
+                        ).length;
+
+                      return (
+                        <button
+                          key={section}
+                          type="button"
+                          onClick={() =>
+                            handleSectionChange(
+                              section
+                            )
+                          }
+                        >
+                          {section}
+                          <span>
+                            {
+                              sectionCount
+                            }
+                          </span>
+                        </button>
+                      );
+                    }
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* LEGEND */}
 
             <div className="palette-legend">
-
               <div>
                 <span className="legend-dot answered-dot" />
                 Answered
@@ -5664,6 +6347,10 @@ useEffect(() => {
                 Not Answered
               </div>
 
+              <div>
+                <span className="legend-dot answered-review-dot" />
+                Answered + Review
+              </div>
             </div>
 
             {/* SUBMIT */}
@@ -5698,12 +6385,9 @@ useEffect(() => {
               <ArrowRight
                 size={17}
               />
-
             </button>
-
           </aside>
         )}
-
       </div>
 
       {/* ==================================================
@@ -5727,7 +6411,58 @@ useEffect(() => {
             displayQuestions.length
           }
         </span>
+
+        <small>
+          {saveState ===
+          "saving"
+            ? "Saving"
+            : saveState ===
+              "offline"
+            ? "Offline"
+            : "Saved"}
+        </small>
       </button>
+
+      {/* ==================================================
+          IMAGE VIEWER
+      ================================================== */}
+
+      {imageViewerUrl && (
+        <div
+          className="image-viewer-overlay"
+          onClick={
+            closeImageViewer
+          }
+        >
+          <button
+            type="button"
+            className="image-viewer-close"
+            onClick={
+              closeImageViewer
+            }
+            aria-label="Close image"
+          >
+            <X size={20} />
+          </button>
+
+          <div
+            className="image-viewer-card"
+            onClick={(event) =>
+              event.stopPropagation()
+            }
+          >
+            <img
+              src={imageViewerUrl}
+              alt={imageViewerAlt}
+              className="image-viewer-image"
+            />
+
+            <span>
+              {imageViewerAlt}
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* ==================================================
           SUBMIT MODAL
@@ -5743,14 +6478,12 @@ useEffect(() => {
             )
           }
         >
-
           <div
             className="submit-modal"
             onClick={(event) =>
               event.stopPropagation()
             }
           >
-
             <button
               className="modal-close"
               onClick={() =>
@@ -5786,7 +6519,6 @@ useEffect(() => {
             </p>
 
             <div className="submit-summary">
-
               <div>
                 <span>
                   Total
@@ -5838,11 +6570,9 @@ useEffect(() => {
                   {warningCount}
                 </strong>
               </div>
-
             </div>
 
-            {unansweredCount >
-              0 && (
+            {unansweredCount > 0 && (
               <div className="submit-warning">
                 <AlertTriangle
                   size={17}
@@ -5866,37 +6596,44 @@ useEffect(() => {
 
             {timeLeft <= 60 &&
               timeLeft > 0 && (
-              <div className="submit-warning">
+                <div className="submit-warning">
+                  <Clock3 size={17} />
 
-                <Clock3 size={17} />
+                  <span>
+                    Only{" "}
+                    <strong>
+                      {formatTime(
+                        timeLeft
+                      )}
+                    </strong>{" "}
+                    remaining.
+                  </span>
+                </div>
+              )}
+
+            {!isOnline && (
+              <div className="submit-warning">
+                <WifiOff size={17} />
 
                 <span>
-                  Only{" "}
-                  <strong>
-                    {formatTime(
-                      timeLeft
-                    )}
-                  </strong>{" "}
-                  remaining.
+                  Internet connection is
+                  currently unavailable.
+                  Reconnect before submitting.
                 </span>
-
               </div>
             )}
 
             {submitError && (
               <div className="submit-error">
-
                 <AlertTriangle
                   size={17}
                 />
 
                 {submitError}
-
               </div>
             )}
 
             <div className="modal-actions">
-
               <button
                 className="modal-cancel"
                 disabled={
@@ -5915,7 +6652,8 @@ useEffect(() => {
                 className="modal-submit"
                 disabled={
                   isSubmitting ||
-                  !serverSessionReady
+                  !serverSessionReady ||
+                  !isOnline
                 }
                 onClick={() =>
                   void submitExamData(
@@ -5942,11 +6680,8 @@ useEffect(() => {
                   </>
                 )}
               </button>
-
             </div>
-
           </div>
-
         </div>
       )}
 
@@ -5961,9 +6696,7 @@ useEffect(() => {
             zIndex: 9999,
           }}
         >
-
           <div className="submit-modal">
-
             <div className="modal-icon">
               <Loader2
                 size={25}
@@ -5987,12 +6720,10 @@ useEffect(() => {
               server. Please do not refresh
               this page.
             </p>
-
           </div>
-
         </div>
       )}
-
     </div>
   );
 }
+

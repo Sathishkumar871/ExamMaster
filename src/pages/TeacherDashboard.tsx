@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
+import { clearAuthSession } from "../services/session";
 
 import "./TeacherDashboard.css";
 
@@ -142,24 +143,10 @@ export default function TeacherDashboard() {
       data?.code === "UNAUTHORIZED" ||
       data?.code === "TOKEN_EXPIRED"
     ) {
-      localStorage.removeItem(
-        "staffToken"
-      );
-
-      localStorage.removeItem(
-        "teacherToken"
-      );
-
-      localStorage.removeItem(
-        "staff"
-      );
-
-      localStorage.removeItem(
-        "teacher"
-      );
+      clearAuthSession();
 
       navigate(
-        "/management/login?session=expired",
+        "/teacher/login?session=expired",
         {
           replace: true,
         }
@@ -177,7 +164,7 @@ export default function TeacherDashboard() {
 
   useEffect(() => {
     if (!staffToken) {
-      navigate("/management/login", {
+      navigate("/teacher/login", {
         replace: true,
       });
 
@@ -201,7 +188,7 @@ export default function TeacherDashboard() {
   const fetchStudents = async () => {
     try {
       if (!staffToken) {
-        navigate("/management/login", {
+        navigate("/teacher/login", {
           replace: true,
         });
 
@@ -555,24 +542,10 @@ export default function TeacherDashboard() {
   // ==========================================================
 
   const logout = () => {
-    localStorage.removeItem(
-      "staffToken"
-    );
-
-    localStorage.removeItem(
-      "teacherToken"
-    );
-
-    localStorage.removeItem(
-      "staff"
-    );
-
-    localStorage.removeItem(
-      "teacher"
-    );
+    clearAuthSession();
 
     navigate(
-      "/management/login",
+      "/teacher/login",
       {
         replace: true,
       }

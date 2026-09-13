@@ -3,21 +3,19 @@
    STG PU COLLEGE
    SIGNATURE PREMIUM NAVBAR
    ------------------------------------------------------------
-   BRAND:
-   STG          -> THICK ORANGE
-   PU COLLEGE   -> LIGHT BROWN
-
-   DESIGN:
+   STYLE:
    Premium Institutional
    Modern Luxury
    Clean Glass
+   Espresso + Cocoa + Champagne
+   Orange only as STG identity accent
+   Smooth Interaction
    Mobile First
-   Professional
 ============================================================ */
 
 
 /* ============================================================
-   ROOT
+   ROOT DESIGN TOKENS
 ============================================================ */
 
 :root {
@@ -26,48 +24,65 @@
   --stg-orange-light: #ed8552;
 
   --stg-brown-light: #a27b66;
+  --stg-brown-soft: #8f6e5d;
   --stg-brown: #805e4b;
   --stg-brown-dark: #5d3d2d;
 
+  --stg-cocoa: #493427;
   --stg-espresso: #271711;
+  --stg-espresso-2: #211610;
 
   --stg-ivory: #fffdf9;
   --stg-ivory-2: #faf6f0;
   --stg-ivory-3: #f2e9df;
 
+  --stg-champagne: #d7bc8b;
+  --stg-champagne-light: #ead9b9;
   --stg-gold: #c89a56;
   --stg-gold-light: #ead4ab;
 
   --stg-muted: #918075;
 
+  --stg-green: #347353;
+  --stg-danger: #a44747;
+
   --stg-border:
     rgba(79, 50, 34, 0.075);
 
+  --stg-border-strong:
+    rgba(79, 50, 34, 0.12);
+
+  --stg-border-champagne:
+    rgba(200, 154, 86, 0.18);
+
   --stg-border-orange:
-    rgba(216, 90, 24, 0.2);
+    rgba(216, 90, 24, 0.18);
 
   --stg-shadow-xs:
     0 3px 10px rgba(48, 29, 18, 0.035);
 
   --stg-shadow-sm:
-    0 6px 18px rgba(48, 29, 18, 0.05);
+    0 7px 20px rgba(48, 29, 18, 0.06);
 
   --stg-shadow-md:
-    0 12px 32px rgba(48, 29, 18, 0.075);
+    0 13px 35px rgba(48, 29, 18, 0.085);
 
   --stg-shadow-lg:
-    0 24px 60px rgba(48, 29, 18, 0.13);
+    0 24px 65px rgba(48, 29, 18, 0.14);
 
   --stg-shadow-xl:
-    0 30px 80px rgba(48, 29, 18, 0.16);
+    0 32px 90px rgba(48, 29, 18, 0.18);
 
   --stg-ease:
-    cubic-bezier(0.2, 0.7, 0.2, 1);
+    cubic-bezier(0.2, 0.75, 0.2, 1);
+
+  --stg-fast:
+    cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 
 /* ============================================================
-   RESET
+   NAVBAR RESET
 ============================================================ */
 
 .navbar,
@@ -82,7 +97,6 @@
 
 .navbar {
   position: relative;
-
   z-index: 9999;
 
   width: 100%;
@@ -101,7 +115,7 @@
     linear-gradient(
       180deg,
       rgba(255, 255, 255, 0.99) 0%,
-      rgba(255, 253, 249, 0.99) 58%,
+      rgba(255, 253, 249, 0.985) 50%,
       rgba(248, 243, 237, 0.98) 100%
     );
 
@@ -133,8 +147,8 @@
   position: absolute;
 
   top: 0;
-  left: 6%;
-  right: 6%;
+  left: 7%;
+  right: 7%;
 
   height: 1px;
 
@@ -144,9 +158,11 @@
     linear-gradient(
       90deg,
       transparent,
-      rgba(216, 90, 24, 0.16) 16%,
-      rgba(216, 90, 24, 0.42) 50%,
-      rgba(216, 90, 24, 0.16) 84%,
+      rgba(216, 90, 24, 0.12) 12%,
+      rgba(216, 90, 24, 0.30) 34%,
+      rgba(200, 154, 86, 0.48) 50%,
+      rgba(216, 90, 24, 0.30) 66%,
+      rgba(216, 90, 24, 0.12) 88%,
       transparent
     );
 
@@ -155,7 +171,7 @@
 
 
 /* ============================================================
-   RIGHT EDGE ACCENT
+   RIGHT EDGE SIGNATURE LIGHT
 ============================================================ */
 
 .navbar::after {
@@ -175,9 +191,9 @@
     linear-gradient(
       180deg,
       transparent,
-      rgba(216, 90, 24, 0.25) 22%,
-      rgba(200, 154, 86, 0.6) 50%,
-      rgba(216, 90, 24, 0.25) 78%,
+      rgba(216, 90, 24, 0.20) 20%,
+      rgba(200, 154, 86, 0.68) 50%,
+      rgba(216, 90, 24, 0.20) 80%,
       transparent
     );
 
@@ -187,15 +203,16 @@
   pointer-events: none;
 }
 
+
 @keyframes stg-edge-pulse {
   0%,
   100% {
-    opacity: 0.3;
+    opacity: 0.22;
     transform: scaleY(0.72);
   }
 
   50% {
-    opacity: 0.9;
+    opacity: 0.85;
     transform: scaleY(1);
   }
 }
@@ -207,7 +224,6 @@
 
 .logo-section {
   flex: 0 0 auto;
-
   min-width: 0;
 }
 
@@ -233,17 +249,19 @@
   border-radius: 18px;
 
   color: inherit;
-
   text-decoration: none;
 
   overflow: hidden;
 
+  transform: translateZ(0);
+
   transition:
-    transform 170ms var(--stg-ease);
+    transform 220ms var(--stg-ease),
+    filter 220ms ease;
 }
 
 
-/* subtle hover surface */
+/* hover glass layer */
 
 .brand-link::before {
   content: "";
@@ -257,8 +275,8 @@
   background:
     linear-gradient(
       135deg,
-      rgba(255, 255, 255, 0.9),
-      rgba(248, 237, 226, 0.6)
+      rgba(255, 255, 255, 0.94),
+      rgba(248, 237, 226, 0.60)
     );
 
   border:
@@ -267,30 +285,30 @@
   opacity: 0;
 
   transition:
-    opacity 150ms ease;
+    opacity 200ms ease;
 }
 
 
-/* GOLD SHINE SWEEP */
+/* premium shine */
 
 .brand-link::after {
   content: "";
 
   position: absolute;
 
-  top: -25%;
+  top: -30%;
   left: -85%;
 
-  width: 35%;
-  height: 150%;
+  width: 34%;
+  height: 160%;
 
   background:
     linear-gradient(
       90deg,
       transparent,
-      rgba(230, 197, 135, 0.13),
-      rgba(255, 255, 255, 0.72),
-      rgba(230, 197, 135, 0.13),
+      rgba(230, 197, 135, 0.08),
+      rgba(255, 255, 255, 0.78),
+      rgba(230, 197, 135, 0.08),
       transparent
     );
 
@@ -303,9 +321,19 @@
 }
 
 
-/*
-   One premium shine pass when brand is hovered/focused.
-*/
+.brand-link:hover {
+  transform:
+    translateY(-1px);
+
+  filter:
+    saturate(1.02);
+}
+
+
+.brand-link:hover::before {
+  opacity: 1;
+}
+
 
 .brand-link:hover::after,
 .brand-link:focus-visible::after {
@@ -314,6 +342,7 @@
   animation:
     stg-brand-shine 900ms ease forwards;
 }
+
 
 @keyframes stg-brand-shine {
   from {
@@ -325,25 +354,13 @@
   }
 }
 
-.brand-link:hover::before {
-  opacity: 1;
-}
-
-.brand-link:hover {
-  transform:
-    translateY(-1px);
-}
-
 
 /* ============================================================
-   LOGO
-   ------------------------------------------------------------
-   NO DECORATIVE BORDER
+   COLLEGE LOGO
 ============================================================ */
 
 .college-logo {
   position: relative;
-
   z-index: 2;
 
   width: 58px;
@@ -356,7 +373,6 @@
   object-fit: cover;
 
   border: 0;
-
   outline: 0;
 
   padding: 0;
@@ -366,20 +382,29 @@
   background: transparent;
 
   box-shadow:
-    0 8px 20px rgba(50, 31, 20, 0.11);
+    0 8px 20px rgba(50, 31, 20, 0.11),
+    0 1px 1px rgba(255, 255, 255, 0.5);
+
+  transform:
+    translateZ(0);
 
   transition:
-    transform 180ms var(--stg-ease),
-    box-shadow 180ms ease;
+    transform 220ms var(--stg-ease),
+    box-shadow 220ms ease,
+    filter 220ms ease;
 }
+
 
 .brand-link:hover .college-logo {
   transform:
-    scale(1.035)
+    scale(1.04)
     rotate(-1deg);
 
   box-shadow:
-    0 12px 27px rgba(50, 31, 20, 0.15);
+    0 13px 30px rgba(50, 31, 20, 0.15);
+
+  filter:
+    saturate(1.04);
 }
 
 
@@ -389,7 +414,6 @@
 
 .college-brand {
   position: relative;
-
   z-index: 3;
 
   min-width: 0;
@@ -430,7 +454,8 @@
 
 
 /* ============================================================
-   STG — STRONG ORANGE
+   STG WORDMARK
+   Orange is reserved mainly for identity
 ============================================================ */
 
 .brand-stg {
@@ -460,11 +485,28 @@
   text-shadow:
     0 1px 0 rgba(255, 255, 255, 0.78),
     0 2px 3px rgba(140, 52, 12, 0.14);
+
+  transition:
+    color 180ms ease,
+    text-shadow 180ms ease;
+}
+
+
+.brand-link:hover .brand-stg {
+  color:
+    var(--stg-orange-dark);
+
+  -webkit-text-fill-color:
+    var(--stg-orange-dark);
+
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.85),
+    0 3px 7px rgba(140, 52, 12, 0.17);
 }
 
 
 /* ============================================================
-   PU COLLEGE — LIGHT BROWN
+   PU COLLEGE
 ============================================================ */
 
 .brand-pu {
@@ -492,7 +534,7 @@
 
 
 /* ============================================================
-   ONLY STG UNDERLINE
+   STG UNDERLINE
 ============================================================ */
 
 .college-brand-title::after {
@@ -501,11 +543,9 @@
   position: absolute;
 
   left: 0;
-
   bottom: -8px;
 
   width: 58px;
-
   height: 2px;
 
   border-radius: 999px;
@@ -513,13 +553,13 @@
   background:
     linear-gradient(
       90deg,
-      var(--stg-orange) 0%,
+      var(--stg-orange),
       var(--stg-orange-light) 48%,
       transparent 100%
     );
 
   box-shadow:
-    0 2px 5px rgba(216, 90, 24, 0.1);
+    0 2px 5px rgba(216, 90, 24, 0.10);
 }
 
 
@@ -550,9 +590,11 @@
   letter-spacing:
     0.16em;
 
-  text-transform: uppercase;
+  text-transform:
+    uppercase;
 
-  white-space: nowrap;
+  white-space:
+    nowrap;
 }
 
 
@@ -582,7 +624,8 @@
   border:
     1px solid rgba(201, 154, 84, 0.16);
 
-  border-radius: 999px;
+  border-radius:
+    999px;
 
   background:
     linear-gradient(
@@ -596,31 +639,33 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.92);
 
   transition:
-    transform 160ms var(--stg-ease),
-    border-color 160ms ease,
-    box-shadow 160ms ease;
+    transform 180ms var(--stg-ease),
+    border-color 180ms ease,
+    box-shadow 180ms ease;
 }
+
 
 .learning-animation:hover {
   transform:
     translateY(-2px);
 
   border-color:
-    rgba(216, 90, 24, 0.19);
+    rgba(216, 90, 24, 0.20);
 
   box-shadow:
     var(--stg-shadow-sm);
 }
 
+
 .student-run {
   position: relative;
-
   z-index: 1;
 
   width: 43px;
   height: 43px;
 
-  flex: 0 0 43px;
+  flex:
+    0 0 43px;
 
   display: flex;
   align-items: center;
@@ -641,6 +686,7 @@
     1px solid rgba(201, 154, 84, 0.16);
 }
 
+
 .running-icon-video {
   width: 100%;
   height: 100%;
@@ -650,9 +696,9 @@
   object-fit: cover;
 }
 
+
 .learning-animation-text {
   position: relative;
-
   z-index: 1;
 
   margin: 0;
@@ -669,8 +715,10 @@
   letter-spacing:
     0.075em;
 
-  white-space: nowrap;
+  white-space:
+    nowrap;
 }
+
 
 .learning-animation-text span {
   color:
@@ -683,11 +731,12 @@
 
 
 /* ============================================================
-   NAV LINKS
+   DESKTOP NAV LINKS
 ============================================================ */
 
 .nav-links {
-  flex: 0 0 auto;
+  flex:
+    0 0 auto;
 
   display: flex;
   align-items: center;
@@ -698,7 +747,7 @@
 
 
 /* ============================================================
-   DAILY TEST
+   DAILY TESTS
 ============================================================ */
 
 .daily-test-nav-btn {
@@ -722,7 +771,8 @@
   border:
     1px solid rgba(201, 154, 84, 0.18);
 
-  border-radius: 13px;
+  border-radius:
+    13px;
 
   background:
     linear-gradient(
@@ -734,17 +784,25 @@
   box-shadow:
     var(--stg-shadow-xs);
 
-  font-size: 10px;
+  font-size:
+    10px;
 
-  font-weight: 900;
+  font-weight:
+    900;
 
-  cursor: pointer;
+  cursor:
+    pointer;
+
+  transform:
+    translateZ(0);
 
   transition:
-    transform 150ms var(--stg-ease),
-    border-color 150ms ease,
-    box-shadow 150ms ease;
+    transform 180ms var(--stg-ease),
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background 180ms ease;
 }
+
 
 .daily-test-nav-btn::after {
   content: "";
@@ -771,19 +829,28 @@
     scaleX(0);
 
   transition:
-    transform 160ms ease;
+    transform 220ms var(--stg-ease);
 }
+
 
 .daily-test-nav-btn:hover {
   transform:
     translateY(-2px);
 
   border-color:
-    rgba(216, 90, 24, 0.21);
+    rgba(216, 90, 24, 0.23);
 
   box-shadow:
     var(--stg-shadow-sm);
+
+  background:
+    linear-gradient(
+      145deg,
+      #fffefb,
+      #f2e7db
+    );
 }
+
 
 .daily-test-nav-btn:hover::after {
   transform:
@@ -791,21 +858,45 @@
 }
 
 
+.daily-test-nav-btn:active {
+  transform:
+    translateY(1px)
+    scale(0.97);
+
+  box-shadow:
+    0 4px 10px rgba(48, 29, 18, 0.08);
+}
+
+
+/* ============================================================
+   USER AREA
+============================================================ */
+
+.user-area {
+  position:
+    relative;
+}
+
+
 /* ============================================================
    USER CARD
 ============================================================ */
 
-.user-area {
-  position: relative;
-}
-
 .user-card {
-  min-width: 0;
+  position:
+    relative;
 
-  display: flex;
-  align-items: center;
+  min-width:
+    0;
 
-  gap: 9px;
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  gap:
+    9px;
 
   padding:
     6px
@@ -816,7 +907,8 @@
   border:
     1px solid rgba(75, 49, 34, 0.09);
 
-  border-radius: 15px;
+  border-radius:
+    15px;
 
   background:
     linear-gradient(
@@ -831,13 +923,19 @@
   box-shadow:
     var(--stg-shadow-xs);
 
-  cursor: pointer;
+  cursor:
+    pointer;
+
+  transform:
+    translateZ(0);
 
   transition:
-    transform 150ms var(--stg-ease),
-    border-color 150ms ease,
-    box-shadow 150ms ease;
+    transform 180ms var(--stg-ease),
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background 180ms ease;
 }
+
 
 .user-card:hover {
   transform:
@@ -850,64 +948,107 @@
     var(--stg-shadow-sm);
 }
 
+
+.user-card:active {
+  transform:
+    translateY(1px)
+    scale(0.975);
+
+  box-shadow:
+    0 3px 8px rgba(48, 29, 18, 0.08);
+}
+
+
 .user-card > svg:first-child {
   color:
     var(--stg-orange);
+
+  transition:
+    transform 180ms ease;
 }
+
+
+.user-card:hover > svg:first-child {
+  transform:
+    scale(1.06);
+}
+
 
 .user-card > div {
-  min-width: 0;
+  min-width:
+    0;
 
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  align-items:
+    flex-start;
 }
 
-.user-card b {
-  max-width: 145px;
 
-  overflow: hidden;
+.user-card b {
+  max-width:
+    145px;
+
+  overflow:
+    hidden;
 
   color:
     var(--stg-espresso);
 
-  font-size: 10px;
+  font-size:
+    10px;
 
-  line-height: 1.1;
+  line-height:
+    1.1;
 
-  font-weight: 900;
+  font-weight:
+    900;
 
-  white-space: nowrap;
+  white-space:
+    nowrap;
 
-  text-overflow: ellipsis;
+  text-overflow:
+    ellipsis;
 }
 
+
 .user-card small {
-  margin-top: 4px;
+  margin-top:
+    4px;
 
   color:
     var(--stg-brown-light);
 
-  font-size: 7px;
+  font-size:
+    7px;
 
-  line-height: 1;
+  line-height:
+    1;
 
-  font-weight: 900;
+  font-weight:
+    900;
 
   letter-spacing:
     0.1em;
 
-  text-transform: uppercase;
+  text-transform:
+    uppercase;
 }
+
 
 .user-chevron {
   color:
     var(--stg-muted);
 
   transition:
-    transform 140ms ease,
-    color 140ms ease;
+    transform 180ms var(--stg-ease),
+    color 180ms ease;
 }
+
 
 .user-chevron.rotate {
   transform:
@@ -919,75 +1060,161 @@
 
 
 /* ============================================================
-   LOGIN BUTTON
+   LOGIN CONTAINER
 ============================================================ */
 
 .login-dropdown {
-  position: relative;
+  position:
+    relative;
 }
 
+
+/* ============================================================
+   SIGNATURE PREMIUM LOGIN BUTTON
+   ------------------------------------------------------------
+   NOT ORANGE
+   Espresso + Cocoa + Champagne
+============================================================ */
+
 .login-btn {
-  position: relative;
+  position:
+    relative;
 
-  min-height: 42px;
+  min-width:
+    108px;
 
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  min-height:
+    44px;
 
-  gap: 7px;
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  gap:
+    8px;
 
   padding:
     0
-    19px;
+    20px;
 
-  overflow: hidden;
+  overflow:
+    hidden;
 
-  color: #fff;
+  color:
+    #fffaf3;
 
   border:
-    1px solid rgba(255, 255, 255, 0.11);
+    1px solid rgba(226, 205, 169, 0.32);
 
-  border-radius: 13px;
+  border-radius:
+    14px;
 
   background:
     linear-gradient(
-      145deg,
-      #df6c2c,
-      #c55012 53%,
-      #a03a09
+      135deg,
+      #2d211a 0%,
+      #493427 45%,
+      #241914 100%
     );
 
   box-shadow:
-    0 9px 24px rgba(172, 67, 13, 0.19);
+    0 11px 28px rgba(43, 28, 19, 0.19),
+    0 2px 5px rgba(35, 22, 15, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.12);
 
-  font-size: 10px;
+  font-family:
+    "DM Sans",
+    sans-serif;
 
-  font-weight: 900;
+  font-size:
+    10px;
 
-  cursor: pointer;
+  font-weight:
+    900;
+
+  letter-spacing:
+    0.045em;
+
+  cursor:
+    pointer;
+
+  transform:
+    translateZ(0);
 
   transition:
-    transform 150ms var(--stg-ease),
-    box-shadow 150ms ease;
+    transform 220ms var(--stg-ease),
+    box-shadow 220ms ease,
+    border-color 220ms ease,
+    background 220ms ease,
+    filter 220ms ease;
 }
 
+
+/* top glass */
+
+.login-btn::after {
+  content:
+    "";
+
+  position:
+    absolute;
+
+  inset:
+    1px;
+
+  border-radius:
+    13px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.12),
+      rgba(255, 255, 255, 0.025) 42%,
+      transparent 68%
+    );
+
+  pointer-events:
+    none;
+
+  z-index:
+    1;
+}
+
+
+/* champagne shine */
+
 .login-btn::before {
-  content: "";
+  content:
+    "";
 
-  position: absolute;
+  position:
+    absolute;
 
-  top: 0;
-  bottom: 0;
-  left: -70%;
+  top:
+    -30%;
 
-  width: 40%;
+  left:
+    -80%;
+
+  width:
+    38%;
+
+  height:
+    160%;
 
   background:
     linear-gradient(
       90deg,
       transparent,
-      rgba(255, 255, 255, 0.3),
+      rgba(221, 200, 161, 0.05),
+      rgba(255, 244, 216, 0.55),
+      rgba(221, 200, 161, 0.07),
       transparent
     );
 
@@ -995,40 +1222,146 @@
     skewX(-20deg);
 
   transition:
-    left 390ms ease;
+    left 650ms var(--stg-ease);
+
+  pointer-events:
+    none;
+
+  z-index:
+    2;
 }
+
 
 .login-btn:hover {
   transform:
     translateY(-2px);
 
+  border-color:
+    rgba(225, 205, 171, 0.55);
+
+  background:
+    linear-gradient(
+      135deg,
+      #3a2a20 0%,
+      #5a4333 48%,
+      #2c2019 100%
+    );
+
   box-shadow:
-    0 13px 30px rgba(172, 67, 13, 0.25);
+    0 16px 36px rgba(43, 28, 19, 0.25),
+    0 0 0 1px rgba(215, 193, 153, 0.08),
+    0 0 22px rgba(198, 160, 100, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+
+  color:
+    #fffdf8;
+
+  filter:
+    brightness(1.02);
 }
 
+
 .login-btn:hover::before {
-  left: 125%;
+  left:
+    130%;
+}
+
+
+.login-btn:active {
+  transform:
+    translateY(1px)
+    scale(0.95);
+
+  border-color:
+    rgba(231, 214, 180, 0.38);
+
+  background:
+    linear-gradient(
+      145deg,
+      #211711,
+      #34241b
+    );
+
+  box-shadow:
+    0 5px 11px rgba(32, 20, 13, 0.19),
+    inset 0 3px 7px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+
+.login-btn[aria-expanded="true"] {
+  border-color:
+    rgba(226, 205, 169, 0.48);
+
+  background:
+    linear-gradient(
+      135deg,
+      #34251d,
+      #503a2c
+    );
+
+  box-shadow:
+    0 14px 32px rgba(43, 28, 19, 0.23),
+    0 0 0 4px rgba(198, 160, 100, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.13);
+}
+
+
+.login-btn svg {
+  position:
+    relative;
+
+  z-index:
+    3;
+
+  color:
+    #e4cfaa;
+
+  transition:
+    transform 220ms var(--stg-ease),
+    color 180ms ease;
+}
+
+
+.login-btn:hover svg {
+  color:
+    #f0dfbd;
+}
+
+
+.login-btn[aria-expanded="true"] svg {
+  transform:
+    rotate(180deg);
+
+  color:
+    #ead8b5;
 }
 
 
 /* ============================================================
-   DROPDOWNS
+   DESKTOP DROPDOWNS
 ============================================================ */
 
 .dropdown,
 .login-menu {
-  position: absolute;
+  position:
+    absolute;
 
-  right: 0;
+  right:
+    0;
 
   top:
-    calc(100% + 10px);
+    calc(100% + 11px);
 
   border:
     1px solid rgba(201, 154, 84, 0.19);
 
   background:
-    rgba(255, 255, 255, 0.985);
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.985),
+      rgba(250, 246, 240, 0.975)
+    );
 
   box-shadow:
     var(--stg-shadow-xl);
@@ -1039,33 +1372,77 @@
   -webkit-backdrop-filter:
     blur(26px);
 
-  opacity: 0;
+  opacity:
+    0;
 
-  visibility: hidden;
+  visibility:
+    hidden;
 
   transform:
-    translateY(-7px)
-    scale(0.98);
+    translateY(-9px)
+    scale(0.97);
 
-  pointer-events: none;
+  transform-origin:
+    top right;
+
+  pointer-events:
+    none;
 
   transition:
-    opacity 140ms ease,
-    transform 140ms var(--stg-ease),
-    visibility 140ms ease;
+    opacity 180ms ease,
+    transform 220ms var(--stg-ease),
+    visibility 180ms ease;
 }
+
+
+.dropdown::before,
+.login-menu::before {
+  content:
+    "";
+
+  position:
+    absolute;
+
+  top:
+    -6px;
+
+  right:
+    18px;
+
+  width:
+    11px;
+
+  height:
+    11px;
+
+  background:
+    #fff;
+
+  border-left:
+    1px solid rgba(201, 154, 84, 0.16);
+
+  border-top:
+    1px solid rgba(201, 154, 84, 0.16);
+
+  transform:
+    rotate(45deg);
+}
+
 
 .dropdown-visible,
 .login-menu-visible {
-  opacity: 1;
+  opacity:
+    1;
 
-  visibility: visible;
+  visibility:
+    visible;
 
   transform:
     translateY(0)
     scale(1);
 
-  pointer-events: auto;
+  pointer-events:
+    auto;
 }
 
 
@@ -1074,23 +1451,36 @@
 ============================================================ */
 
 .dropdown {
-  width: 218px;
+  width:
+    218px;
 
-  padding: 8px;
+  padding:
+    8px;
 
-  border-radius: 18px;
+  border-radius:
+    18px;
 }
+
 
 .dropdown a,
 .dropdown button {
-  width: 100%;
+  position:
+    relative;
 
-  min-height: 42px;
+  width:
+    100%;
 
-  display: flex;
-  align-items: center;
+  min-height:
+    44px;
 
-  gap: 10px;
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  gap:
+    10px;
 
   padding:
     0
@@ -1099,43 +1489,65 @@
   color:
     var(--stg-brown-dark);
 
-  border: 0;
+  border:
+    0;
 
-  border-radius: 11px;
+  border-radius:
+    11px;
 
-  background: transparent;
+  background:
+    transparent;
 
-  text-decoration: none;
+  text-decoration:
+    none;
 
-  font-size: 10px;
+  font-size:
+    10px;
 
-  font-weight: 850;
+  font-weight:
+    850;
 
-  cursor: pointer;
+  cursor:
+    pointer;
 
   transition:
-    transform 130ms ease,
-    background 130ms ease;
+    transform 150ms var(--stg-ease),
+    background 150ms ease,
+    color 150ms ease;
 }
+
 
 .dropdown a:hover,
 .dropdown button:hover {
   transform:
-    translateX(2px);
+    translateX(3px);
 
   background:
     linear-gradient(
       90deg,
-      rgba(246, 220, 198, 0.64),
+      rgba(246, 220, 198, 0.7),
       rgba(246, 220, 198, 0.08)
     );
-}
-
-.dropdown .logout {
-  margin-top: 4px;
 
   color:
-    #a44747;
+    var(--stg-orange-dark);
+}
+
+
+.dropdown a:active,
+.dropdown button:active {
+  transform:
+    translateX(2px)
+    scale(0.97);
+}
+
+
+.dropdown .logout {
+  margin-top:
+    4px;
+
+  color:
+    var(--stg-danger);
 
   border-top:
     1px solid rgba(75, 49, 34, 0.065);
@@ -1147,22 +1559,32 @@
 ============================================================ */
 
 .login-menu {
-  width: 315px;
+  width:
+    315px;
 
-  padding: 9px;
+  padding:
+    9px;
 
-  border-radius: 20px;
+  border-radius:
+    20px;
 }
 
+
 .login-menu > button {
-  width: 100%;
+  width:
+    100%;
 
-  min-height: 72px;
+  min-height:
+    72px;
 
-  display: flex;
-  align-items: center;
+  display:
+    flex;
 
-  gap: 12px;
+  align-items:
+    center;
+
+  gap:
+    12px;
 
   padding:
     9px
@@ -1171,28 +1593,35 @@
   border:
     1px solid transparent;
 
-  border-radius: 14px;
+  border-radius:
+    14px;
 
   background:
     transparent;
 
-  text-align: left;
+  text-align:
+    left;
 
-  cursor: pointer;
+  cursor:
+    pointer;
 
   transition:
-    transform 140ms var(--stg-ease),
-    background 140ms ease,
-    border-color 140ms ease;
+    transform 170ms var(--stg-ease),
+    background 170ms ease,
+    border-color 170ms ease,
+    box-shadow 170ms ease;
 }
 
+
 .login-menu > button + button {
-  margin-top: 3px;
+  margin-top:
+    3px;
 }
+
 
 .login-menu > button:hover {
   transform:
-    translateX(2px);
+    translateX(3px);
 
   border-color:
     rgba(216, 90, 24, 0.12);
@@ -1203,39 +1632,83 @@
       #fffefc,
       #f8f0e8
     );
+
+  box-shadow:
+    0 7px 18px rgba(48, 29, 18, 0.05);
 }
 
+
+.login-menu > button:active {
+  transform:
+    translateX(1px)
+    scale(0.985);
+}
+
+
+/* ============================================================
+   LOGIN OPTION ICONS
+============================================================ */
+
 .login-option-icon {
-  width: 44px;
-  height: 44px;
+  width:
+    44px;
 
-  flex: 0 0 44px;
+  height:
+    44px;
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  flex:
+    0 0 44px;
 
-  border-radius: 14px;
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  border-radius:
+    14px;
 
   border:
     1px solid rgba(201, 154, 84, 0.18);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.82);
+
+  transition:
+    transform 180ms var(--stg-ease),
+    box-shadow 180ms ease;
 }
+
+
+.login-menu > button:hover .login-option-icon {
+  transform:
+    scale(1.06)
+    rotate(-2deg);
+
+  box-shadow:
+    0 7px 16px rgba(48, 29, 18, 0.08);
+}
+
 
 .login-option-icon.student-icon {
   color:
-    var(--stg-orange);
+    var(--stg-brown-dark);
 
   background:
     linear-gradient(
       145deg,
-      #fffdf9,
-      #f5dfd0
+      #fffdfb,
+      #eadfd5
     );
 }
 
+
 .login-option-icon.management-icon {
   color:
-    var(--stg-brown-dark);
+    #69503f;
 
   background:
     linear-gradient(
@@ -1245,9 +1718,10 @@
     );
 }
 
+
 .login-option-icon.staff-icon {
   color:
-    #347353;
+    var(--stg-green);
 
   background:
     linear-gradient(
@@ -1257,54 +1731,77 @@
     );
 }
 
-.login-menu > button > span:last-child {
-  min-width: 0;
 
-  display: flex;
-  flex-direction: column;
+.login-menu > button > span:last-child {
+  min-width:
+    0;
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
 }
+
 
 .login-menu strong {
   color:
     var(--stg-espresso);
 
-  font-size: 11px;
+  font-size:
+    11px;
 
-  line-height: 1.15;
+  line-height:
+    1.15;
 
-  font-weight: 900;
+  font-weight:
+    900;
 }
 
+
 .login-menu small {
-  margin-top: 5px;
+  margin-top:
+    5px;
 
   color:
     var(--stg-muted);
 
-  font-size: 8px;
+  font-size:
+    8px;
 
-  line-height: 1.35;
+  line-height:
+    1.35;
 
-  font-weight: 600;
+  font-weight:
+    600;
 }
 
 
 /* ============================================================
-   MOBILE BUTTON
+   MOBILE MENU BUTTON
 ============================================================ */
 
 .mobile-menu-btn {
-  display: none;
+  display:
+    none;
 
-  width: 44px;
-  height: 44px;
+  width:
+    44px;
 
-  flex: 0 0 44px;
+  height:
+    44px;
 
-  align-items: center;
-  justify-content: center;
+  flex:
+    0 0 44px;
 
-  margin-left: auto;
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  margin-left:
+    auto;
 
   color:
     var(--stg-brown-dark);
@@ -1312,7 +1809,8 @@
   border:
     1px solid rgba(201, 154, 84, 0.19);
 
-  border-radius: 13px;
+  border-radius:
+    13px;
 
   background:
     linear-gradient(
@@ -1324,14 +1822,20 @@
   box-shadow:
     var(--stg-shadow-sm);
 
-  cursor: pointer;
+  cursor:
+    pointer;
+
+  transform:
+    translateZ(0);
 
   transition:
-    transform 140ms var(--stg-ease),
-    border-color 140ms ease,
-    color 140ms ease,
-    box-shadow 140ms ease;
+    transform 180ms var(--stg-ease),
+    border-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease,
+    background 180ms ease;
 }
+
 
 .mobile-menu-btn:hover,
 .mobile-menu-btn.is-open {
@@ -1349,12 +1853,30 @@
 }
 
 
+.mobile-menu-btn:active {
+  transform:
+    scale(0.9)
+    translateY(1px);
+
+  background:
+    linear-gradient(
+      145deg,
+      #f4e2d4,
+      #ecd4c2
+    );
+
+  box-shadow:
+    0 4px 9px rgba(48, 29, 18, 0.11);
+}
+
+
 /* ============================================================
-   MOBILE MENU
+   MOBILE MENU BASE
 ============================================================ */
 
 .mobile-menu {
-  display: none;
+  display:
+    none;
 }
 
 
@@ -1363,48 +1885,67 @@
 ============================================================ */
 
 @media (max-width: 1100px) {
-
   .navbar {
-    min-height: 75px;
+    min-height:
+      75px;
 
-    gap: 14px;
+    gap:
+      14px;
 
     padding:
       8px
       17px;
   }
 
+
   .college-logo {
-    width: 50px;
-    height: 50px;
+    width:
+      50px;
 
-    flex-basis: 50px;
+    height:
+      50px;
 
-    border-radius: 14px;
+    flex-basis:
+      50px;
+
+    border-radius:
+      14px;
   }
+
 
   .college-brand {
-    margin-left: 10px;
+    margin-left:
+      10px;
   }
+
 
   .brand-stg {
-    font-size: 18px;
+    font-size:
+      18px;
   }
+
 
   .brand-pu {
-    font-size: 13.5px;
+    font-size:
+      13.5px;
   }
+
 
   .college-brand-tagline {
-    font-size: 7px;
+    font-size:
+      7px;
   }
+
 
   .college-brand-title::after {
-    width: 50px;
+    width:
+      50px;
   }
 
+
   .learning-animation {
-    gap: 8px;
+    gap:
+      8px;
 
     padding:
       5px
@@ -1413,41 +1954,50 @@
       6px;
   }
 
+
   .student-run {
-    width: 37px;
-    height: 37px;
+    width:
+      37px;
 
-    flex-basis: 37px;
+    height:
+      37px;
 
-    border-radius: 12px;
+    flex-basis:
+      37px;
+
+    border-radius:
+      12px;
   }
+
 
   .learning-animation-text {
-    font-size: 8px;
+    font-size:
+      8px;
   }
 
+
   .user-card b {
-    max-width: 105px;
+    max-width:
+      105px;
   }
 }
 
 
 /* ============================================================
-   MOBILE — MAIN FOCUS
+   MOBILE
 ============================================================ */
 
 @media (max-width: 900px) {
-
   .navbar {
-    min-height: 72px;
+    min-height:
+      72px;
 
-    gap: 4px;
+    gap:
+      4px;
 
     padding:
       6px
-      8px
-      6px
-      7px;
+      8px;
 
     background:
       linear-gradient(
@@ -1461,38 +2011,31 @@
   }
 
 
-  /* ------------------------------------------
-     HIDE DESKTOP
-  ------------------------------------------ */
-
   .nav-links,
   .learning-animation {
-    display: none;
+    display:
+      none;
   }
 
 
-  /* ------------------------------------------
-     BRAND AREA
-  ------------------------------------------ */
-
   .logo-section {
-    flex: 1 1 auto;
+    flex:
+      1 1 auto;
 
-    min-width: 0;
+    min-width:
+      0;
 
     max-width:
       calc(100% - 47px);
   }
 
 
-  /* ------------------------------------------
-     BRAND LINK
-  ------------------------------------------ */
-
   .brand-link {
-    width: 100%;
+    width:
+      100%;
 
-    max-width: none;
+    max-width:
+      none;
 
     padding:
       3px
@@ -1500,254 +2043,253 @@
       3px
       1px;
 
-    border-radius: 15px;
-
-    overflow: hidden;
+    border-radius:
+      15px;
   }
+
 
   .brand-link::before {
-    display: none;
+    display:
+      none;
   }
+
 
   .brand-link::after {
-    /*
-      Gold shine remains available,
-      but does NOT create a permanent border.
-    */
+    width:
+      30%;
 
-    width: 30%;
-
-    opacity: 0;
+    opacity:
+      0;
   }
+
 
   .brand-link:hover::after {
     animation:
-      stg-mobile-brand-shine 850ms ease forwards;
+      stg-mobile-brand-shine
+      850ms ease forwards;
   }
+
 
   @keyframes stg-mobile-brand-shine {
     from {
-      left: -55%;
-      opacity: 0;
+      left:
+        -55%;
+
+      opacity:
+        0;
     }
 
     12% {
-      opacity: 1;
+      opacity:
+        1;
     }
 
     90% {
-      opacity: 0.75;
+      opacity:
+        0.75;
     }
 
     to {
-      left: 135%;
-      opacity: 0;
+      left:
+        135%;
+
+      opacity:
+        0;
     }
   }
 
 
-  /* ------------------------------------------
-     MOBILE LOGO
-     NO BORDER
-  ------------------------------------------ */
-
   .college-logo {
-    width: 48px;
-    height: 48px;
+    width:
+      48px;
 
-    flex: 0 0 48px;
+    height:
+      48px;
 
-    padding: 0;
+    flex:
+      0 0 48px;
 
-    border: 0;
+    padding:
+      0;
 
-    border-radius: 13px;
+    border:
+      0;
 
-    background: transparent;
-
-    box-shadow:
-      0 7px 18px rgba(51, 31, 19, 0.1);
-  }
-
-
-  /* ------------------------------------------
-     MOBILE BRAND TEXT
-  ------------------------------------------ */
-
-  .college-brand {
-    margin-left: 9px;
-
-    min-width: 0;
-
-    overflow: visible;
-
-    padding: 0;
-  }
-
-  .college-brand-title {
-    gap: 4px;
-
-    width: fit-content;
-  }
-
-
-  /* ------------------------------------------
-     STG
-     BIG + THICK + ORANGE
-  ------------------------------------------ */
-
-  .brand-stg {
-    flex: 0 0 auto;
-
-    font-size: 17px;
-
-    font-weight: 950;
-
-    letter-spacing:
-      0.005em;
-
-    color:
-      var(--stg-orange);
-
-    -webkit-text-fill-color:
-      var(--stg-orange);
-
-    text-shadow:
-      0 1px 0 rgba(255, 255, 255, 0.78),
-      0 2px 3px rgba(139, 50, 11, 0.13);
-  }
-
-
-  /* ------------------------------------------
-     PU COLLEGE
-     LIGHT BROWN
-  ------------------------------------------ */
-
-  .brand-pu {
-    flex: 0 1 auto;
-
-    min-width: 0;
-
-    max-width:
-      calc(100vw - 105px);
-
-    overflow: hidden;
-
-    color:
-      var(--stg-brown-light);
-
-    font-size: 12px;
-
-    font-weight: 700;
-
-    letter-spacing:
-      0.005em;
-
-    white-space: nowrap;
-
-    text-overflow: ellipsis;
-  }
-
-
-  /* ------------------------------------------
-     ONLY STG UNDERLINE
-  ------------------------------------------ */
-
-  .college-brand-title::after {
-    left: 0;
-
-    bottom: -6px;
-
-    width: 43px;
-
-    height: 2px;
+    border-radius:
+      13px;
 
     background:
-      linear-gradient(
-        90deg,
-        var(--stg-orange),
-        var(--stg-orange-light),
-        transparent
-      );
+      transparent;
 
     box-shadow:
-      0 2px 5px rgba(216, 90, 24, 0.1);
+      0 7px 18px rgba(51, 31, 19, 0.10);
   }
 
 
-  /* ------------------------------------------
-     MOBILE TAGLINE
-  ------------------------------------------ */
+  .college-brand {
+    margin-left:
+      9px;
 
-  .college-brand-tagline {
-    margin-top: 8px;
+    min-width:
+      0;
+
+    overflow:
+      visible;
+
+    padding:
+      0;
+  }
+
+
+  .college-brand-title {
+    gap:
+      4px;
+  }
+
+
+  .brand-stg {
+    flex:
+      0 0 auto;
+
+    font-size:
+      17px;
+
+    font-weight:
+      950;
+  }
+
+
+  .brand-pu {
+    flex:
+      0 1 auto;
+
+    min-width:
+      0;
 
     max-width:
       calc(100vw - 105px);
 
-    overflow: hidden;
+    overflow:
+      hidden;
 
     color:
       var(--stg-brown-light);
 
-    font-size: 6px;
+    font-size:
+      12px;
 
-    line-height: 1;
+    font-weight:
+      700;
 
-    font-weight: 800;
+    letter-spacing:
+      0.005em;
+
+    white-space:
+      nowrap;
+
+    text-overflow:
+      ellipsis;
+  }
+
+
+  .college-brand-title::after {
+    left:
+      0;
+
+    bottom:
+      -6px;
+
+    width:
+      43px;
+
+    height:
+      2px;
+  }
+
+
+  .college-brand-tagline {
+    margin-top:
+      8px;
+
+    max-width:
+      calc(100vw - 105px);
+
+    overflow:
+      hidden;
+
+    font-size:
+      6px;
 
     letter-spacing:
       0.09em;
 
-    white-space: nowrap;
+    white-space:
+      nowrap;
 
-    text-overflow: ellipsis;
+    text-overflow:
+      ellipsis;
   }
 
 
-  /* ------------------------------------------
-     MOBILE MENU BUTTON
-  ------------------------------------------ */
+  /* ==========================================================
+     MOBILE BUTTON
+  ========================================================== */
 
   .mobile-menu-btn {
-    display: inline-flex;
+    display:
+      inline-flex;
 
-    width: 44px;
-    height: 44px;
+    width:
+      44px;
 
-    flex: 0 0 44px;
+    height:
+      44px;
 
-    border-radius: 13px;
+    flex:
+      0 0 44px;
+
+    border-radius:
+      13px;
   }
 
 
-  /* ========================================================
+  /* ==========================================================
      MOBILE PANEL
-  ======================================================== */
+  ========================================================== */
 
   .mobile-menu {
-    position: absolute;
+    position:
+      absolute;
 
     top:
       calc(100% + 7px);
 
-    left: 6px;
-    right: 6px;
+    left:
+      6px;
 
-    display: block;
+    right:
+      6px;
+
+    display:
+      block;
 
     max-height:
       calc(100vh - 88px);
 
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow-y:
+      auto;
 
-    padding: 9px;
+    overflow-x:
+      hidden;
+
+    padding:
+      9px;
 
     border:
       1px solid rgba(201, 154, 84, 0.2);
 
-    border-radius: 20px;
+    border-radius:
+      20px;
 
     background:
       linear-gradient(
@@ -1766,9 +2308,11 @@
     -webkit-backdrop-filter:
       blur(26px);
 
-    opacity: 0;
+    opacity:
+      0;
 
-    visibility: hidden;
+    visibility:
+      hidden;
 
     transform:
       translateY(-8px)
@@ -1777,31 +2321,37 @@
     transform-origin:
       top right;
 
-    pointer-events: none;
+    pointer-events:
+      none;
 
     transition:
-      opacity 150ms ease,
-      transform 150ms var(--stg-ease),
-      visibility 150ms ease;
+      opacity 170ms ease,
+      transform 220ms var(--stg-ease),
+      visibility 170ms ease;
   }
 
 
-  /* ------------------------------------------
-     PANEL TOP GOLD + ORANGE ACCENT
-  ------------------------------------------ */
-
   .mobile-menu::before {
-    content: "";
+    content:
+      "";
 
-    position: absolute;
+    position:
+      absolute;
 
-    top: 0;
-    left: 12%;
-    right: 12%;
+    top:
+      0;
 
-    height: 2px;
+    left:
+      12%;
 
-    border-radius: 999px;
+    right:
+      12%;
+
+    height:
+      2px;
+
+    border-radius:
+      999px;
 
     background:
       linear-gradient(
@@ -1813,28 +2363,34 @@
         transparent
       );
 
-    pointer-events: none;
+    pointer-events:
+      none;
   }
 
-  .mobile-menu-open {
-    opacity: 1;
 
-    visibility: visible;
+  .mobile-menu-open {
+    opacity:
+      1;
+
+    visibility:
+      visible;
 
     transform:
       translateY(0)
       scale(1);
 
-    pointer-events: auto;
+    pointer-events:
+      auto;
   }
 
 
-  /* ========================================================
+  /* ==========================================================
      MOBILE PROFILE
-  ======================================================== */
+  ========================================================== */
 
   .mobile-menu-header {
-    position: relative;
+    position:
+      relative;
 
     padding:
       4px
@@ -1845,22 +2401,37 @@
       1px solid rgba(76, 50, 35, 0.075);
   }
 
-  .mobile-profile {
-    display: flex;
-    align-items: center;
 
-    gap: 10px;
+  .mobile-profile {
+    display:
+      flex;
+
+    align-items:
+      center;
+
+    gap:
+      10px;
   }
 
+
   .mobile-avatar {
-    width: 43px;
-    height: 43px;
+    width:
+      43px;
 
-    flex: 0 0 43px;
+    height:
+      43px;
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    flex:
+      0 0 43px;
+
+    display:
+      flex;
+
+    align-items:
+      center;
+
+    justify-content:
+      center;
 
     color:
       var(--stg-orange);
@@ -1868,7 +2439,8 @@
     border:
       1px solid rgba(216, 90, 24, 0.13);
 
-    border-radius: 12px;
+    border-radius:
+      12px;
 
     background:
       linear-gradient(
@@ -1876,87 +2448,122 @@
         #fffefa,
         #f3ddd0
       );
+
+    box-shadow:
+      0 6px 16px rgba(48, 29, 18, 0.06);
   }
+
 
   .mobile-profile > div:last-child {
-    min-width: 0;
+    min-width:
+      0;
 
-    display: flex;
-    flex-direction: column;
+    display:
+      flex;
+
+    flex-direction:
+      column;
   }
 
-  .mobile-profile strong {
-    max-width: 245px;
 
-    overflow: hidden;
+  .mobile-profile strong {
+    max-width:
+      245px;
+
+    overflow:
+      hidden;
 
     color:
       var(--stg-espresso);
 
-    font-size: 12px;
+    font-size:
+      12px;
 
-    line-height: 1.1;
+    line-height:
+      1.1;
 
-    font-weight: 900;
+    font-weight:
+      900;
 
-    white-space: nowrap;
+    white-space:
+      nowrap;
 
-    text-overflow: ellipsis;
+    text-overflow:
+      ellipsis;
   }
 
+
   .mobile-profile span {
-    margin-top: 4px;
+    margin-top:
+      4px;
 
     color:
       var(--stg-brown-light);
 
-    font-size: 7px;
+    font-size:
+      7px;
 
-    line-height: 1;
+    line-height:
+      1;
 
-    font-weight: 900;
+    font-weight:
+      900;
 
     letter-spacing:
       0.12em;
 
-    text-transform: uppercase;
+    text-transform:
+      uppercase;
   }
 
 
-  /* ========================================================
+  /* ==========================================================
      MOBILE NAV ITEMS
-  ======================================================== */
+  ========================================================== */
 
   .mobile-nav-items {
-    display: grid;
+    display:
+      grid;
 
-    gap: 7px;
+    gap:
+      7px;
 
-    padding-top: 10px;
+    padding-top:
+      10px;
   }
 
+
   .mobile-nav-items > button {
-    position: relative;
+    position:
+      relative;
 
-    width: 100%;
+    width:
+      100%;
 
-    min-height: 62px;
+    min-height:
+      62px;
 
-    display: flex;
-    align-items: center;
+    display:
+      flex;
 
-    gap: 10px;
+    align-items:
+      center;
+
+    gap:
+      10px;
 
     padding:
       8px
       9px;
 
-    overflow: hidden;
+    overflow:
+      hidden;
 
     border:
       1px solid rgba(76, 50, 35, 0.065);
 
-    border-radius: 13px;
+    border-radius:
+      13px;
 
     background:
       linear-gradient(
@@ -1965,15 +2572,21 @@
         #f8f3ed
       );
 
-    text-align: left;
+    text-align:
+      left;
 
-    cursor: pointer;
+    cursor:
+      pointer;
+
+    box-shadow:
+      0 3px 10px rgba(48, 29, 18, 0.025);
 
     transition:
-      transform 140ms var(--stg-ease),
-      border-color 140ms ease,
-      box-shadow 140ms ease;
+      transform 150ms var(--stg-ease),
+      border-color 150ms ease,
+      box-shadow 150ms ease;
   }
+
 
   .mobile-nav-items > button:hover {
     transform:
@@ -1983,32 +2596,59 @@
       rgba(216, 90, 24, 0.18);
 
     box-shadow:
-      0 8px 18px rgba(53, 32, 20, 0.055);
+      0 9px 20px rgba(53, 32, 20, 0.06);
   }
 
 
-  /* ========================================================
+  .mobile-nav-items > button:active {
+    transform:
+      translateY(1px)
+      scale(0.985);
+  }
+
+
+  /* ==========================================================
      MOBILE ICONS
-  ======================================================== */
+  ========================================================== */
 
   .mobile-nav-icon {
-    width: 40px;
-    height: 40px;
+    width:
+      40px;
 
-    flex: 0 0 40px;
+    height:
+      40px;
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    flex:
+      0 0 40px;
 
-    border-radius: 11px;
+    display:
+      flex;
+
+    align-items:
+      center;
+
+    justify-content:
+      center;
+
+    border-radius:
+      11px;
 
     border:
       1px solid rgba(201, 154, 84, 0.15);
 
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.8);
+
+    transition:
+      transform 150ms var(--stg-ease);
   }
+
+
+  .mobile-nav-items > button:hover .mobile-nav-icon {
+    transform:
+      scale(1.05);
+  }
+
 
   .dashboard-mobile {
     color:
@@ -2022,21 +2662,23 @@
       );
   }
 
+
   .subjects-mobile {
     color:
-      var(--stg-orange);
+      var(--stg-brown);
 
     background:
       linear-gradient(
         145deg,
         #fffdf9,
-        #f4ddd0
+        #efe4da
       );
   }
 
+
   .tests-mobile {
     color:
-      #bb8740;
+      #9b7748;
 
     background:
       linear-gradient(
@@ -2045,6 +2687,7 @@
         #efdfc1
       );
   }
+
 
   .profile-mobile {
     color:
@@ -2058,9 +2701,10 @@
       );
   }
 
+
   .logout-mobile {
     color:
-      #a54848 !important;
+      var(--stg-danger) !important;
 
     background:
       linear-gradient(
@@ -2070,49 +2714,62 @@
       ) !important;
 
     border-color:
-      rgba(165, 72, 72, 0.1) !important;
+      rgba(165, 72, 72, 0.10) !important;
   }
 
 
-  /* ========================================================
-     MOBILE TEXT
-  ======================================================== */
+  /* ==========================================================
+     MOBILE NAV TEXT
+  ========================================================== */
 
   .mobile-nav-text {
-    min-width: 0;
+    min-width:
+      0;
 
-    display: flex;
-    flex-direction: column;
+    display:
+      flex;
+
+    flex-direction:
+      column;
   }
+
 
   .mobile-nav-text strong {
     color:
       var(--stg-espresso);
 
-    font-size: 11px;
+    font-size:
+      11px;
 
-    line-height: 1.15;
+    line-height:
+      1.15;
 
-    font-weight: 900;
+    font-weight:
+      900;
   }
 
+
   .mobile-nav-text small {
-    margin-top: 4px;
+    margin-top:
+      4px;
 
     color:
       var(--stg-muted);
 
-    font-size: 8px;
+    font-size:
+      8px;
 
-    line-height: 1.3;
+    line-height:
+      1.3;
 
-    font-weight: 600;
+    font-weight:
+      600;
   }
 
 
-  /* ========================================================
-     MOBILE LOGIN AREA
-  ======================================================== */
+  /* ==========================================================
+     MOBILE LOGIN SECTION
+  ========================================================== */
 
   .mobile-login-section {
     padding:
@@ -2121,8 +2778,10 @@
       2px;
   }
 
+
   .mobile-login-heading {
-    position: relative;
+    position:
+      relative;
 
     padding:
       2px
@@ -2130,18 +2789,28 @@
       11px;
   }
 
+
   .mobile-login-heading::after {
-    content: "";
+    content:
+      "";
 
-    position: absolute;
+    position:
+      absolute;
 
-    left: 5px;
-    bottom: 0;
+    left:
+      5px;
 
-    width: 48px;
-    height: 2px;
+    bottom:
+      0;
 
-    border-radius: 999px;
+    width:
+      48px;
+
+    height:
+      2px;
+
+    border-radius:
+      999px;
 
     background:
       linear-gradient(
@@ -2151,23 +2820,30 @@
       );
   }
 
+
   .mobile-login-heading span {
-    display: block;
+    display:
+      block;
 
     color:
       var(--stg-orange);
 
-    font-size: 7px;
+    font-size:
+      7px;
 
-    line-height: 1;
+    line-height:
+      1;
 
-    font-weight: 900;
+    font-weight:
+      900;
 
     letter-spacing:
       0.15em;
 
-    text-transform: uppercase;
+    text-transform:
+      uppercase;
   }
+
 
   .mobile-login-heading h3 {
     margin:
@@ -2178,15 +2854,19 @@
     color:
       var(--stg-espresso);
 
-    font-size: 19px;
+    font-size:
+      19px;
 
-    line-height: 1.1;
+    line-height:
+      1.1;
 
-    font-weight: 900;
+    font-weight:
+      900;
 
     letter-spacing:
       -0.03em;
   }
+
 
   .mobile-login-heading p {
     margin:
@@ -2197,36 +2877,52 @@
     color:
       var(--stg-muted);
 
-    font-size: 9px;
+    font-size:
+      9px;
 
-    line-height: 1.35;
+    line-height:
+      1.35;
   }
 
 
-  /* ========================================================
+  /* ==========================================================
      MOBILE LOGIN OPTIONS
-  ======================================================== */
+  ========================================================== */
 
   .mobile-login-option {
-    width: 100%;
+    position:
+      relative;
 
-    min-height: 69px;
+    width:
+      100%;
 
-    display: flex;
-    align-items: center;
+    min-height:
+      69px;
 
-    gap: 10px;
+    display:
+      flex;
+
+    align-items:
+      center;
+
+    gap:
+      10px;
 
     padding:
       8px
       9px;
 
-    margin-top: 7px;
+    margin-top:
+      7px;
+
+    overflow:
+      hidden;
 
     border:
       1px solid rgba(76, 50, 35, 0.065);
 
-    border-radius: 13px;
+    border-radius:
+      13px;
 
     background:
       linear-gradient(
@@ -2235,15 +2931,22 @@
         #f8f3ed
       );
 
-    text-align: left;
+    text-align:
+      left;
 
-    cursor: pointer;
+    cursor:
+      pointer;
+
+    box-shadow:
+      0 3px 10px rgba(48, 29, 18, 0.025);
 
     transition:
-      transform 140ms var(--stg-ease),
-      border-color 140ms ease,
-      box-shadow 140ms ease;
+      transform 150ms var(--stg-ease),
+      border-color 150ms ease,
+      box-shadow 150ms ease,
+      background 150ms ease;
   }
+
 
   .mobile-login-option:hover {
     transform:
@@ -2253,54 +2956,106 @@
       rgba(216, 90, 24, 0.18);
 
     box-shadow:
-      0 8px 18px rgba(53, 32, 20, 0.055);
+      0 9px 20px rgba(53, 32, 20, 0.06);
+
+    background:
+      linear-gradient(
+        145deg,
+        #fffefc,
+        #f6ede4
+      );
   }
 
+
+  .mobile-login-option:active {
+    transform:
+      translateY(1px)
+      scale(0.985);
+  }
+
+
   .mobile-login-icon {
-    width: 42px;
-    height: 42px;
+    width:
+      42px;
 
-    flex: 0 0 42px;
+    height:
+      42px;
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    flex:
+      0 0 42px;
 
-    border-radius: 12px;
+    display:
+      flex;
+
+    align-items:
+      center;
+
+    justify-content:
+      center;
+
+    border-radius:
+      12px;
 
     border:
       1px solid rgba(201, 154, 84, 0.18);
+
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.82);
+
+    transition:
+      transform 160ms var(--stg-ease);
   }
+
+
+  .mobile-login-option:hover .mobile-login-icon {
+    transform:
+      scale(1.05)
+      rotate(-1deg);
+  }
+
 
   .mobile-login-option > span:last-child {
-    min-width: 0;
+    min-width:
+      0;
 
-    display: flex;
-    flex-direction: column;
+    display:
+      flex;
+
+    flex-direction:
+      column;
   }
+
 
   .mobile-login-option strong {
     color:
       var(--stg-espresso);
 
-    font-size: 11px;
+    font-size:
+      11px;
 
-    line-height: 1.15;
+    line-height:
+      1.15;
 
-    font-weight: 900;
+    font-weight:
+      900;
   }
 
+
   .mobile-login-option small {
-    margin-top: 4px;
+    margin-top:
+      4px;
 
     color:
       var(--stg-muted);
 
-    font-size: 8px;
+    font-size:
+      8px;
 
-    line-height: 1.35;
+    line-height:
+      1.35;
 
-    font-weight: 600;
+    font-weight:
+      600;
   }
 }
 
@@ -2310,63 +3065,91 @@
 ============================================================ */
 
 @media (max-width: 500px) {
-
   .navbar {
-    min-height: 67px;
+    min-height:
+      67px;
 
     padding:
       5px
       7px;
   }
 
+
   .logo-section {
     max-width:
       calc(100% - 45px);
   }
 
+
   .college-logo {
-    width: 46px;
-    height: 46px;
+    width:
+      46px;
 
-    flex-basis: 46px;
+    height:
+      46px;
 
-    border-radius: 12px;
+    flex-basis:
+      46px;
+
+    border-radius:
+      12px;
   }
+
 
   .college-brand {
-    margin-left: 8px;
+    margin-left:
+      8px;
   }
+
 
   .brand-stg {
-    font-size: 16px;
+    font-size:
+      16px;
   }
+
 
   .brand-pu {
-    font-size: 11px;
+    font-size:
+      11px;
   }
+
 
   .college-brand-tagline {
-    margin-top: 7px;
+    margin-top:
+      7px;
 
-    font-size: 5.5px;
+    font-size:
+      5.5px;
   }
+
 
   .mobile-menu-btn {
-    width: 42px;
-    height: 42px;
+    width:
+      42px;
 
-    flex-basis: 42px;
+    height:
+      42px;
 
-    border-radius: 12px;
+    flex-basis:
+      42px;
+
+    border-radius:
+      12px;
   }
 
+
   .mobile-menu {
-    left: 5px;
-    right: 5px;
+    left:
+      5px;
 
-    padding: 8px;
+    right:
+      5px;
 
-    border-radius: 18px;
+    padding:
+      8px;
+
+    border-radius:
+      18px;
   }
 }
 
@@ -2376,69 +3159,100 @@
 ============================================================ */
 
 @media (max-width: 380px) {
-
   .navbar {
-    min-height: 62px;
+    min-height:
+      62px;
 
     padding:
       4px
       6px;
   }
 
+
   .logo-section {
     max-width:
       calc(100% - 42px);
   }
 
+
   .college-logo {
-    width: 42px;
-    height: 42px;
+    width:
+      42px;
 
-    flex-basis: 42px;
+    height:
+      42px;
 
-    border-radius: 11px;
+    flex-basis:
+      42px;
+
+    border-radius:
+      11px;
   }
+
 
   .college-brand {
-    margin-left: 7px;
+    margin-left:
+      7px;
   }
+
 
   .brand-stg {
-    font-size: 14px;
+    font-size:
+      14px;
   }
+
 
   .brand-pu {
-    font-size: 9.5px;
+    font-size:
+      9.5px;
   }
+
 
   .college-brand-tagline {
-    margin-top: 6px;
+    margin-top:
+      6px;
 
-    font-size: 4.8px;
+    font-size:
+      4.8px;
   }
+
 
   .college-brand-title::after {
-    width: 38px;
+    width:
+      38px;
 
-    bottom: -5px;
+    bottom:
+      -5px;
 
-    height: 1.5px;
+    height:
+      1.5px;
   }
+
 
   .mobile-menu-btn {
-    width: 39px;
-    height: 39px;
+    width:
+      39px;
 
-    flex-basis: 39px;
+    height:
+      39px;
 
-    border-radius: 11px;
+    flex-basis:
+      39px;
+
+    border-radius:
+      11px;
   }
 
-  .mobile-menu {
-    left: 5px;
-    right: 5px;
 
-    border-radius: 17px;
+  .mobile-menu {
+    left:
+      5px;
+
+    right:
+      5px;
+
+    border-radius:
+      17px;
   }
 }
 
@@ -2448,35 +3262,51 @@
 ============================================================ */
 
 @media (max-width: 330px) {
-
   .college-logo {
-    width: 39px;
-    height: 39px;
+    width:
+      39px;
 
-    flex-basis: 39px;
+    height:
+      39px;
+
+    flex-basis:
+      39px;
   }
+
 
   .brand-stg {
-    font-size: 13px;
+    font-size:
+      13px;
   }
+
 
   .brand-pu {
-    font-size: 8.5px;
+    font-size:
+      8.5px;
   }
+
 
   .college-brand-tagline {
-    display: none;
+    display:
+      none;
   }
+
 
   .college-brand-title::after {
-    display: none;
+    display:
+      none;
   }
 
-  .mobile-menu-btn {
-    width: 37px;
-    height: 37px;
 
-    flex-basis: 37px;
+  .mobile-menu-btn {
+    width:
+      37px;
+
+    height:
+      37px;
+
+    flex-basis:
+      37px;
   }
 }
 
@@ -2486,23 +3316,29 @@
 ============================================================ */
 
 .mobile-menu::-webkit-scrollbar {
-  width: 4px;
+  width:
+    4px;
 }
+
 
 .mobile-menu::-webkit-scrollbar-track {
   background:
     transparent;
 }
 
+
 .mobile-menu::-webkit-scrollbar-thumb {
   background:
     rgba(117, 84, 66, 0.16);
 
-  border-radius: 999px;
+  border-radius:
+    999px;
 }
 
+
 .mobile-menu {
-  scrollbar-width: thin;
+  scrollbar-width:
+    thin;
 
   scrollbar-color:
     rgba(117, 84, 66, 0.18)
@@ -2511,7 +3347,7 @@
 
 
 /* ============================================================
-   FOCUS
+   KEYBOARD FOCUS
 ============================================================ */
 
 .brand-link:focus-visible,
@@ -2524,9 +3360,10 @@
 .mobile-nav-items button:focus-visible,
 .mobile-login-option:focus-visible {
   outline:
-    2px solid rgba(216, 90, 24, 0.4);
+    2px solid rgba(216, 90, 24, 0.42);
 
-  outline-offset: 3px;
+  outline-offset:
+    3px;
 }
 
 
@@ -2535,14 +3372,12 @@
 ============================================================ */
 
 @media (prefers-reduced-motion: reduce) {
-
-  .navbar::after {
-    animation: none;
-  }
-
+  .navbar::after,
   .brand-link::after {
-    animation: none !important;
+    animation:
+      none !important;
   }
+
 
   .brand-link,
   .college-logo,
@@ -2555,13 +3390,10 @@
   .mobile-menu,
   .mobile-nav-items > button,
   .mobile-login-option,
-  .mobile-menu-btn {
-    transition: none;
-  }
-
-  .daily-test-nav-btn::after,
-  .login-btn::before {
-    transition: none;
+  .mobile-menu-btn,
+  .login-btn {
+    transition:
+      none !important;
   }
 }
 

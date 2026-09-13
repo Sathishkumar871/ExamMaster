@@ -1,6 +1,19 @@
-
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  ArrowRight,
+  BookOpen,
+  Check,
+  Eye,
+  EyeOff,
+  GraduationCap,
+  LockKeyhole,
+  Mail,
+  Phone,
+  ShieldCheck,
+  
+  UserRound,
+} from "lucide-react";
 import "./StudentRegister.css";
 
 const API_BASE_URL =
@@ -9,28 +22,32 @@ const API_BASE_URL =
     ? "http://localhost:5000"
     : "https://exammaster-backend-up1y.onrender.com";
 
-const OTP_LENGTH = 6;
-
-type RegisterStep = "email" | "form";
-
 export default function StudentRegister() {
   const navigate = useNavigate();
 
   // ============================================================
-  // CURRENT STEP
-  // ============================================================
-
-  const [step, setStep] = useState<RegisterStep>("email");
-
-  // ============================================================
-  // REGISTRATION FORM
+  // PERSONAL DETAILS
   // ============================================================
 
   const [name, setName] = useState("");
   const [studentId, setStudentId] = useState("");
   const [email, setEmail] = useState("");
   const [mobileNumber, setMobileNumber] = useState("");
+
+  // ============================================================
+  // PASSWORD
+  // ============================================================
+
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] =
+    useState(false);
+
+  // ============================================================
+  // ACADEMIC DETAILS
+  // ============================================================
 
   const [classId, setClassId] = useState("");
   const [className, setClassName] = useState("");
@@ -38,44 +55,11 @@ export default function StudentRegister() {
   const [academicYear, setAcademicYear] = useState("");
 
   // ============================================================
-  // OTP
+  // LOADING / ERROR
   // ============================================================
 
-  const [otpBoxes, setOtpBoxes] = useState<string[]>(
-    Array(OTP_LENGTH).fill("")
-  );
-
-  const [otpSent, setOtpSent] = useState(false);
-  const [emailVerified, setEmailVerified] = useState(false);
-
-  // ============================================================
-  // SUCCESS
-  // ============================================================
-
-  const [showSuccess, setShowSuccess] = useState(false);
-
-  // ============================================================
-  // LOADING
-  // ============================================================
-
-  const [otpLoading, setOtpLoading] = useState(false);
-  const [verifyLoading, setVerifyLoading] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  // ============================================================
-  // MESSAGES
-  // ============================================================
-
   const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
-
-  // ============================================================
-  // OTP INPUT REFS
-  // ============================================================
-
-  const otpRefs = useRef<Array<HTMLInputElement | null>>([]);
-
-  const otp = otpBoxes.join("");
 
   // ============================================================
   // SECTIONS
@@ -116,292 +100,17 @@ export default function StudentRegister() {
   };
 
   // ============================================================
-  // OTP AUTO FOCUS
-  // ============================================================
-
-  useEffect(() => {
-    if (step === "email" && otpSent && !emailVerified) {
-      const timer = setTimeout(() => {
-        otpRefs.current[0]?.focus();
-      }, 100);
-
-      return () => clearTimeout(timer);
-    }
-  }, [step, otpSent, emailVerified]);
-
-  // ============================================================
-  // SEND OTP
-  // ============================================================
-
-  const sendOtp = async () => {
-    setError("");
-    setMessage("");
-
-    const cleanEmail = email.trim().toLowerCase();
-
-    if (!cleanEmail) {
-      setError("Please enter your Gmail address.");
-      return;
-    }
-
-    if (!cleanEmail.endsWith("@gmail.com")) {
-      setError("Please enter a valid Gmail address.");
-      return;
-    }
-
-    try {
-      setOtpLoading(true);
-
-      const response = await fetch(
-        `${API_BASE_URL}/api/otp/send-otp`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email: cleanEmail,
-          }),
-        }
-      );
-
-      const data = await response.json();
-
-      console.log("SEND OTP RESPONSE:", data);
-
-      if (!response.ok || !data.success) {
-        setError(data.message || "Failed to send OTP.");
-        return;
-      }
-
-      setEmail(cleanEmail);
-      setOtpSent(true);
-      setEmailVerified(false);
-      setShowSuccess(false);
-
-      setOtpBoxes(Array(OTP_LENGTH).fill(""));
-
-      setMessage(
-        `OTP sent successfully to ${cleanEmail}`
-      );
-
-      setTimeout(() => {
-        otpRefs.current[0]?.focus();
-      }, 120);
-    } catch (err) {
-      console.error("SEND OTP ERROR:", err);
-
-      setError(
-        "Server error while sending OTP."
-      );
-    } finally {
-      setOtpLoading(false);
-    }
-  };
-
-  // ============================================================
-  // OTP INPUT
-  // ============================================================
-
-  const handleOtpChange = (
-    index: number,
-    value: string
-  ) => {
-    const cleanValue = value
-      .replace(/\D/g, "")
-      .slice(-1);
-
-    const updated = [...otpBoxes];
-
-    updated[index] = cleanValue;
-
-    setOtpBoxes(updated);
-    setError("");
-
-    if (
-      cleanValue &&
-      index < OTP_LENGTH - 1
-    ) {
-      otpRefs.current[index + 1]?.focus();
-    }
-  };
-
-  // ============================================================
-  // OTP KEYBOARD
-  // ============================================================
-
-  const handleOtpKeyDown = (
-    index: number,
-    e: React.KeyboardEvent<HTMLInputElement>
-  ) => {
-    if (
-      e.key === "Backspace" &&
-      !otpBoxes[index] &&
-      index > 0
-    ) {
-      otpRefs.current[index - 1]?.focus();
-    }
-
-    if (
-      e.key === "ArrowLeft" &&
-      index > 0
-    ) {
-      otpRefs.current[index - 1]?.focus();
-    }
-
-    if (
-      e.key === "ArrowRight" &&
-      index < OTP_LENGTH - 1
-    ) {
-      otpRefs.current[index + 1]?.focus();
-    }
-
-    if (
-      e.key === "Enter" &&
-      otp.length === OTP_LENGTH &&
-      !verifyLoading
-    ) {
-      verifyOtp();
-    }
-  };
-
-  // ============================================================
-  // PASTE OTP
-  // ============================================================
-
-  const handleOtpPaste = (
-    e: React.ClipboardEvent<HTMLInputElement>
-  ) => {
-    e.preventDefault();
-
-    const pasted = e.clipboardData
-      .getData("text")
-      .replace(/\D/g, "")
-      .slice(0, OTP_LENGTH);
-
-    if (!pasted) return;
-
-    const updated = Array(OTP_LENGTH).fill("");
-
-    pasted
-      .split("")
-      .forEach((digit, index) => {
-        updated[index] = digit;
-      });
-
-    setOtpBoxes(updated);
-    setError("");
-
-    const focusIndex = Math.min(
-      pasted.length,
-      OTP_LENGTH - 1
-    );
-
-    otpRefs.current[focusIndex]?.focus();
-  };
-
-  // ============================================================
-  // VERIFY OTP
-  // ============================================================
-
-  const verifyOtp = async () => {
-    setError("");
-    setMessage("");
-
-    if (otp.length !== OTP_LENGTH) {
-      setError(
-        "Please enter the complete 6-digit OTP."
-      );
-      return;
-    }
-
-    try {
-      setVerifyLoading(true);
-
-      const response = await fetch(
-        `${API_BASE_URL}/api/otp/verify`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email: email.trim().toLowerCase(),
-            otp,
-          }),
-        }
-      );
-
-      const data = await response.json();
-
-      console.log(
-        "VERIFY OTP RESPONSE:",
-        data
-      );
-
-      if (!response.ok || !data.success) {
-        setError(
-          data.message ||
-            "OTP verification failed."
-        );
-        return;
-      }
-
-      // ========================================================
-      // EMAIL VERIFIED
-      // ========================================================
-
-      setEmailVerified(true);
-      setShowSuccess(true);
-
-      setTimeout(() => {
-        setShowSuccess(false);
-        setStep("form");
-        setMessage("");
-        setError("");
-      }, 1500);
-    } catch (err) {
-      console.error(
-        "VERIFY OTP ERROR:",
-        err
-      );
-
-      setError(
-        "Server error while verifying OTP."
-      );
-    } finally {
-      setVerifyLoading(false);
-    }
-  };
-
-  // ============================================================
-  // CHANGE GMAIL
-  // ============================================================
-
-  const changeEmail = () => {
-    setOtpSent(false);
-    setEmailVerified(false);
-    setOtpBoxes(Array(OTP_LENGTH).fill(""));
-    setMessage("");
-    setError("");
-  };
-
-  // ============================================================
   // CLASS CHANGE
   // ============================================================
 
-  const handleClassChange = (
-    value: string
-  ) => {
+  const handleClassChange = (value: string) => {
     setClassId(value);
     setSection("");
 
     if (value === "INTER-FIRST-YEAR") {
       setClassName("1st PUC");
       setAcademicYear("1");
-    } else if (
-      value === "INTER-SECOND-YEAR"
-    ) {
+    } else if (value === "INTER-SECOND-YEAR") {
       setClassName("2nd PUC");
       setAcademicYear("2");
     } else {
@@ -421,9 +130,9 @@ export default function StudentRegister() {
 
     setError("");
 
-    // ========================================================
-    // REQUIRED
-    // ========================================================
+    // ----------------------------------------------------------
+    // REQUIRED FIELDS
+    // ----------------------------------------------------------
 
     if (
       !name.trim() ||
@@ -431,31 +140,28 @@ export default function StudentRegister() {
       !email.trim() ||
       !mobileNumber.trim() ||
       !password ||
+      !confirmPassword ||
       !classId ||
       !className ||
       !academicYear ||
       !section
     ) {
-      setError(
-        "Please fill all details including section."
-      );
+      setError("Please complete all registration details.");
       return;
     }
 
-    // ========================================================
-    // EMAIL VERIFIED
-    // ========================================================
+    // ----------------------------------------------------------
+    // PASSWORD MATCH
+    // ----------------------------------------------------------
 
-    if (!emailVerified) {
-      setError(
-        "Please verify your Gmail first."
-      );
+    if (password !== confirmPassword) {
+      setError("Passwords do not match. Please re-enter.");
       return;
     }
 
-    // ========================================================
-    // MOBILE
-    // ========================================================
+    // ----------------------------------------------------------
+    // MOBILE VALIDATION
+    // ----------------------------------------------------------
 
     const cleanMobile = mobileNumber
       .replace(/\D/g, "")
@@ -468,20 +174,35 @@ export default function StudentRegister() {
       return;
     }
 
-    // ========================================================
-    // STUDENT ID
-    // ========================================================
+    // ----------------------------------------------------------
+    // STUDENT ID VALIDATION
+    // ----------------------------------------------------------
 
     const cleanStudentId = studentId
       .trim()
       .toUpperCase();
 
     if (cleanStudentId.length < 3) {
-      setError(
-        "Please enter a valid Student ID."
-      );
+      setError("Please enter a valid Student ID.");
       return;
     }
+
+    // ----------------------------------------------------------
+    // EMAIL VALIDATION
+    // ----------------------------------------------------------
+
+    const cleanEmail = email
+      .trim()
+      .toLowerCase();
+
+    if (!cleanEmail.includes("@")) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    // ----------------------------------------------------------
+    // API
+    // ----------------------------------------------------------
 
     try {
       setLoading(true);
@@ -490,19 +211,19 @@ export default function StudentRegister() {
         `${API_BASE_URL}/api/student/register`,
         {
           method: "POST",
+
           headers: {
             "Content-Type": "application/json",
           },
+
           body: JSON.stringify({
             name: name.trim(),
 
             studentId: cleanStudentId,
 
-            email:
-              email.trim().toLowerCase(),
+            email: cleanEmail,
 
-            mobileNumber:
-              cleanMobile,
+            mobileNumber: cleanMobile,
 
             password,
 
@@ -524,41 +245,50 @@ export default function StudentRegister() {
         data
       );
 
+      // --------------------------------------------------------
+      // API ERROR
+      // --------------------------------------------------------
+
       if (!response.ok || !data.success) {
         setError(
           data.message ||
-            "Registration failed."
+            "Registration failed. Student ID, Email or Mobile might already exist."
         );
+
         return;
       }
+
+      // --------------------------------------------------------
+      // SUCCESS
+      // --------------------------------------------------------
 
       alert(
         `Registration Successful!\nStudent ID: ${data.student.studentId}`
       );
 
-      // ========================================================
+      // --------------------------------------------------------
       // RESET
-      // ========================================================
+      // --------------------------------------------------------
 
       setName("");
       setStudentId("");
       setEmail("");
       setMobileNumber("");
+
       setPassword("");
+      setConfirmPassword("");
+
+      setShowPassword(false);
+      setShowConfirmPassword(false);
 
       setClassId("");
       setClassName("");
       setSection("");
       setAcademicYear("");
 
-      setOtpBoxes(
-        Array(OTP_LENGTH).fill("")
-      );
-
-      setOtpSent(false);
-      setEmailVerified(false);
-      setShowSuccess(false);
-      setStep("email");
+      // --------------------------------------------------------
+      // LOGIN
+      // --------------------------------------------------------
 
       navigate("/login");
     } catch (err) {
@@ -575,574 +305,671 @@ export default function StudentRegister() {
     }
   };
 
-  // ============================================================
-  // UI
-  // ============================================================
-
   return (
     <div className="student-register-page">
+      {/* =====================================================
+          BACKGROUND
+      ===================================================== */}
 
-      {/* BACKGROUND */}
+      <div className="student-orb student-orb-one" />
 
-      <div className="register-orb register-orb-one" />
-      <div className="register-orb register-orb-two" />
-      <div className="register-grid" />
+      <div className="student-orb student-orb-two" />
 
-      {/* ======================================================
-          MAIN CARD
-      ====================================================== */}
+      <div className="student-grid" />
 
-      <div className="student-register-card">
+      {/* =====================================================
+          MAIN SHELL
+      ===================================================== */}
 
-        {/* ====================================================
-            BRAND
-        ==================================================== */}
+      <div className="student-register-shell">
 
-        <div className="stg-register-logo">
-          STG
-        </div>
+        {/* ===================================================
+            LEFT — STUDENT WELCOME PANEL
+        =================================================== */}
 
-        <div className="register-secure-badge">
-          <span />
-          SECURE STUDENT REGISTRATION
-        </div>
+        <section className="student-welcome-panel">
 
-        {/* ====================================================
-            STEP 1 — GMAIL + OTP
-        ==================================================== */}
+          {/* BRAND */}
 
-        {step === "email" &&
-          !showSuccess && (
-            <div className="register-step">
+          <div className="student-brand">
 
-              <h1>
-                Verify Your{" "}
-                <strong>Gmail</strong>
-              </h1>
+            <div className="student-brand-mark">
+              <GraduationCap
+                size={25}
+                strokeWidth={2.1}
+              />
+            </div>
 
-              <p className="register-description">
-                Verify your Gmail first.
-                After successful verification,
-                your student registration form
-                will appear.
-              </p>
+            <div>
+              <strong>ExamMaster</strong>
 
-              {/* GMAIL INPUT */}
+              <span>
+                STG PU COLLEGE
+              </span>
+            </div>
 
-              <div className="register-email-wrap">
+          </div>
 
-                <span className="email-symbol">
-                  @
+          {/* BACK */}
+
+          <button
+            type="button"
+            className="student-back-button"
+            onClick={() =>
+              navigate("/login")
+            }
+          >
+            <ArrowRight
+              size={15}
+              className="back-arrow"
+            />
+
+            Back to Login
+          </button>
+
+          {/* WELCOME */}
+
+          <div className="student-welcome-copy">
+
+            <div className="student-eyebrow">
+             
+
+              STUDENT PORTAL
+            </div>
+
+            <h1>
+              Begin your
+
+              <span>
+                academic journey.
+              </span>
+            </h1>
+
+            <p>
+              Create your student account and
+              unlock a smarter way to prepare,
+              practice and perform with
+              ExamMaster.
+            </p>
+
+          </div>
+
+          {/* FEATURES */}
+
+          <div className="student-feature-list">
+
+            {/* FEATURE 1 */}
+
+            <div className="student-feature">
+
+              <span className="feature-icon">
+                <BookOpen size={16} />
+              </span>
+
+              <div>
+                <strong>
+                  Smart Examination
+                </strong>
+
+                <span>
+                  Practice and manage your
+                  assessments in one place.
                 </span>
-
-                <input
-                  type="email"
-                  placeholder="Enter your Gmail"
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(
-                      e.target.value
-                    );
-                    setError("");
-                    setMessage("");
-                  }}
-                  disabled={
-                    otpLoading ||
-                    verifyLoading
-                  }
-                />
-
               </div>
 
-              {/* SEND OTP */}
+            </div>
 
-              {!otpSent && (
-                <button
-                  type="button"
-                  className="register-main-button"
-                  onClick={sendOtp}
-                  disabled={otpLoading}
-                >
-                  {otpLoading ? (
-                    <>
-                      <span className="button-loader" />
-                      Sending OTP...
-                    </>
-                  ) : (
-                    <>
-                      Send Verification Code
-                      <span>→</span>
-                    </>
-                  )}
-                </button>
-              )}
+            {/* FEATURE 2 */}
 
-              {/* =================================================
-                  OTP AREA
-              ================================================= */}
+            <div className="student-feature">
 
-              {otpSent && (
-                <div className="otp-area">
+              <span className="feature-icon">
+                <ShieldCheck size={16} />
+              </span>
 
-                  <div className="otp-top-line">
-                    <span>
-                      Verification Code
-                    </span>
+              <div>
+                <strong>
+                  Secure Student Access
+                </strong>
 
-                    <small>
-                      6 DIGITS
-                    </small>
-                  </div>
+                <span>
+                  Your academic account stays
+                  protected and personalized.
+                </span>
+              </div>
 
-                  <p className="otp-sent-text">
-                    OTP sent to{" "}
-                    <strong>
-                      {email}
-                    </strong>
-                  </p>
+            </div>
 
-                  {/* SIX OTP BOXES */}
+            {/* FEATURE 3 */}
 
-                  <div className="otp-box-container">
+            <div className="student-feature">
 
-                    {otpBoxes.map(
-                      (
-                        digit,
-                        index
-                      ) => (
-                        <input
-                          key={index}
-                          ref={(element) => {
-                            otpRefs.current[
-                              index
-                            ] = element;
-                          }}
-                          className={
-                            digit
-                              ? "otp-box otp-filled"
-                              : "otp-box"
-                          }
-                          type="text"
-                          inputMode="numeric"
-                          autoComplete={
-                            index === 0
-                              ? "one-time-code"
-                              : "off"
-                          }
-                          maxLength={1}
-                          value={digit}
-                          onChange={(e) =>
-                            handleOtpChange(
-                              index,
-                              e.target.value
-                            )
-                          }
-                          onKeyDown={(e) =>
-                            handleOtpKeyDown(
-                              index,
-                              e
-                            )
-                          }
-                          onPaste={
-                            handleOtpPaste
-                          }
-                          disabled={
-                            verifyLoading
-                          }
-                        />
-                      )
-                    )}
+              <span className="feature-icon">
+                <GraduationCap size={16} />
+              </span>
 
-                  </div>
+              <div>
+                <strong>
+                  Built for STG Students
+                </strong>
 
-                  {/* PROGRESS */}
+                <span>
+                  Designed around your PUC
+                  learning experience.
+                </span>
+              </div>
 
-                  <div className="otp-progress">
-                    <div
-                      style={{
-                        width: `${
-                          (otp.length /
-                            OTP_LENGTH) *
-                          100
-                        }%`,
-                      }}
-                    />
-                  </div>
+            </div>
 
-                  {/* MESSAGE */}
+          </div>
 
-                  {message && (
-                    <div className="register-message register-info">
-                      <span>✓</span>
-                      {message}
-                    </div>
-                  )}
+          {/* BOTTOM */}
 
-                  {error && (
-                    <div className="register-message register-error">
-                      <span>!</span>
-                      {error}
-                    </div>
-                  )}
+          <div className="student-welcome-bottom">
 
-                  {/* VERIFY */}
+            <span>
+              STG PU COLLEGE
+            </span>
 
-                  <button
-                    type="button"
-                    className="register-main-button"
-                    onClick={verifyOtp}
-                    disabled={
-                      verifyLoading ||
-                      otp.length !==
-                        OTP_LENGTH
-                    }
-                  >
-                    {verifyLoading ? (
-                      <>
-                        <span className="button-loader" />
-                        Verifying...
-                      </>
-                    ) : (
-                      <>
-                        Verify Gmail
-                        <span>✓</span>
-                      </>
-                    )}
-                  </button>
+            <div className="welcome-line" />
 
-                  {/* RESEND */}
+            <span>
+              SMART EXAMINATION PLATFORM
+            </span>
 
-                  <button
-                    type="button"
-                    className="text-action-button"
-                    onClick={sendOtp}
-                    disabled={
-                      otpLoading ||
-                      verifyLoading
-                    }
-                  >
-                    {otpLoading
-                      ? "Sending..."
-                      : "Resend OTP"}
-                  </button>
+          </div>
 
-                  {/* CHANGE EMAIL */}
+        </section>
 
-                  <button
-                    type="button"
-                    className="change-email-action"
-                    onClick={changeEmail}
-                    disabled={
-                      otpLoading ||
-                      verifyLoading
-                    }
-                  >
-                    ← Change Gmail
-                  </button>
+        {/* ===================================================
+            RIGHT — REGISTRATION PANEL
+        =================================================== */}
 
-                </div>
-              )}
+        <section className="student-form-panel">
 
-              {/* ERROR BEFORE OTP */}
+          {/* HEADER */}
 
-              {!otpSent && error && (
-                <div className="register-message register-error">
-                  <span>!</span>
+          <div className="student-form-header">
+
+            <div className="student-form-label">
+              ACCOUNT SETUP
+            </div>
+
+            <h2>
+              Student
+
+              <span>
+                Registration
+              </span>
+            </h2>
+
+            <p>
+              Enter your personal and academic
+              details to create your ExamMaster
+              account.
+            </p>
+
+          </div>
+
+          {/* ERROR */}
+
+          {error && (
+            <div className="student-error">
+
+              <span className="error-mark">
+                !
+              </span>
+
+              <div>
+                <strong>
+                  Registration issue
+                </strong>
+
+                <span>
                   {error}
-                </div>
-              )}
+                </span>
+              </div>
 
             </div>
           )}
 
-        {/* ======================================================
-            SUCCESS ANIMATION
-        ====================================================== */}
+          {/* =================================================
+              FORM
+          ================================================= */}
 
-        {showSuccess && (
-          <div className="email-success-screen">
+          <form
+            className="student-register-form"
+            onSubmit={registerStudent}
+          >
 
-            <div className="success-ring-outer">
+            {/* =================================================
+                01 PERSONAL DETAILS
+            ================================================= */}
 
-              <div className="success-ring-middle">
+            <div className="student-form-section">
 
-                <div className="success-ring-inner">
-                  ✓
+              <div className="section-label">
+                <span>01</span>
+
+                PERSONAL DETAILS
+              </div>
+
+              <div className="student-fields-grid">
+
+                {/* NAME */}
+
+                <div className="student-field">
+
+                  <label>
+                    Student Name
+                  </label>
+
+                  <div className="student-input">
+
+                    <UserRound
+                      size={16}
+                    />
+
+                    <input
+                      type="text"
+                      placeholder="Enter full name"
+                      value={name}
+                      onChange={(e) =>
+                        setName(
+                          e.target.value
+                        )
+                      }
+                      disabled={loading}
+                      autoComplete="name"
+                    />
+
+                  </div>
+
+                </div>
+
+                {/* STUDENT ID */}
+
+                <div className="student-field">
+
+                  <label>
+                    Student ID
+                  </label>
+
+                  <div className="student-input">
+
+                    <GraduationCap
+                      size={16}
+                    />
+
+                    <input
+                      type="text"
+                      placeholder="Enter Student ID"
+                      value={studentId}
+                      onChange={(e) =>
+                        setStudentId(
+                          e.target.value.toUpperCase()
+                        )
+                      }
+                      disabled={loading}
+                    />
+
+                  </div>
+
+                  <small>
+                    Student ID must be unique.
+                  </small>
+
+                </div>
+
+                {/* EMAIL */}
+
+                <div className="student-field">
+
+                  <label>
+                    Email Address
+                  </label>
+
+                  <div className="student-input">
+
+                    <Mail size={16} />
+
+                    <input
+                      type="email"
+                      placeholder="Enter email address"
+                      value={email}
+                      onChange={(e) =>
+                        setEmail(
+                          e.target.value
+                        )
+                      }
+                      disabled={loading}
+                      autoComplete="email"
+                    />
+
+                  </div>
+
+                </div>
+
+                {/* MOBILE */}
+
+                <div className="student-field">
+
+                  <label>
+                    Mobile Number
+                  </label>
+
+                  <div className="student-input">
+
+                    <Phone size={16} />
+
+                    <input
+                      type="tel"
+                      inputMode="numeric"
+                      maxLength={10}
+                      placeholder="10-digit mobile"
+                      value={mobileNumber}
+                      onChange={(e) =>
+                        setMobileNumber(
+                          e.target.value.replace(
+                            /\D/g,
+                            ""
+                          )
+                        )
+                      }
+                      disabled={loading}
+                      autoComplete="tel"
+                    />
+
+                  </div>
+
                 </div>
 
               </div>
-
             </div>
 
-            <div className="success-dot success-dot-one" />
-            <div className="success-dot success-dot-two" />
-            <div className="success-dot success-dot-three" />
+            {/* =================================================
+                02 ACADEMIC DETAILS
+            ================================================= */}
 
-            <h1>
-              Gmail{" "}
-              <strong>
-                Verified!
-              </strong>
-            </h1>
+            <div className="student-form-section">
 
-            <p>
-              Email verification successful
-            </p>
+              <div className="section-label">
+                <span>02</span>
 
-            <div className="success-email">
-              ✓ {email}
-            </div>
-
-            <div className="continue-line">
-              <span />
-              Opening registration form...
-            </div>
-
-          </div>
-        )}
-
-        {/* ======================================================
-            STEP 2 — REGISTRATION FORM
-        ====================================================== */}
-
-        {step === "form" && (
-          <div className="register-form-step">
-
-            {/* VERIFIED EMAIL HEADER */}
-
-            <div className="verified-header">
-
-              <div className="verified-mini-icon">
-                ✓
+                ACADEMIC DETAILS
               </div>
 
-              <div className="verified-content">
-                <div className="verified-title">
-                  Gmail Verified
+              <div className="student-fields-grid">
+
+                {/* CLASS */}
+
+                <div className="student-field">
+
+                  <label>
+                    Class
+                  </label>
+
+                  <div className="student-select">
+
+                    <GraduationCap
+                      size={16}
+                    />
+
+                    <select
+                      value={classId}
+                      onChange={(e) =>
+                        handleClassChange(
+                          e.target.value
+                        )
+                      }
+                      disabled={loading}
+                    >
+                      <option value="">
+                        Select class
+                      </option>
+
+                      <option value="INTER-FIRST-YEAR">
+                        1st PUC
+                      </option>
+
+                      <option value="INTER-SECOND-YEAR">
+                        2nd PUC
+                      </option>
+                    </select>
+
+                  </div>
+
                 </div>
 
-                <div className="verified-email">
-                  {email}
-                </div>
-              </div>
+                {/* SECTION */}
 
-              <span className="verified-check">
-                ✓
-              </span>
+                <div className="student-field">
 
-            </div>
-
-            <h1 className="registration-heading">
-              Student{" "}
-              <strong>
-                Details
-              </strong>
-            </h1>
-
-            <p className="register-description">
-              Complete your student details
-              to create your STG College account.
-            </p>
-
-            {error && (
-              <div className="register-message register-error">
-                <span>!</span>
-                {error}
-              </div>
-            )}
-
-            <form onSubmit={registerStudent}>
-
-              {/* NAME */}
-
-              <div className="register-field">
-                <label>
-                  Student Name
-                </label>
-
-                <input
-                  type="text"
-                  placeholder="Enter student name"
-                  value={name}
-                  onChange={(e) =>
-                    setName(
-                      e.target.value
-                    )
-                  }
-                  disabled={loading}
-                />
-              </div>
-
-              {/* STUDENT ID */}
-
-              <div className="register-field">
-                <label>
-                  Student ID
-                </label>
-
-                <input
-                  type="text"
-                  placeholder="Enter Student ID"
-                  value={studentId}
-                  onChange={(e) =>
-                    setStudentId(
-                      e.target.value.toUpperCase()
-                    )
-                  }
-                  disabled={loading}
-                />
-
-                <small>
-                  Enter the Student ID shown
-                  on your Student ID Card.
-                </small>
-              </div>
-
-              {/* MOBILE */}
-
-              <div className="register-field">
-                <label>
-                  Mobile Number
-                </label>
-
-                <input
-                  type="tel"
-                  inputMode="numeric"
-                  maxLength={10}
-                  placeholder="10-digit mobile number"
-                  value={mobileNumber}
-                  onChange={(e) =>
-                    setMobileNumber(
-                      e.target.value.replace(
-                        /\D/g,
-                        ""
-                      )
-                    )
-                  }
-                  disabled={loading}
-                />
-              </div>
-
-              {/* PASSWORD */}
-
-              <div className="register-field">
-                <label>
-                  Password
-                </label>
-
-                <input
-                  type="password"
-                  placeholder="Create password"
-                  value={password}
-                  onChange={(e) =>
-                    setPassword(
-                      e.target.value
-                    )
-                  }
-                  disabled={loading}
-                />
-              </div>
-
-              {/* CLASS */}
-
-              <div className="register-field">
-                <label>
-                  Class
-                </label>
-
-                <select
-                  value={classId}
-                  onChange={(e) =>
-                    handleClassChange(
-                      e.target.value
-                    )
-                  }
-                  disabled={loading}
-                >
-                  <option value="">
-                    Select Class
-                  </option>
-
-                  <option value="INTER-FIRST-YEAR">
-                    1st PUC
-                  </option>
-
-                  <option value="INTER-SECOND-YEAR">
-                    2nd PUC
-                  </option>
-                </select>
-              </div>
-
-              {/* SECTION */}
-
-              {classId && (
-                <div className="register-field">
                   <label>
                     Section
                   </label>
 
-                  <select
-                    value={section}
-                    onChange={(e) =>
-                      setSection(
-                        e.target.value
-                      )
-                    }
-                    disabled={loading}
-                  >
-                    <option value="">
-                      Select Section
-                    </option>
+                  <div className="student-select">
 
-                    {getSections().map(
-                      (sec) => (
-                        <option
-                          key={sec}
-                          value={sec}
-                        >
-                          {sec}
-                        </option>
-                      )
-                    )}
-                  </select>
+                    <BookOpen
+                      size={16}
+                    />
+
+                    <select
+                      value={section}
+                      onChange={(e) =>
+                        setSection(
+                          e.target.value
+                        )
+                      }
+                      disabled={
+                        loading ||
+                        !classId
+                      }
+                    >
+                      <option value="">
+                        {classId
+                          ? "Select section"
+                          : "Choose class first"}
+                      </option>
+
+                      {getSections().map(
+                        (sec) => (
+                          <option
+                            key={sec}
+                            value={sec}
+                          >
+                            {sec}
+                          </option>
+                        )
+                      )}
+
+                    </select>
+
+                  </div>
+
                 </div>
-              )}
 
-              {/* SUBMIT */}
+              </div>
+            </div>
+
+            {/* =================================================
+                03 ACCOUNT SECURITY
+            ================================================= */}
+
+            <div className="student-form-section">
+
+              <div className="section-label">
+                <span>03</span>
+
+                ACCOUNT SECURITY
+              </div>
+
+              <div className="student-fields-grid">
+
+                {/* PASSWORD */}
+
+                <div className="student-field">
+
+                  <label>
+                    Password
+                  </label>
+
+                  <div className="student-input password-input-shell">
+
+                    <LockKeyhole
+                      size={16}
+                    />
+
+                    <input
+                      type={
+                        showPassword
+                          ? "text"
+                          : "password"
+                      }
+                      placeholder="Create secure password"
+                      value={password}
+                      onChange={(e) =>
+                        setPassword(
+                          e.target.value
+                        )
+                      }
+                      disabled={loading}
+                      autoComplete="new-password"
+                    />
+
+                    <button
+                      type="button"
+                      className="student-password-toggle"
+                      onClick={() =>
+                        setShowPassword(
+                          (prev) => !prev
+                        )
+                      }
+                      aria-label={
+                        showPassword
+                          ? "Hide password"
+                          : "Show password"
+                      }
+                    >
+                      {showPassword ? (
+                        <EyeOff size={16} />
+                      ) : (
+                        <Eye size={16} />
+                      )}
+                    </button>
+
+                  </div>
+
+                </div>
+
+                {/* CONFIRM PASSWORD */}
+
+                <div className="student-field">
+
+                  <label>
+                    Confirm Password
+                  </label>
+
+                  <div className="student-input password-input-shell">
+
+                    <LockKeyhole
+                      size={16}
+                    />
+
+                    <input
+                      type={
+                        showConfirmPassword
+                          ? "text"
+                          : "password"
+                      }
+                      placeholder="Re-enter password"
+                      value={confirmPassword}
+                      onChange={(e) =>
+                        setConfirmPassword(
+                          e.target.value
+                        )
+                      }
+                      disabled={loading}
+                      autoComplete="new-password"
+                    />
+
+                    <button
+                      type="button"
+                      className="student-password-toggle"
+                      onClick={() =>
+                        setShowConfirmPassword(
+                          (prev) => !prev
+                        )
+                      }
+                      aria-label={
+                        showConfirmPassword
+                          ? "Hide confirm password"
+                          : "Show confirm password"
+                      }
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff size={16} />
+                      ) : (
+                        <Eye size={16} />
+                      )}
+                    </button>
+
+                  </div>
+
+                </div>
+
+              </div>
+            </div>
+
+            {/* =================================================
+                SUBMIT
+            ================================================= */}
+
+            <button
+              type="submit"
+              className="student-submit-button"
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <span className="student-loader" />
+
+                  Creating Account...
+                </>
+              ) : (
+                <>
+                  Create Student Account
+
+                  <span className="submit-icon">
+                    <Check size={15} />
+                  </span>
+                </>
+              )}
+            </button>
+
+            {/* LOGIN */}
+
+            <div className="student-login-note">
+
+              <span>
+                Already have an account?
+              </span>
 
               <button
-                type="submit"
-                className="register-main-button register-submit-button"
-                disabled={loading}
+                type="button"
+                onClick={() =>
+                  navigate("/login")
+                }
               >
-                {loading ? (
-                  <>
-                    <span className="button-loader" />
-                    Creating Account...
-                  </>
-                ) : (
-                  <>
-                    Create Student Account
-                    <span>✓</span>
-                  </>
-                )}
+                Sign in
               </button>
 
-            </form>
+            </div>
 
-          </div>
-        )}
-
-        {/* FOOTER */}
-
-        <div className="register-footer">
-          <span>STG COLLEGE</span>
-          <b>•</b>
-          SECURE STUDENT PORTAL
-        </div>
-
+          </form>
+        </section>
       </div>
     </div>
   );
 }
-

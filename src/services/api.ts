@@ -2,6 +2,8 @@
    API CONFIG
 ============================================================ */
 
+import { clearAuthSession } from "./session";
+
 const LOCAL_API_BASE_URL =
   "http://localhost:5000/api";
 
@@ -42,14 +44,6 @@ const getStudentToken = (): string | null => {
    CLEAR STUDENT SESSION
 ============================================================ */
 
-const clearStudentSession = () => {
-  localStorage.removeItem("token");
-  localStorage.removeItem("studentToken");
-  localStorage.removeItem("student");
-  localStorage.removeItem("studentId");
-  localStorage.removeItem("role");
-};
-
 /* ============================================================
    HANDLE STUDENT SESSION
 ============================================================ */
@@ -76,7 +70,7 @@ const handleStudentSession = async (
         "⚠️ Student session replaced by another device."
       );
 
-      clearStudentSession();
+      clearAuthSession();
 
       window.location.href = "/login";
 
@@ -88,19 +82,23 @@ const handleStudentSession = async (
     ======================================================== */
 
     if (
-      data?.code ===
-      "INVALID_SESSION"
+      data?.code === "INVALID_SESSION" ||
+      data?.code === "SESSION_REVOKED" ||
+      data?.code === "TOKEN_EXPIRED" ||
+      data?.code === "UNAUTHORIZED"
     ) {
       console.warn(
         "⚠️ Student session expired or invalid."
       );
 
-      clearStudentSession();
+      clearAuthSession();
 
       window.location.href = "/login";
     }
   } catch {
-    // Ignore invalid response JSON
+    // A 401 from a student-authenticated request is not recoverable locally.
+    clearAuthSession();
+    window.location.href = "/login";
   }
 };
 

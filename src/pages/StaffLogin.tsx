@@ -12,6 +12,11 @@ import {
   LockKeyhole,
 } from "lucide-react";
 import "./StaffLogin.css";
+import {
+  getBackendRole,
+  getDefaultRouteForRole,
+  saveAuthSession,
+} from "../services/session";
 
 const API_URL =
   "https://exammaster-backend-up1y.onrender.com/api/staff/login";
@@ -83,47 +88,35 @@ export default function StaffLogin() {
         data = {};
       }
 
-      if (!response.ok || !data?.success) {
+      const backendRole = getBackendRole(data);
+
+      if (
+        !response.ok ||
+        !data?.success ||
+        !data?.token ||
+        (backendRole !== "staff" && backendRole !== "mentor")
+      ) {
         setError(
           data?.message ||
+            (!backendRole
+              ? "Authentication server did not return a role for this session. Please contact the administrator."
+              : "This account is not authorized for staff or mentor access.") ||
             "Staff authentication failed. Please verify your details."
         );
         return;
       }
 
-      /* =========================================
-         CLEAR OTHER SESSIONS
-      ========================================= */
-
-      localStorage.removeItem("teacher");
-      localStorage.removeItem("teacherToken");
-
-      localStorage.removeItem("student");
-      localStorage.removeItem("studentToken");
-      localStorage.removeItem("studentId");
-
-      /* =========================================
-         SAVE STAFF SESSION
-      ========================================= */
-
-      if (data.token) {
-        localStorage.setItem("staffToken", data.token);
-      }
-
-      if (data.staff) {
-        localStorage.setItem(
-          "staff",
-          JSON.stringify(data.staff)
-        );
-      }
-
-      localStorage.setItem("role", "staff");
+      saveAuthSession({
+        role: backendRole,
+        token: data.token,
+        profile: data.staff,
+      });
 
       /* =========================================
          STAFF DASHBOARD
       ========================================= */
 
-      navigate("/mentor/dashboard", {
+      navigate(getDefaultRouteForRole(backendRole), {
         replace: true,
       });
     } catch (err: any) {
