@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import "./Navbar.css";
 import { clearAuthSession } from "../services/session";
+import { logoutStudent } from "../services/api";
 
 interface User {
   name: string;
@@ -179,9 +180,32 @@ export default function Navbar() {
   // ============================================================
   // LOGOUT
   // ============================================================
-
-  const logout = () => {
+const logout = async () => {
+  try {
+    // Student logout must clear activeDeviceId in backend
+    if (
+      user?.role === "student" &&
+      user?.studentId
+    ) {
+      await logoutStudent(
+        String(user.studentId)
+      );
+    }
+  } catch (error) {
+    console.error(
+      "Student logout API error:",
+      error
+    );
+  } finally {
+    // Clear frontend session
     clearAuthSession();
+
+    // Clear saved device ID
+    if (user?.role === "student") {
+      localStorage.removeItem(
+        "studentDeviceId"
+      );
+    }
 
     setUser(null);
 
@@ -190,7 +214,8 @@ export default function Navbar() {
     setLoginMenuOpen(false);
 
     navigate("/login");
-  };
+  }
+};
 
   // ============================================================
   // DISPLAY ROLE

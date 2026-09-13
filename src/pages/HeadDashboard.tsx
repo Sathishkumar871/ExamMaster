@@ -932,80 +932,150 @@ try {
     setShowMentorActionModal(true);
   };
 
-  // ==========================================================
+    // ==========================================================
   // EXECUTE DELETE / TRANSFER
   // ==========================================================
 
   const executeMentorAction = async () => {
-    if (!mentorActionTarget || !mentorActionType) return;
+    if (!mentorActionTarget || !mentorActionType) {
+      return;
+    }
 
     const token = getToken();
+
     if (!token) {
       setMessage("Staff login required.");
       return;
     }
 
     if (!mentorActionReason.trim()) {
-      setMessage("Reason is required for this security action.");
+      setMessage(
+        "Reason is required for this security action."
+      );
       return;
     }
 
-    if (!replacementMentorId) {
-      setMessage("Please select a replacement mentor.");
+    const isDelete =
+      mentorActionType === "delete";
+
+    // Replacement mentor is required only when
+    // transferring students.
+    if (
+      !isDelete &&
+      !replacementMentorId
+    ) {
+      setMessage(
+        "Please select a replacement mentor."
+      );
       return;
     }
 
-    if (replacementMentorId === mentorActionTarget._id) {
-      setMessage("Old mentor and replacement mentor cannot be the same.");
+    if (
+      !isDelete &&
+      replacementMentorId ===
+        mentorActionTarget._id
+    ) {
+      setMessage(
+        "Old mentor and replacement mentor cannot be the same."
+      );
       return;
     }
 
     try {
-      const isDelete = mentorActionType === "delete";
       const endpoint = isDelete
-        ? `${API_BASE_URL}/api/head/mentors/${encodeURIComponent(mentorActionTarget._id)}`
-        : `${API_BASE_URL}/api/head/mentors/${encodeURIComponent(mentorActionTarget._id)}/transfer`;
+        ? `${API_BASE_URL}/api/head/mentors/${encodeURIComponent(
+            mentorActionTarget._id
+          )}`
+        : `${API_BASE_URL}/api/head/mentors/${encodeURIComponent(
+            mentorActionTarget._id
+          )}/transfer`;
 
-      const response = await fetch(endpoint, {
-        method: isDelete ? "DELETE" : "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          replacementMentorId,
-          reason: mentorActionReason.trim(),
-          ...(isDelete ? {} : { section: transferSection.trim() || undefined }),
-        }),
-      });
+      const response =
+        await fetch(endpoint, {
+          method: isDelete
+            ? "DELETE"
+            : "PATCH",
 
-      const data = await response.json().catch(() => ({}));
+          headers: {
+            Authorization:
+              `Bearer ${token}`,
 
-      if (!response.ok || !data?.success) {
-        throw new Error(data?.message || `Unable to ${mentorActionType} mentor.`);
+            "Content-Type":
+              "application/json",
+          },
+
+          body: JSON.stringify({
+            ...(isDelete
+              ? {}
+              : {
+                  replacementMentorId,
+                  section:
+                    transferSection
+                      .trim() ||
+                    undefined,
+                }),
+
+            reason:
+              mentorActionReason.trim(),
+          }),
+        });
+
+      const data =
+        await response
+          .json()
+          .catch(() => ({}));
+
+      if (
+        !response.ok ||
+        !data?.success
+      ) {
+        throw new Error(
+          data?.message ||
+            `Unable to ${
+              isDelete
+                ? "delete"
+                : "transfer"
+            } mentor.`
+        );
       }
 
       setShowMentorActionModal(false);
+
       setMentorActionTarget(null);
+
       setMentorActionType(null);
+
       setReplacementMentorId("");
+
       setMentorActionReason("");
+
       setTransferSection("");
 
       setMessage(
         isDelete
-          ? `Mentor ${mentorActionTarget.name} deleted successfully and students transferred.`
+          ? `Mentor ${mentorActionTarget.name} deleted successfully.`
           : `Students transferred from ${mentorActionTarget.name} successfully.`
       );
 
       setSelectedMentorAccount(null);
+
       setMentorDetails(null);
+
       await loadHeadData();
+
     } catch (error: any) {
-      console.error("MENTOR ACTION ERROR:", error);
-      setMessage(error?.message || "Mentor action failed.");
+      console.error(
+        "MENTOR ACTION ERROR:",
+        error
+      );
+
+      setMessage(
+        error?.message ||
+          "Mentor action failed."
+      );
     }
   };
+
 
   // ==========================================================
   // CHANGE STUDENT SECTION / MENTOR

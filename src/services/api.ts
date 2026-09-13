@@ -297,7 +297,38 @@ export const loginStudent = async (
 
   return response.json();
 };
+/* ============================================================
+   STUDENT LOGOUT
+============================================================ */
 
+export const logoutStudent = async (
+  studentId: string
+) => {
+  if (!studentId) {
+    throw new Error(
+      "Student ID is required for logout"
+    );
+  }
+
+  const response = await studentFetch(
+    `${API_URL}/logout/${encodeURIComponent(studentId)}`,
+    {
+      method: "POST",
+    }
+  );
+
+  if (!response.ok) {
+    const data =
+      await response.json().catch(() => ({}));
+
+    throw new Error(
+      data?.message ||
+        `Logout failed: ${response.status}`
+    );
+  }
+
+  return response.json();
+};
 /* ============================================================
    GET STUDENT PROFILE
 ============================================================ */
