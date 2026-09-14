@@ -2493,36 +2493,7 @@ export default function MockTestInterface({
         }
       }
 
-      const savedAnswers =
-        sessionStorage.getItem(
-          answerStorageKey
-        );
-
-      if (savedAnswers) {
-        try {
-          const parsed =
-            JSON.parse(
-              savedAnswers
-            );
-
-          if (
-            parsed &&
-            typeof parsed === "object"
-          ) {
-            setAnswers(
-              parsed as AnswerMap
-            );
-
-            latestAnswersRef.current =
-              parsed as AnswerMap;
-          }
-        } catch {
-          console.warn(
-            "Invalid saved answers."
-          );
-        }
-      }
-
+     
       const savedReview =
         sessionStorage.getItem(
           reviewStorageKey
