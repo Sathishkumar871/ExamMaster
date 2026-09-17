@@ -207,3 +207,742 @@
     border-right-color: var(--border);
   }
 }
+
+
+
+
+/* ============================================================
+   GLOBAL RESPONSIVE FOUNDATION
+   Prevent horizontal dragging across the application
+============================================================ */
+
+/* ============================================================
+   BOX SIZING
+============================================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* ============================================================
+   ROOT
+============================================================ */
+
+html {
+  width: 100%;
+  max-width: 100%;
+
+  margin: 0;
+  padding: 0;
+
+  overflow-x: hidden;
+
+  scroll-behavior: smooth;
+}
+
+body {
+  width: 100%;
+  max-width: 100%;
+
+  min-width: 0;
+
+  margin: 0;
+  padding: 0;
+
+  overflow-x: hidden;
+
+  background: #ffffff;
+
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+#root {
+  width: 100%;
+  max-width: 100%;
+
+  min-width: 0;
+
+  margin: 0;
+  padding: 0;
+
+  overflow-x: clip;
+}
+
+/* ============================================================
+   PAGE-SAFE CONTAINERS
+============================================================ */
+
+main,
+section,
+article,
+aside,
+header,
+footer,
+nav,
+div {
+  max-width: 100%;
+}
+
+/*
+   Important for flex/grid children.
+   This prevents children from forcing
+   the parent wider than the screen.
+*/
+
+.flex,
+.grid,
+[class*="container"],
+[class*="wrapper"],
+[class*="content"],
+[class*="page"],
+[class*="layout"],
+[class*="section"] {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* ============================================================
+   MEDIA
+============================================================ */
+
+img,
+video,
+canvas,
+svg,
+iframe {
+  max-width: 100%;
+}
+
+img,
+video,
+canvas {
+  height: auto;
+}
+
+/* ============================================================
+   SVG
+============================================================ */
+
+svg {
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   TEXT
+============================================================ */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+span,
+label,
+a,
+li,
+td,
+th {
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+/* ============================================================
+   LINKS
+============================================================ */
+
+a {
+  max-width: 100%;
+}
+
+/* ============================================================
+   BUTTONS
+============================================================ */
+
+button {
+  max-width: 100%;
+
+  font: inherit;
+
+  white-space: normal;
+
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Prevent flex/grid buttons from overflowing */
+button,
+[role="button"] {
+  min-width: 0;
+}
+
+/* ============================================================
+   FORM ELEMENTS
+============================================================ */
+
+input,
+textarea,
+select {
+  width: 100%;
+  max-width: 100%;
+
+  min-width: 0;
+
+  font: inherit;
+
+  box-sizing: border-box;
+}
+
+textarea {
+  resize: vertical;
+}
+
+/* ============================================================
+   TABLES
+============================================================ */
+
+table {
+  width: 100%;
+  max-width: 100%;
+
+  border-collapse: collapse;
+
+  table-layout: auto;
+}
+
+/*
+   Tables can be the most common reason
+   pages become horizontally draggable.
+*/
+
+.table-wrapper,
+.table-container,
+.table-responsive {
+  width: 100%;
+  max-width: 100%;
+
+  min-width: 0;
+
+  overflow-x: auto;
+
+  overflow-y: hidden;
+
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-wrapper table,
+.table-container table,
+.table-responsive table {
+  width: 100%;
+  max-width: 100%;
+
+  min-width: 0;
+}
+
+/* ============================================================
+   FLEX CONTAINERS
+============================================================ */
+
+.flex,
+[class*="flex"] {
+  min-width: 0;
+}
+
+.flex > *,
+[class*="flex"] > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* ============================================================
+   GRID CONTAINERS
+============================================================ */
+
+.grid,
+[class*="grid"] {
+  min-width: 0;
+}
+
+.grid > *,
+[class*="grid"] > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* ============================================================
+   COMMON CARD FIX
+============================================================ */
+
+.card,
+[class*="card"] {
+  min-width: 0;
+
+  max-width: 100%;
+
+  overflow-wrap: anywhere;
+}
+
+/* ============================================================
+   MODAL / DIALOG
+============================================================ */
+
+[role="dialog"],
+.modal,
+.modal-container,
+.dialog,
+.popup {
+  max-width: calc(
+    100vw - 24px
+  );
+
+  box-sizing: border-box;
+}
+
+/* ============================================================
+   FIX COMMON FIXED WIDTHS
+============================================================ */
+
+/*
+   Elements using width: 100vw can become slightly
+   wider than the visible browser area because of
+   the scrollbar.
+
+   Prefer width: 100%.
+*/
+
+.full-width,
+.full-screen-width {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* ============================================================
+   RESPONSIVE CONTAINERS
+============================================================ */
+
+.responsive-container,
+.page-container,
+.content-container,
+.main-container,
+.app-container {
+  width: 100%;
+
+  max-width: 100%;
+
+  min-width: 0;
+
+  margin-left: auto;
+  margin-right: auto;
+
+  padding-left: 16px;
+  padding-right: 16px;
+
+  box-sizing: border-box;
+}
+
+/* ============================================================
+   DESKTOP
+============================================================ */
+
+@media (min-width: 1200px) {
+  .responsive-container,
+  .page-container,
+  .content-container,
+  .main-container,
+  .app-container {
+    padding-left: 28px;
+    padding-right: 28px;
+  }
+}
+
+/* ============================================================
+   TABLET
+============================================================ */
+
+@media (max-width: 1024px) {
+  html,
+  body,
+  #root {
+    width: 100%;
+    max-width: 100%;
+
+    overflow-x: hidden;
+  }
+
+  .responsive-container,
+  .page-container,
+  .content-container,
+  .main-container,
+  .app-container {
+    width: 100%;
+    max-width: 100%;
+
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  /* Grid automatically reduces columns */
+  .grid,
+  [class*="grid"] {
+    grid-template-columns:
+      repeat(
+        auto-fit,
+        minmax(
+          min(
+            100%,
+            280px
+          ),
+          1fr
+        )
+      );
+  }
+}
+
+/* ============================================================
+   MOBILE
+============================================================ */
+
+@media (max-width: 768px) {
+  html,
+  body,
+  #root {
+    width: 100%;
+    max-width: 100%;
+
+    overflow-x: hidden;
+  }
+
+  .responsive-container,
+  .page-container,
+  .content-container,
+  .main-container,
+  .app-container {
+    width: 100%;
+
+    max-width: 100%;
+
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  /*
+     Prevent desktop row layouts from
+     forcing horizontal overflow.
+  */
+
+  .responsive-row {
+    flex-direction: column;
+
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .responsive-row > * {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /*
+     Large horizontal controls
+  */
+
+  .responsive-actions {
+    width: 100%;
+    max-width: 100%;
+
+    flex-wrap: wrap;
+  }
+
+  .responsive-actions button,
+  .responsive-actions a {
+    max-width: 100%;
+  }
+
+  /*
+     Cards
+  */
+
+  .card,
+  [class*="card"] {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /*
+     Buttons
+  */
+
+  button,
+  .btn,
+  [class*="btn"] {
+    max-width: 100%;
+  }
+
+  /*
+     Long text
+  */
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    max-width: 100%;
+
+    overflow-wrap: anywhere;
+  }
+}
+
+/* ============================================================
+   SMALL MOBILE
+============================================================ */
+
+@media (max-width: 480px) {
+  .responsive-container,
+  .page-container,
+  .content-container,
+  .main-container,
+  .app-container {
+    padding-left: 11px;
+    padding-right: 11px;
+  }
+
+  /*
+     Reduce large desktop spacing that
+     commonly causes overflow.
+  */
+
+  [class*="header"],
+  [class*="toolbar"],
+  [class*="actions"],
+  [class*="topbar"] {
+    max-width: 100%;
+  }
+
+  /*
+     Prevent extremely large text
+     from expanding the layout.
+  */
+
+  h1 {
+    font-size:
+      clamp(
+        22px,
+        7vw,
+        32px
+      );
+
+    line-height: 1.15;
+  }
+
+  h2 {
+    font-size:
+      clamp(
+        19px,
+        6vw,
+        27px
+      );
+
+    line-height: 1.2;
+  }
+
+  h3 {
+    font-size:
+      clamp(
+        16px,
+        5vw,
+        22px
+      );
+  }
+
+  /*
+     Full width controls
+  */
+
+  input,
+  textarea,
+  select,
+  button {
+    max-width: 100%;
+  }
+}
+
+/* ============================================================
+   VERY SMALL DEVICES
+============================================================ */
+
+@media (max-width: 360px) {
+  .responsive-container,
+  .page-container,
+  .content-container,
+  .main-container,
+  .app-container {
+    padding-left: 9px;
+    padding-right: 9px;
+  }
+
+  body {
+    font-size: 14px;
+  }
+}
+
+/* ============================================================
+   MOBILE SAFE AREA
+============================================================ */
+
+@media (max-width: 768px) {
+  .mobile-safe-area {
+    padding-left:
+      max(
+        12px,
+        env(
+          safe-area-inset-left
+        )
+      );
+
+    padding-right:
+      max(
+        12px,
+        env(
+          safe-area-inset-right
+        )
+      );
+  }
+}
+
+/* ============================================================
+   PREVENT HORIZONTAL SCROLLING FROM LONG CONTENT
+============================================================ */
+
+pre,
+code {
+  max-width: 100%;
+
+  white-space: pre-wrap;
+
+  overflow-wrap: anywhere;
+
+  word-break: break-word;
+}
+
+pre {
+  overflow-x: auto;
+}
+
+/* ============================================================
+   LONG URL / EMAIL / TOKEN FIX
+============================================================ */
+
+.email,
+.url,
+.token,
+.code,
+.long-text {
+  max-width: 100%;
+
+  overflow-wrap: anywhere;
+
+  word-break: break-word;
+}
+
+/* ============================================================
+   POSITIONED ELEMENTS
+============================================================ */
+
+[class*="absolute"],
+[class*="fixed"] {
+  max-width: 100%;
+}
+
+/* ============================================================
+   HORIZONTAL CAROUSEL
+   Only elements intentionally marked as carousel
+   can scroll horizontally.
+============================================================ */
+
+.horizontal-scroll {
+  max-width: 100%;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  -webkit-overflow-scrolling: touch;
+
+  scrollbar-width: thin;
+}
+
+/* ============================================================
+   ACCESSIBILITY
+============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================================
+   FINAL SAFETY
+   Prevent accidental horizontal page drag.
+============================================================ */
+
+html,
+body {
+  overscroll-behavior-x: none;
+}
+
+
+/* ============================================================
+   DISABLE TEXT COPY / SELECTION
+============================================================ */
+
+html,
+body,
+#root {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+}
+
+/* Disable text/image dragging */
+* {
+  -webkit-user-drag: none;
+}
+
+/* Keep form controls usable */
+input,
+textarea,
+select {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  user-select: text;
+}
+
+/* Keep links/buttons clickable normally */
+button,
+a {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+}
+
+/* Prevent image dragging */
+img {
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+/* ============================================================
+   OPTIONAL: PREVENT RIGHT CLICK
+============================================================ */
+
+body {
+  -webkit-touch-callout: none;
+}
+

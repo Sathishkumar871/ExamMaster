@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import {
   Award,
@@ -7,7 +8,7 @@ import {
   ArrowUpRight,
   ChevronRight,
   BarChart3,
-  Trophy, // ఇక్కడ Trophy ఐకాన్ యాడ్ చేశాను
+  Trophy,
 } from "lucide-react";
 
 import "./Dashboard.css";
@@ -47,14 +48,16 @@ export default function Dashboard() {
           </p>
 
           <div className="hero-actions">
+            {/* Academic Help */}
             <Link to="/study-materials" className="primary-action">
               <span>Academic Help</span>
               <ArrowUpRight size={18} />
             </Link>
 
-            <Link to="/results" className="secondary-action">
-              <BarChart3 size={16} />
-              View Results
+            {/* Missed Tests */}
+            <Link to="/missed-tests" className="secondary-action">
+              <BookOpen size={16} />
+              Missed Tests
             </Link>
           </div>
         </div>
@@ -103,7 +106,7 @@ export default function Dashboard() {
         {/* ================= DASHBOARD CARDS ================= */}
         <div className="dashboard-grid">
 
-          {/* 01. RESULTS (Total Exam History & Scorecard) */}
+          {/* 01. RESULTS */}
           <Link
             to="/results"
             className="dashboard-card subjects-card"
@@ -153,7 +156,13 @@ export default function Dashboard() {
             <div className="card-background"></div>
 
             <div className="card-top">
-              <div className="card-icon" style={{ background: "linear-gradient(135deg, #f59e0b, #d97706)", color: "#fff" }}>
+              <div
+                className="card-icon"
+                style={{
+                  background: "linear-gradient(135deg, #f59e0b, #d97706)",
+                  color: "#fff",
+                }}
+              >
                 <Trophy size={23} />
               </div>
 
@@ -229,7 +238,6 @@ export default function Dashboard() {
             </div>
           </Link>
 
-
           {/* 04. PROFILE */}
           <Link
             to="/profile"
@@ -287,7 +295,10 @@ export default function Dashboard() {
           </p>
         </div>
 
-        <ChevronRight className="footer-chevron" size={20} />
+        <ChevronRight
+          className="footer-chevron"
+          size={20}
+        />
       </section>
 
     </div>

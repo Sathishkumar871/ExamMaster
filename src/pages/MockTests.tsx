@@ -1,6 +1,9 @@
 
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import {
+  useNavigate,
+  useParams,
+} from "react-router-dom";
 
 import {
   ArrowLeft,
@@ -72,10 +75,6 @@ interface Question {
 
   options: string[];
 
-  /*
-   * Kept for compatibility with existing frontend data.
-   * MockTestInterface will not display it.
-   */
   correctAnswer: string;
 
   isPublished?: boolean;
@@ -158,7 +157,9 @@ const safeParse = <T,>(
   }
 };
 
-const normalize = (value?: string) =>
+const normalize = (
+  value?: string
+) =>
   String(value || "")
     .trim()
     .toLowerCase();
@@ -182,6 +183,23 @@ const clampPercentage = (
 
 export default function MockTests() {
   const navigate = useNavigate();
+
+  // ========================================================
+  // EXACT MISSED EXAM ID FROM URL
+  // /mock-test/:examId
+  // ========================================================
+
+  const {
+    examId: routeExamId,
+  } = useParams<{
+    examId?: string;
+  }>();
+
+  const cleanRouteExamId =
+    String(routeExamId || "").trim();
+
+  const isMissedExamFlow =
+    Boolean(cleanRouteExamId);
 
   /* =======================================================
      FLOW
@@ -272,7 +290,9 @@ export default function MockTests() {
   ========================================================= */
 
   const saveMockFlowState = (
-    nextStep: Step
+    nextStep: Step,
+    nextExamId?: string,
+    nextQuestions?: Question[]
   ) => {
     try {
       sessionStorage.setItem(
@@ -282,7 +302,10 @@ export default function MockTests() {
 
       sessionStorage.setItem(
         MOCK_FLOW_EXAM_ID_KEY,
-        examId || ""
+        nextExamId ??
+          examId ??
+          cleanRouteExamId ??
+          ""
       );
 
       sessionStorage.setItem(
@@ -308,7 +331,9 @@ export default function MockTests() {
       sessionStorage.setItem(
         MOCK_FLOW_QUESTIONS_KEY,
         JSON.stringify(
-          questions || []
+          nextQuestions ??
+            questions ??
+            []
         )
       );
     } catch {
@@ -391,272 +416,6 @@ export default function MockTests() {
   }, []);
 
   /* =========================================================
-     LOAD STUDENT + RESTORE FLOW
-  ========================================================= */
-
-  useEffect(() => {
-    const token =
-      localStorage.getItem(
-        "studentToken"
-      ) ||
-      localStorage.getItem(
-        "token"
-      );
-
-    if (!token) {
-      clearMockFlowState();
-      navigate("/login");
-      return;
-    }
-
-    const user =
-      safeParse<any>(
-        localStorage.getItem(
-          "user"
-        )
-      ) ||
-      safeParse<any>(
-        localStorage.getItem(
-          "student"
-        )
-      ) ||
-      {};
-
-    const storedName =
-      localStorage.getItem(
-        "studentName"
-      ) ||
-      localStorage.getItem("name") ||
-      user?.name ||
-      "Student";
-
-    const storedId =
-      localStorage.getItem(
-        "studentId"
-      ) ||
-      localStorage.getItem("id") ||
-      user?.studentId ||
-      user?.id ||
-      user?._id ||
-      "";
-
-    const storedClass =
-      localStorage.getItem(
-        "className"
-      ) ||
-      localStorage.getItem(
-        "class"
-      ) ||
-      localStorage.getItem("puc") ||
-      user?.className ||
-      user?.class ||
-      user?.puc ||
-      "";
-
-    const storedExam =
-      localStorage.getItem(
-        "examType"
-      ) ||
-      localStorage.getItem(
-        "exam"
-      ) ||
-      user?.examType ||
-      user?.exam ||
-      "NEET";
-
-    setStudentName(
-      storedName
-    );
-
-    setStudentId(
-      storedId
-    );
-
-    setClassName(
-      storedClass
-    );
-
-    setExamType(
-      storedExam
-    );
-
-    /* =====================================================
-       RESTORE MOCK FLOW
-    ===================================================== */
-
-    try {
-      const savedStep =
-        sessionStorage.getItem(
-          MOCK_FLOW_STEP_KEY
-        ) as Step | null;
-
-      const savedExamId =
-        sessionStorage.getItem(
-          MOCK_FLOW_EXAM_ID_KEY
-        ) || "";
-
-      const savedQuestions =
-        safeParse<Question[]>(
-          sessionStorage.getItem(
-            MOCK_FLOW_QUESTIONS_KEY
-          )
-        ) || [];
-
-      const savedClass =
-        sessionStorage.getItem(
-          MOCK_FLOW_CLASS_KEY
-        ) || "";
-
-      const savedExamType =
-        sessionStorage.getItem(
-          MOCK_FLOW_EXAM_TYPE_KEY
-        ) || "";
-
-      const savedStudentId =
-        sessionStorage.getItem(
-          MOCK_FLOW_STUDENT_ID_KEY
-        ) || "";
-
-      const savedStudentName =
-        sessionStorage.getItem(
-          MOCK_FLOW_STUDENT_NAME_KEY
-        ) || "";
-
-      /*
-       * Only restore exam state when enough information
-       * exists to reopen MockTestInterface.
-       */
-      if (
-        savedStep === "exam" &&
-        savedExamId &&
-        savedQuestions.length > 0 &&
-        savedStudentId ===
-          storedId
-      ) {
-        setExamId(
-          savedExamId
-        );
-
-        setQuestions(
-          savedQuestions
-        );
-
-        if (savedClass) {
-          setClassName(
-            savedClass
-          );
-        }
-
-        if (savedExamType) {
-          setExamType(
-            savedExamType
-          );
-        }
-
-        if (savedStudentName) {
-          setStudentName(
-            savedStudentName
-          );
-        }
-
-        setIsReady(
-          true
-        );
-
-        /*
-         * IMPORTANT:
-         * Refresh during MockTestInterface
-         * stays on exam page.
-         */
-        setStep("exam");
-      } else if (
-        savedStep ===
-          "instructions" ||
-        savedStep ===
-          "greeting"
-      ) {
-        /*
-         * A refresh during the preparation stage should
-         * restore the preparation stage rather than jump
-         * back to dashboard.
-         */
-        setStep(
-          savedStep
-        );
-
-        setIsReady(
-          savedStep ===
-            "greeting"
-        );
-      } else {
-        /*
-         * Normal fresh entry.
-         */
-        setStep(
-          "dashboard"
-        );
-      }
-    } catch {
-      setStep(
-        "dashboard"
-      );
-    }
-
-    if (!storedId) {
-      setCheckingSubmission(
-        false
-      );
-
-      setError(
-        "Student identification could not be found. Please log in again."
-      );
-
-      return;
-    }
-
-    /* =====================================================
-       CACHE PREVIOUS RESULT
-    ===================================================== */
-
-    const cachedResult =
-      localStorage.getItem(
-        `exam_result_${storedId}_${storedExam}`
-      );
-
-    const cachedSubmitted =
-      localStorage.getItem(
-        `exam_submitted_${storedId}_${storedExam}`
-      );
-
-    if (
-      cachedSubmitted ===
-        "true" &&
-      cachedResult
-    ) {
-      const parsedResult =
-        safeParse<ExamResult>(
-          cachedResult
-        );
-
-      if (parsedResult) {
-        setExamResult(
-          parsedResult
-        );
-
-        setAlreadySubmitted(
-          true
-        );
-      }
-    }
-
-    void checkBackendSubmission(
-      storedId,
-      token,
-      storedExam
-    );
-  }, [navigate]);
-
-  /* =========================================================
      BACKEND PREVIOUS RESULT CHECK
   ========================================================= */
 
@@ -666,9 +425,7 @@ export default function MockTests() {
       token: string,
       currentExamType: string
     ) => {
-      setCheckingSubmission(
-        true
-      );
+      setCheckingSubmission(true);
 
       try {
         const response =
@@ -689,13 +446,11 @@ export default function MockTests() {
           );
 
         /*
-         * Previous result failure must not
-         * block a new exam.
+         * Result check failure must not block
+         * normal exam access.
          */
 
-        if (
-          !response.ok
-        ) {
+        if (!response.ok) {
           console.warn(
             "Previous result check failed."
           );
@@ -718,6 +473,51 @@ export default function MockTests() {
               )
             ? data.data
             : [];
+
+        // ====================================================
+        // MISSED TEST
+        // EXACT EXAM ID
+        // ====================================================
+
+        if (cleanRouteExamId) {
+          const exactResult =
+            resultsList.find(
+              (result) =>
+                String(
+                  result.examId || ""
+                ) ===
+                cleanRouteExamId
+            );
+
+          if (exactResult) {
+            setExamResult(
+              exactResult
+            );
+
+            setAlreadySubmitted(
+              true
+            );
+
+            localStorage.setItem(
+              `exam_submitted_${id}_${cleanRouteExamId}`,
+              "true"
+            );
+
+            localStorage.setItem(
+              `exam_result_${id}_${cleanRouteExamId}`,
+              JSON.stringify(
+                exactResult
+              )
+            );
+          }
+
+          return;
+        }
+
+        // ====================================================
+        // NORMAL MOCK TEST
+        // EXISTING EXAM TYPE CHECK
+        // ====================================================
 
         const target =
           normalize(
@@ -820,7 +620,321 @@ export default function MockTests() {
     };
 
   /* =========================================================
-     FRONTEND QUESTION NORMALIZATION
+     LOAD STUDENT + RESTORE FLOW
+  ========================================================= */
+
+  useEffect(() => {
+    const token =
+      localStorage.getItem(
+        "studentToken"
+      ) ||
+      localStorage.getItem(
+        "token"
+      );
+
+    if (!token) {
+      clearMockFlowState();
+      navigate("/login");
+      return;
+    }
+
+    const user =
+      safeParse<any>(
+        localStorage.getItem(
+          "user"
+        )
+      ) ||
+      safeParse<any>(
+        localStorage.getItem(
+          "student"
+        )
+      ) ||
+      {};
+
+    const storedName =
+      localStorage.getItem(
+        "studentName"
+      ) ||
+      localStorage.getItem("name") ||
+      user?.name ||
+      "Student";
+
+    const storedId =
+      localStorage.getItem(
+        "studentId"
+      ) ||
+      localStorage.getItem("id") ||
+      user?.studentId ||
+      user?.id ||
+      user?._id ||
+      "";
+
+    const storedClass =
+      localStorage.getItem(
+        "className"
+      ) ||
+      localStorage.getItem(
+        "class"
+      ) ||
+      localStorage.getItem("puc") ||
+      user?.className ||
+      user?.class ||
+      user?.puc ||
+      "";
+
+    const storedExam =
+      localStorage.getItem(
+        "examType"
+      ) ||
+      localStorage.getItem(
+        "exam"
+      ) ||
+      user?.examType ||
+      user?.exam ||
+      "NEET";
+
+    setStudentName(
+      storedName
+    );
+
+    setStudentId(
+      storedId
+    );
+
+    setClassName(
+      storedClass
+    );
+
+    setExamType(
+      storedExam
+    );
+
+    // ======================================================
+    // ROUTE EXAM HAS PRIORITY
+    // ======================================================
+
+    if (cleanRouteExamId) {
+      setExamId(
+        cleanRouteExamId
+      );
+    }
+
+    /* =====================================================
+       RESTORE MOCK FLOW
+    ===================================================== */
+
+    try {
+      const savedStep =
+        sessionStorage.getItem(
+          MOCK_FLOW_STEP_KEY
+        ) as Step | null;
+
+      const savedExamId =
+        sessionStorage.getItem(
+          MOCK_FLOW_EXAM_ID_KEY
+        ) || "";
+
+      const savedQuestions =
+        safeParse<Question[]>(
+          sessionStorage.getItem(
+            MOCK_FLOW_QUESTIONS_KEY
+          )
+        ) || [];
+
+      const savedClass =
+        sessionStorage.getItem(
+          MOCK_FLOW_CLASS_KEY
+        ) || "";
+
+      const savedExamType =
+        sessionStorage.getItem(
+          MOCK_FLOW_EXAM_TYPE_KEY
+        ) || "";
+
+      const savedStudentId =
+        sessionStorage.getItem(
+          MOCK_FLOW_STUDENT_ID_KEY
+        ) || "";
+
+      const savedStudentName =
+        sessionStorage.getItem(
+          MOCK_FLOW_STUDENT_NAME_KEY
+        ) || "";
+
+      /*
+       * Route exam ID must always win over an older
+       * sessionStorage exam ID.
+       */
+
+      const restoreExamId =
+        cleanRouteExamId ||
+        savedExamId;
+
+      // ====================================================
+      // RESTORE EXAM
+      // ====================================================
+
+      if (
+        savedStep === "exam" &&
+        restoreExamId &&
+        savedQuestions.length > 0 &&
+        savedStudentId === storedId
+      ) {
+        setExamId(
+          restoreExamId
+        );
+
+        setQuestions(
+          savedQuestions
+        );
+
+        if (savedClass) {
+          setClassName(
+            savedClass
+          );
+        }
+
+        if (savedExamType) {
+          setExamType(
+            savedExamType
+          );
+        }
+
+        if (savedStudentName) {
+          setStudentName(
+            savedStudentName
+          );
+        }
+
+        setIsReady(
+          true
+        );
+
+        setStep(
+          "exam"
+        );
+      }
+
+      // ====================================================
+      // RESTORE PREPARATION
+      // ====================================================
+
+      else if (
+        savedStep ===
+          "instructions" ||
+        savedStep ===
+          "greeting"
+      ) {
+        /*
+         * For a new missed-test route,
+         * don't restore an unrelated old flow.
+         */
+
+        if (
+          cleanRouteExamId &&
+          savedExamId &&
+          savedExamId !==
+            cleanRouteExamId
+        ) {
+          setStep(
+            "dashboard"
+          );
+
+          setIsReady(
+            false
+          );
+        } else {
+          setStep(
+            savedStep
+          );
+
+          setIsReady(
+            savedStep ===
+              "greeting"
+          );
+
+          if (
+            restoreExamId
+          ) {
+            setExamId(
+              restoreExamId
+            );
+          }
+        }
+      } else {
+        setStep(
+          "dashboard"
+        );
+      }
+    } catch {
+      setStep(
+        "dashboard"
+      );
+    }
+
+    if (!storedId) {
+      setCheckingSubmission(
+        false
+      );
+
+      setError(
+        "Student identification could not be found. Please log in again."
+      );
+
+      return;
+    }
+
+    /* =====================================================
+       CACHE PREVIOUS RESULT
+    ===================================================== */
+
+    const resultCacheKey =
+      cleanRouteExamId ||
+      storedExam;
+
+    const cachedResult =
+      localStorage.getItem(
+        `exam_result_${storedId}_${resultCacheKey}`
+      );
+
+    const cachedSubmitted =
+      localStorage.getItem(
+        `exam_submitted_${storedId}_${resultCacheKey}`
+      );
+
+    if (
+      cachedSubmitted ===
+        "true" &&
+      cachedResult
+    ) {
+      const parsedResult =
+        safeParse<ExamResult>(
+          cachedResult
+        );
+
+      if (parsedResult) {
+        setExamResult(
+          parsedResult
+        );
+
+        setAlreadySubmitted(
+          true
+        );
+      }
+    }
+
+    void checkBackendSubmission(
+      storedId,
+      token,
+      storedExam
+    );
+  }, [
+    navigate,
+    cleanRouteExamId,
+  ]);
+
+  /* =========================================================
+     NORMALIZE QUESTION TEXT
   ========================================================= */
 
   const normalizeQuestionText =
@@ -845,7 +959,7 @@ export default function MockTests() {
     };
 
   /* =========================================================
-     FRONTEND DUPLICATE REMOVAL
+     REMOVE DUPLICATE QUESTIONS
   ========================================================= */
 
   const removeDuplicateQuestions =
@@ -886,24 +1000,12 @@ export default function MockTests() {
             question.subject
           );
 
-        /*
-         * -----------------------------------------------
-         * Duplicate by ID
-         * -----------------------------------------------
-         */
-
         if (
           id &&
           seenIds.has(id)
         ) {
           continue;
         }
-
-        /*
-         * -----------------------------------------------
-         * Duplicate by question text + subject
-         * -----------------------------------------------
-         */
 
         const textKey =
           text
@@ -957,9 +1059,6 @@ export default function MockTests() {
       source: Question[],
       selectedSubject?: string
     ): Question[] => {
-      /*
-       * First remove duplicates.
-       */
       let filtered =
         removeDuplicateQuestions(
           source
@@ -970,12 +1069,6 @@ export default function MockTests() {
           selectedSubject
         );
 
-      /*
-       * If a specific subject is selected,
-       * show only that subject.
-       *
-       * All / blank => show all 4 subjects.
-       */
       if (
         target &&
         target !== "all"
@@ -999,12 +1092,6 @@ export default function MockTests() {
           );
       }
 
-      /*
-       * Physics
-       * Chemistry
-       * Botany
-       * Zoology
-       */
       return [
         ...filtered,
       ].sort(
@@ -1066,15 +1153,14 @@ export default function MockTests() {
             );
 
           return (
-            indexA -
-            indexB
+            indexA - indexB
           );
         }
       );
     };
 
   /* =========================================================
-     FETCH MOCK QUESTIONS
+     FETCH NORMAL MOCK QUESTIONS
   ========================================================= */
 
   const fetchQuestionsForClass =
@@ -1102,6 +1188,7 @@ export default function MockTests() {
 
       if (!token) {
         clearMockFlowState();
+
         navigate(
           "/login"
         );
@@ -1135,24 +1222,11 @@ export default function MockTests() {
           );
         }
 
-        /*
-         * IMPORTANT
-         *
-         * Backend route:
-         * GET /api/mock-test/questions
-         *
-         * API_BASE_URL already contains /api.
-         *
-         * NO subject filter is sent here.
-         *
-         * Filtering/order is done in frontend.
-         */
-
         const requestUrl =
           `${API_BASE_URL}/mock-test/questions?${queryParams.toString()}`;
 
         console.log(
-          "MOCK TEST REQUEST:",
+          "NORMAL MOCK TEST REQUEST:",
           requestUrl
         );
 
@@ -1160,8 +1234,7 @@ export default function MockTests() {
           await fetch(
             requestUrl,
             {
-              method:
-                "GET",
+              method: "GET",
 
               headers: {
                 Authorization:
@@ -1184,7 +1257,7 @@ export default function MockTests() {
         }
 
         console.log(
-          "MOCK TEST SERVER RESPONSE:",
+          "NORMAL MOCK SERVER RESPONSE:",
           data
         );
 
@@ -1197,10 +1270,6 @@ export default function MockTests() {
               `Unable to load mock test questions (${response.status}).`
           );
         }
-
-        /* =====================================================
-           FIND QUESTIONS
-        ===================================================== */
 
         const loadedQuestions =
           Array.isArray(
@@ -1223,10 +1292,6 @@ export default function MockTests() {
             "No questions are currently available for this mock test."
           );
         }
-
-        /* =====================================================
-           FIND EXAM ID
-        ===================================================== */
 
         const serverExamId =
           String(
@@ -1257,19 +1322,11 @@ export default function MockTests() {
           serverExamId ||
           questionExamId;
 
-        /*
-         * Exam session requires examId.
-         */
-
         if (!finalExamId) {
           throw new Error(
             "Mock test examId was not returned by the server."
           );
         }
-
-        /* =====================================================
-           NORMALIZE QUESTIONS
-        ===================================================== */
 
         const normalizedQuestions =
           loadedQuestions.map(
@@ -1310,12 +1367,6 @@ export default function MockTests() {
                   ? question.options
                   : [],
 
-              /*
-               * Backend display endpoint normally does not
-               * return correctAnswer.
-               *
-               * Keep blank only for compatibility.
-               */
               correctAnswer:
                 question?.correctAnswer ||
                 "",
@@ -1325,10 +1376,6 @@ export default function MockTests() {
                 index + 1,
             })
           );
-
-        /* =====================================================
-           VALID QUESTIONS
-        ===================================================== */
 
         const validQuestions =
           normalizedQuestions.filter(
@@ -1350,18 +1397,10 @@ export default function MockTests() {
           );
         }
 
-        /* =====================================================
-           FRONTEND DUPLICATE REMOVE
-        ===================================================== */
-
         const uniqueQuestions =
           removeDuplicateQuestions(
             validQuestions
           );
-
-        /* =====================================================
-           FRONTEND SUBJECT ORDER
-        ===================================================== */
 
         const finalQuestions =
           filterAndSortQuestions(
@@ -1373,11 +1412,6 @@ export default function MockTests() {
               index: number
             ) => ({
               ...question,
-
-              /*
-               * Display number is always the final frontend
-               * order.
-               */
               questionNumber:
                 index + 1,
             })
@@ -1401,68 +1435,13 @@ export default function MockTests() {
         );
 
         console.log(
-          "=================================================="
-        );
-
-        console.log(
-          "MOCK TEST QUESTIONS RECEIVED:",
-          loadedQuestions.length
-        );
-
-        console.log(
-          "UNIQUE QUESTIONS:",
-          finalQuestions.length
-        );
-
-        console.log(
-          "SUBJECT ORDER:",
-          "Physics → Chemistry → Botany → Zoology"
-        );
-
-        console.log(
-          "SUBJECT COUNTS:",
-          {
-            Physics:
-              finalQuestions.filter(
-                (q) =>
-                  normalize(
-                    q.subject
-                  ) === "physics"
-              ).length,
-
-            Chemistry:
-              finalQuestions.filter(
-                (q) =>
-                  normalize(
-                    q.subject
-                  ) === "chemistry"
-              ).length,
-
-            Botany:
-              finalQuestions.filter(
-                (q) =>
-                  normalize(
-                    q.subject
-                  ) === "botany"
-              ).length,
-
-            Zoology:
-              finalQuestions.filter(
-                (q) =>
-                  normalize(
-                    q.subject
-                  ) === "zoology"
-              ).length,
-          }
-        );
-
-        console.log(
-          "MOCK TEST EXAM ID:",
+          "NORMAL MOCK EXAM ID:",
           finalExamId
         );
 
         console.log(
-          "=================================================="
+          "NORMAL QUESTIONS:",
+          finalQuestions.length
         );
 
         return true;
@@ -1488,6 +1467,413 @@ export default function MockTests() {
     };
 
   /* =========================================================
+     START EXACT MISSED EXAM
+  ========================================================= */
+
+  const startExactMissedExam =
+    async (
+      selectedExamId: string
+    ) => {
+      const token =
+        localStorage.getItem(
+          "studentToken"
+        ) ||
+        localStorage.getItem(
+          "token"
+        );
+
+      if (!token) {
+        clearMockFlowState();
+
+        navigate(
+          "/login"
+        );
+
+        return false;
+      }
+
+      try {
+        setLoading(
+          true
+        );
+
+        setError("");
+
+        const response =
+          await fetch(
+            `${API_BASE_URL}/mock-test/start`,
+            {
+              method: "POST",
+
+              headers: {
+                Authorization:
+                  `Bearer ${token}`,
+
+                "Content-Type":
+                  "application/json",
+              },
+
+              body: JSON.stringify({
+                studentId,
+                examId:
+                  selectedExamId,
+              }),
+            }
+          );
+
+        let data: any =
+          null;
+
+        try {
+          data =
+            await response.json();
+        } catch {
+          data = null;
+        }
+
+        console.log(
+          "EXACT MISSED EXAM START RESPONSE:",
+          data
+        );
+
+        // ====================================================
+        // ALREADY SUBMITTED
+        // ====================================================
+
+        if (
+          response.status ===
+            409 &&
+          data?.code ===
+            "EXAM_ALREADY_SUBMITTED"
+        ) {
+          setAlreadySubmitted(
+            true
+          );
+
+          setExamId(
+            selectedExamId
+          );
+
+          if (
+            data?.result
+          ) {
+            setExamResult(
+              data.result
+            );
+          }
+
+          try {
+            sessionStorage.removeItem(
+              MOCK_FLOW_STEP_KEY
+            );
+
+            sessionStorage.removeItem(
+              MOCK_FLOW_QUESTIONS_KEY
+            );
+          } catch {
+            // Ignore.
+          }
+
+          setStep(
+            "dashboard"
+          );
+
+          setError(
+            "This exam has already been submitted and cannot be reopened."
+          );
+
+          return false;
+        }
+
+        // ====================================================
+        // EXAM NOT AVAILABLE
+        // ====================================================
+
+        if (
+          response.status ===
+          404
+        ) {
+          throw new Error(
+            data?.message ||
+              "This mock exam could not be found."
+          );
+        }
+
+        // ====================================================
+        // EXAM EXPIRED
+        // ====================================================
+
+        if (
+          response.status ===
+            410 ||
+          data?.code ===
+            "EXAM_TIME_EXPIRED"
+        ) {
+          throw new Error(
+            data?.message ||
+              "This exam is no longer available."
+          );
+        }
+
+        if (
+          !response.ok ||
+          !data?.success
+        ) {
+          throw new Error(
+            data?.message ||
+              "Unable to start this missed exam."
+          );
+        }
+
+        // ====================================================
+        // QUESTIONS
+        // ====================================================
+
+        const loadedQuestions =
+          Array.isArray(
+            data?.questions
+          )
+            ? data.questions
+            : [];
+
+        if (
+          loadedQuestions.length ===
+          0
+        ) {
+          throw new Error(
+            "No questions were found for this exam."
+          );
+        }
+
+        // ====================================================
+        // EXACT EXAM ID
+        // ====================================================
+
+        const exactExamId =
+          String(
+            data?.exam?._id ||
+              data?.exam?.id ||
+              selectedExamId
+          ).trim();
+
+        // ====================================================
+        // EXAM DETAILS
+        // ====================================================
+
+        const returnedClass =
+          String(
+            data?.exam?.className ||
+              ""
+          ).trim();
+
+        const returnedExamType =
+          String(
+            data?.exam?.examType ||
+              ""
+          ).trim();
+
+        if (
+          returnedClass
+        ) {
+          setClassName(
+            returnedClass
+          );
+        }
+
+        if (
+          returnedExamType
+        ) {
+          setExamType(
+            returnedExamType
+          );
+        }
+
+        // ====================================================
+        // NORMALIZE QUESTIONS
+        // ====================================================
+
+        const normalizedQuestions =
+          loadedQuestions.map(
+            (
+              question: any,
+              index: number
+            ) => ({
+              ...question,
+
+              _id:
+                question?._id ||
+                question?.questionId ||
+                question?.id ||
+                `missed-question-${index}`,
+
+              id:
+                question?.id ||
+                question?._id ||
+                question?.questionId ||
+                `missed-question-${index}`,
+
+              examId:
+                exactExamId,
+
+              questionText:
+                question?.questionText ||
+                question?.question ||
+                "",
+
+              question:
+                question?.question ||
+                question?.questionText ||
+                "",
+
+              options:
+                Array.isArray(
+                  question?.options
+                )
+                  ? question.options
+                  : [],
+
+              correctAnswer:
+                question?.correctAnswer ||
+                "",
+
+              questionNumber:
+                question?.questionNumber ||
+                index + 1,
+            })
+          );
+
+        const validQuestions =
+          normalizedQuestions.filter(
+            (question: any) =>
+              question.question &&
+              Array.isArray(
+                question.options
+              ) &&
+              question.options.length >=
+                2
+          );
+
+        if (
+          validQuestions.length ===
+          0
+        ) {
+          throw new Error(
+            "No valid questions were found for this exam."
+          );
+        }
+
+        const finalQuestions =
+          removeDuplicateQuestions(
+            validQuestions
+          ).map(
+            (
+              question: Question,
+              index: number
+            ) => ({
+              ...question,
+
+              examId:
+                exactExamId,
+
+              questionNumber:
+                index + 1,
+            })
+          );
+
+        // ====================================================
+        // SAVE STATE
+        // ====================================================
+
+        setExamId(
+          exactExamId
+        );
+
+        setQuestions(
+          finalQuestions
+        );
+
+        setIsReady(
+          true
+        );
+
+        try {
+          sessionStorage.setItem(
+            MOCK_FLOW_EXAM_ID_KEY,
+            exactExamId
+          );
+
+          sessionStorage.setItem(
+            MOCK_FLOW_QUESTIONS_KEY,
+            JSON.stringify(
+              finalQuestions
+            )
+          );
+
+          sessionStorage.setItem(
+            MOCK_FLOW_CLASS_KEY,
+            returnedClass ||
+              className ||
+              ""
+          );
+
+          sessionStorage.setItem(
+            MOCK_FLOW_EXAM_TYPE_KEY,
+            returnedExamType ||
+              examType ||
+              ""
+          );
+
+          sessionStorage.setItem(
+            MOCK_FLOW_STUDENT_ID_KEY,
+            studentId
+          );
+
+          sessionStorage.setItem(
+            MOCK_FLOW_STUDENT_NAME_KEY,
+            studentName
+          );
+
+          sessionStorage.setItem(
+            MOCK_FLOW_STEP_KEY,
+            "greeting"
+          );
+        } catch {
+          // Ignore storage errors.
+        }
+
+        console.log(
+          "EXACT MISSED EXAM ID:",
+          exactExamId
+        );
+
+        console.log(
+          "EXACT MISSED EXAM QUESTIONS:",
+          finalQuestions.length
+        );
+
+        return true;
+      } catch (
+        err: any
+      ) {
+        console.error(
+          "START EXACT MISSED EXAM ERROR:",
+          err
+        );
+
+        setError(
+          err?.message ||
+            "Unable to start this missed exam."
+        );
+
+        return false;
+      } finally {
+        setLoading(
+          false
+        );
+      }
+    };
+
+  /* =========================================================
      START BUTTON
   ========================================================= */
 
@@ -1496,6 +1882,20 @@ export default function MockTests() {
       if (
         checkingSubmission
       ) {
+        return;
+      }
+
+      // ======================================================
+      // NEVER REOPEN SUBMITTED EXAM
+      // ======================================================
+
+      if (
+        alreadySubmitted
+      ) {
+        setError(
+          "This exam has already been submitted and cannot be reopened."
+        );
+
         return;
       }
 
@@ -1515,7 +1915,7 @@ export default function MockTests() {
     };
 
   /* =========================================================
-     MODAL → READY SCREEN
+     MODAL → INSTRUCTIONS
   ========================================================= */
 
   const handleContinueToInstructions =
@@ -1536,7 +1936,7 @@ export default function MockTests() {
     };
 
   /* =========================================================
-     READY → LOAD QUESTIONS
+     READY → START
   ========================================================= */
 
   const handleReady =
@@ -1553,9 +1953,9 @@ export default function MockTests() {
         return;
       }
 
-      if (!className) {
+      if (!studentId) {
         setError(
-          "Student class could not be identified. Please log in again."
+          "Student information could not be identified. Please log in again."
         );
 
         return;
@@ -1563,18 +1963,87 @@ export default function MockTests() {
 
       setError("");
 
-      setExamId("");
+      // ======================================================
+      // MISSED TEST
+      // ======================================================
 
-      /*
-       * Keep instructions state in storage while loading.
-       */
-      try {
-        sessionStorage.setItem(
-          MOCK_FLOW_STEP_KEY,
-          "instructions"
+      if (
+        cleanRouteExamId
+      ) {
+        if (
+          alreadySubmitted
+        ) {
+          setError(
+            "This exam has already been submitted and cannot be reopened."
+          );
+
+          return;
+        }
+
+        const success =
+          await startExactMissedExam(
+            cleanRouteExamId
+          );
+
+        if (!success) {
+          setIsReady(
+            false
+          );
+
+          return;
+        }
+
+        /*
+         * Exact missed test questions are now loaded.
+         * Backend has also created/resumed the exam session.
+         */
+
+        setStep(
+          "greeting"
         );
-      } catch {
-        // Ignore.
+
+        saveMockFlowState(
+          "greeting",
+          cleanRouteExamId,
+          questions
+        );
+
+        /*
+         * Greeting screen is shown briefly.
+         * Questions remain available in state/sessionStorage.
+         */
+
+        window.setTimeout(
+          () => {
+            setStep(
+              "exam"
+            );
+
+            try {
+              sessionStorage.setItem(
+                MOCK_FLOW_STEP_KEY,
+                "exam"
+              );
+            } catch {
+              // Ignore.
+            }
+          },
+          2200
+        );
+
+        return;
+      }
+
+      // ======================================================
+      // NORMAL MOCK TEST
+      // ======================================================
+
+      if (!className) {
+        setError(
+          "Student class could not be identified. Please log in again."
+        );
+
+        return;
       }
 
       const success =
@@ -1592,18 +2061,11 @@ export default function MockTests() {
       }
 
       /*
-       * At this point questions + examId are ready.
-       *
-       * Save them BEFORE moving to greeting/exam so that
-       * refresh can recover the exam.
+       * React state updates asynchronously.
+       * Use sessionStorage after values are available.
        */
 
       try {
-        sessionStorage.setItem(
-          MOCK_FLOW_EXAM_ID_KEY,
-          examId || ""
-        );
-
         sessionStorage.setItem(
           MOCK_FLOW_CLASS_KEY,
           className || ""
@@ -1623,33 +2085,7 @@ export default function MockTests() {
           MOCK_FLOW_STUDENT_NAME_KEY,
           studentName || ""
         );
-      } catch {
-        // Ignore.
-      }
 
-      /*
-       * IMPORTANT:
-       *
-       * fetchQuestionsForClass updates React state.
-       * State updates are async.
-       *
-       * So the values must also be saved directly from the
-       * fetched result. To avoid relying on stale `questions`
-       * and `examId`, read them from session immediately after
-       * the fetch using a microtask is not enough.
-       *
-       * We therefore keep a safe delayed persistence below.
-       */
-
-      setStep(
-        "greeting"
-      );
-
-      /*
-       * Save greeting state.
-       */
-
-      try {
         sessionStorage.setItem(
           MOCK_FLOW_STEP_KEY,
           "greeting"
@@ -1658,127 +2094,35 @@ export default function MockTests() {
         // Ignore.
       }
 
-      /*
-       * Short greeting before exam.
-       */
+      setStep(
+        "greeting"
+      );
 
       window.setTimeout(
         () => {
-          /*
-           * Only move forward when the component is still mounted
-           * enough for the event.
-           */
-
           setStep(
             "exam"
           );
 
-          /*
-           * Save exam state AFTER questions have been committed
-           * to React state.
-           */
-          window.setTimeout(
-            () => {
-              try {
-                sessionStorage.setItem(
-                  MOCK_FLOW_STEP_KEY,
-                  "exam"
-                );
-
-                sessionStorage.setItem(
-                  MOCK_FLOW_EXAM_ID_KEY,
-                  finalExamIdFromState()
-                );
-
-                sessionStorage.setItem(
-                  MOCK_FLOW_QUESTIONS_KEY,
-                  JSON.stringify(
-                    questionsFromState()
-                  )
-                );
-
-                sessionStorage.setItem(
-                  MOCK_FLOW_CLASS_KEY,
-                  className || ""
-                );
-
-                sessionStorage.setItem(
-                  MOCK_FLOW_EXAM_TYPE_KEY,
-                  examType || ""
-                );
-
-                sessionStorage.setItem(
-                  MOCK_FLOW_STUDENT_ID_KEY,
-                  studentId || ""
-                );
-
-                sessionStorage.setItem(
-                  MOCK_FLOW_STUDENT_NAME_KEY,
-                  studentName || ""
-                );
-              } catch {
-                // Ignore.
-              }
-            },
-            50
-          );
+          try {
+            sessionStorage.setItem(
+              MOCK_FLOW_STEP_KEY,
+              "exam"
+            );
+          } catch {
+            // Ignore.
+          }
         },
         2200
       );
     };
 
   /* =========================================================
-     STATE SNAPSHOT HELPERS
-  ========================================================= */
-
-  const finalExamIdFromState =
-    () => {
-      /*
-       * Try React state first.
-       * If not yet updated, read session storage.
-       */
-      return (
-        examId ||
-        sessionStorage.getItem(
-          MOCK_FLOW_EXAM_ID_KEY
-        ) ||
-        ""
-      );
-    };
-
-  const questionsFromState =
-    () => {
-      /*
-       * Try React state first.
-       * If not yet available, restore cached questions.
-       */
-      if (
-        questions.length > 0
-      ) {
-        return questions;
-      }
-
-      return (
-        safeParse<Question[]>(
-          sessionStorage.getItem(
-            MOCK_FLOW_QUESTIONS_KEY
-          )
-        ) || []
-      );
-    };
-
-  /* =========================================================
-     AUTO PERSIST EXAM STATE
-     *
-     * This is the important part.
-     *
-     * Whenever step/examId/questions change, persist them.
+     AUTO PERSIST
   ========================================================= */
 
   useEffect(() => {
-    if (
-      !studentId
-    ) {
+    if (!studentId) {
       return;
     }
 
@@ -1803,10 +2147,6 @@ export default function MockTests() {
         examType
       );
 
-      /*
-       * Do NOT overwrite saved exam step with dashboard
-       * during initial mount.
-       */
       if (
         step ===
         "instructions"
@@ -1829,7 +2169,7 @@ export default function MockTests() {
 
       if (
         step ===
-        "exam" &&
+          "exam" &&
         examId &&
         questions.length >
           0
@@ -1880,10 +2220,6 @@ export default function MockTests() {
       examResult,
     ]);
 
-  /*
-   * Keep percentage available for the component.
-   * Existing UI/result flow can use it later.
-   */
   void percentage;
 
   /* =========================================================
@@ -1898,6 +2234,11 @@ export default function MockTests() {
       <>
         <div className="mock-page">
           <div className="mock-container">
+
+            {/* ==============================================
+                HEADER
+            ============================================== */}
+
             <header className="mock-header">
               <button
                 type="button"
@@ -1942,11 +2283,16 @@ export default function MockTests() {
               </div>
             </header>
 
+            {/* ==============================================
+                HERO
+            ============================================== */}
+
             <section
               className="mock-hero"
               aria-labelledby="mock-hero-title"
             >
               <div className="mock-hero-content">
+
                 <div className="mock-eyebrow">
                   EXAM SIMULATION
                 </div>
@@ -1997,6 +2343,7 @@ export default function MockTests() {
                     Instant Evaluation
                   </span>
                 </div>
+
               </div>
 
               <div
@@ -2013,14 +2360,22 @@ export default function MockTests() {
                   />
                 </div>
               </div>
+
             </section>
+
+            {/* ==============================================
+                START GRID
+            ============================================== */}
 
             <section
               className="mock-start-grid"
               aria-label="Mock test start"
             >
+
               <div className="mock-start-card">
+
                 <div className="mock-card-top">
+
                   <div className="mock-test-icon">
                     <BookOpen
                       size={23}
@@ -2042,6 +2397,15 @@ export default function MockTests() {
 
                         Checking
                       </>
+                    ) : alreadySubmitted ? (
+                      <>
+                        <CheckCircle2
+                          size={13}
+                          aria-hidden="true"
+                        />
+
+                        Already Submitted
+                      </>
                     ) : (
                       <>
                         <CheckCircle2
@@ -2053,6 +2417,7 @@ export default function MockTests() {
                       </>
                     )}
                   </div>
+
                 </div>
 
                 <div className="mock-test-category">
@@ -2071,6 +2436,7 @@ export default function MockTests() {
                 </p>
 
                 <div className="mock-info-grid">
+
                   <div>
                     <FileQuestion
                       size={17}
@@ -2111,7 +2477,7 @@ export default function MockTests() {
                       PATTERN
 
                       <strong>
-                        NEET
+                        {examType.toUpperCase()}
                       </strong>
                     </span>
                   </div>
@@ -2130,6 +2496,7 @@ export default function MockTests() {
                       </strong>
                     </span>
                   </div>
+
                 </div>
 
                 {!isOnline && (
@@ -2168,7 +2535,8 @@ export default function MockTests() {
                   disabled={
                     checkingSubmission ||
                     loading ||
-                    !isOnline
+                    !isOnline ||
+                    alreadySubmitted
                   }
                 >
                   {checkingSubmission ? (
@@ -2181,11 +2549,18 @@ export default function MockTests() {
 
                       Checking...
                     </>
+                  ) : alreadySubmitted ? (
+                    <>
+                      Already Submitted
+
+                      <CheckCircle2
+                        size={18}
+                        aria-hidden="true"
+                      />
+                    </>
                   ) : (
                     <>
-                      {alreadySubmitted
-                        ? "Start New Mock Test"
-                        : "Start Mock Test"}
+                      Start Mock Test
 
                       <ArrowRight
                         size={18}
@@ -2194,9 +2569,15 @@ export default function MockTests() {
                     </>
                   )}
                 </button>
+
               </div>
 
+              {/* ==========================================
+                  SIDE CARD
+              ========================================== */}
+
               <aside className="mock-side-card">
+
                 <div className="mock-side-icon">
                   <LockKeyhole
                     size={21}
@@ -2209,6 +2590,7 @@ export default function MockTests() {
                 </h3>
 
                 <ul>
+
                   <li>
                     <CheckCircle2
                       size={15}
@@ -2258,11 +2640,19 @@ export default function MockTests() {
                     Submit only after
                     reviewing your answers.
                   </li>
+
                 </ul>
+
               </aside>
+
             </section>
 
+            {/* ==============================================
+                SECURITY STRIP
+            ============================================== */}
+
             <section className="mock-security-strip">
+
               <ShieldCheck
                 size={19}
                 aria-hidden="true"
@@ -2281,7 +2671,9 @@ export default function MockTests() {
                   assessment begins.
                 </span>
               </div>
+
             </section>
+
           </div>
         </div>
 
@@ -2291,12 +2683,14 @@ export default function MockTests() {
 
         {showInstructions && (
           <div className="mock-modal-overlay">
+
             <div
               className="mock-instructions-modal"
               role="dialog"
               aria-modal="true"
               aria-labelledby="mock-instructions-title"
             >
+
               <button
                 type="button"
                 className="mock-modal-close"
@@ -2335,6 +2729,7 @@ export default function MockTests() {
               </p>
 
               <div className="mock-instruction-list">
+
                 <div>
                   <span>
                     01
@@ -2382,6 +2777,7 @@ export default function MockTests() {
                     submission.
                   </p>
                 </div>
+
               </div>
 
               <button
@@ -2398,9 +2794,12 @@ export default function MockTests() {
                   aria-hidden="true"
                 />
               </button>
+
             </div>
+
           </div>
         )}
+
       </>
     );
   }
@@ -2415,7 +2814,9 @@ export default function MockTests() {
   ) {
     return (
       <div className="mock-page">
+
         <div className="mock-ready-container">
+
           <button
             type="button"
             className="mock-back-btn"
@@ -2443,7 +2844,9 @@ export default function MockTests() {
           </button>
 
           <div className="mock-ready-card">
+
             <div className="mock-ready-header">
+
               <div className="mock-ready-icon">
                 <LockKeyhole
                   size={28}
@@ -2461,16 +2864,20 @@ export default function MockTests() {
                   check
                 </h1>
               </div>
+
             </div>
 
             <div className="mock-ready-exam">
+
               <div>
                 <span>
                   Exam
                 </span>
 
                 <strong>
-                  {examType} Full Mock
+                  {isMissedExamFlow
+                    ? `${examType} Missed Mock`
+                    : `${examType} Full Mock`}
                 </strong>
               </div>
 
@@ -2501,13 +2908,18 @@ export default function MockTests() {
                 </span>
 
                 <strong>
-                  Will load securely
+                  {questions.length > 0
+                    ? questions.length
+                    : "Will load securely"}
                 </strong>
               </div>
+
             </div>
 
             <div className="mock-checklist">
+
               <label>
+
                 <input
                   type="checkbox"
                   checked={
@@ -2539,7 +2951,9 @@ export default function MockTests() {
                   examination
                   instructions.
                 </span>
+
               </label>
+
             </div>
 
             {error && (
@@ -2561,7 +2975,8 @@ export default function MockTests() {
               className="mock-begin-btn"
               disabled={
                 !isReady ||
-                loading
+                loading ||
+                alreadySubmitted
               }
               onClick={
                 handleReady
@@ -2577,6 +2992,15 @@ export default function MockTests() {
 
                   Preparing Exam...
                 </>
+              ) : alreadySubmitted ? (
+                <>
+                  Already Submitted
+
+                  <CheckCircle2
+                    size={18}
+                    aria-hidden="true"
+                  />
+                </>
               ) : (
                 <>
                   Enter Examination
@@ -2590,6 +3014,7 @@ export default function MockTests() {
             </button>
 
             <p className="mock-secure-note">
+
               <ShieldCheck
                 size={14}
                 aria-hidden="true"
@@ -2598,9 +3023,13 @@ export default function MockTests() {
               Your attempt will be
               securely processed by
               the examination system.
+
             </p>
+
           </div>
+
         </div>
+
       </div>
     );
   }
@@ -2615,12 +3044,14 @@ export default function MockTests() {
   ) {
     return (
       <div className="mock-greeting">
+
         <div
           className="mock-greeting-glow"
           aria-hidden="true"
         />
 
         <div className="mock-greeting-content">
+
           <div className="mock-greeting-icon">
             <Trophy
               size={42}
@@ -2654,7 +3085,9 @@ export default function MockTests() {
           <small>
             Starting your examination...
           </small>
+
         </div>
+
       </div>
     );
   }
@@ -2667,18 +3100,13 @@ export default function MockTests() {
     step ===
     "exam"
   ) {
-    /*
-     * IMPORTANT:
-     *
-     * Refresh ayina sessionStorage nundi ee values
-     * restore avuthayi.
-     */
-
     return (
       <div className="mock-exam-page">
+
         <MockTestInterface
           subject={
-            examType || "NEET"
+            examType ||
+            "NEET"
           }
 
           className={
@@ -2687,7 +3115,9 @@ export default function MockTests() {
           }
 
           chapterName={
-            `${examType || "NEET"} Full Mock Assessment`
+            isMissedExamFlow
+              ? `${examType || "NEET"} Missed Mock Assessment`
+              : `${examType || "NEET"} Full Mock Assessment`
           }
 
           questions={
@@ -2706,8 +3136,9 @@ export default function MockTests() {
 
           onBack={() => {
             /*
-             * Exam complete ayyaka / intentional exit ayyaka
-             * flow state clear chestham.
+             * Leave exam screen.
+             * Do not reopen same exam through
+             * the active component.
              */
             clearMockFlowState();
 
@@ -2721,9 +3152,11 @@ export default function MockTests() {
           }
 
           examId={
-            examId
+            examId ||
+            cleanRouteExamId
           }
         />
+
       </div>
     );
   }

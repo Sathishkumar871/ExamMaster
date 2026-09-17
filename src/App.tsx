@@ -19,9 +19,11 @@ const StudentRegister = lazy(() => import("./pages/StudentRegister"));
 // ================= STUDENT =================
 const Profile = lazy(() => import("./pages/Profile"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
+const MissedTests = lazy(() => import("./pages/MissedTests"));
 const Exam = lazy(() => import("./pages/Exam"));
 const SubjectsExam = lazy(() => import("./pages/SubjectsExam"));
 const Result = lazy(() => import("./pages/Result"));
+
 const ExamHistory = lazy(() => import("./pages/ExamHistory"));
 const Leaderboard = lazy(() => import("./pages/Leaderboard"));
 const AnswerReview = lazy(() => import("./pages/AnswerReview"));
@@ -527,7 +529,15 @@ function App() {
               </ProtectedRoute>
             }
           />
-
+          
+           <Route
+  path="/missed-tests"
+  element={
+    <ProtectedRoute allowedRoles={["student"]}>
+      <MissedTests />
+    </ProtectedRoute>
+  }
+/>
           <Route
             path="/leaderboard"
             element={

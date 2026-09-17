@@ -1,0 +1,2414 @@
+
+/* ============================================================
+   MISSED TESTS
+   PREMIUM BROWN • GOLD • LIGHT BROWN • ORANGE THEME
+============================================================ */
+
+.missed-tests-page {
+  min-height: 100vh;
+  width: 100%;
+
+  padding: 34px 34px 60px;
+
+  box-sizing: border-box;
+
+  background:
+    radial-gradient(
+      circle at 10% 8%,
+      rgba(166, 112, 62, 0.13),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 90% 12%,
+      rgba(218, 164, 87, 0.13),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 75% 90%,
+      rgba(230, 133, 57, 0.07),
+      transparent 25%
+    ),
+    linear-gradient(
+      180deg,
+      #fcfaf7 0%,
+      #f8f3ed 48%,
+      #fffdf9 100%
+    );
+
+  position: relative;
+
+  overflow: hidden;
+}
+
+/* ============================================================
+   BACKGROUND GLOW
+============================================================ */
+
+.missed-tests-page::before {
+  content: "";
+
+  position: absolute;
+
+  width: 500px;
+  height: 500px;
+
+  left: -220px;
+  top: -220px;
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(165, 105, 48, 0.11),
+      transparent 70%
+    );
+
+  pointer-events: none;
+}
+
+.missed-tests-page::after {
+  content: "";
+
+  position: absolute;
+
+  width: 430px;
+  height: 430px;
+
+  right: -180px;
+  bottom: -170px;
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(218, 151, 67, 0.10),
+      transparent 70%
+    );
+
+  pointer-events: none;
+}
+
+/* ============================================================
+   HEADER
+============================================================ */
+
+.missed-tests-header {
+  position: relative;
+
+  z-index: 2;
+
+  display: grid;
+
+  grid-template-columns:
+    auto minmax(0, 1fr) auto;
+
+  align-items: center;
+
+  gap: 22px;
+
+  width: 100%;
+
+  padding: 25px 27px;
+
+  box-sizing: border-box;
+
+  border-radius: 25px;
+
+  border: 1px solid
+    rgba(255, 255, 255, 0.92);
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.91),
+      rgba(250, 244, 236, 0.72)
+    );
+
+  backdrop-filter: blur(26px);
+  -webkit-backdrop-filter: blur(26px);
+
+  box-shadow:
+    0 22px 55px
+      rgba(91, 58, 30, 0.08),
+    inset 0 1px 0
+      rgba(255, 255, 255, 0.98);
+
+  overflow: hidden;
+}
+
+.missed-tests-header::before {
+  content: "";
+
+  position: absolute;
+
+  inset: 0;
+
+  background:
+    linear-gradient(
+      110deg,
+      transparent 20%,
+      rgba(255, 255, 255, 0.6) 48%,
+      transparent 76%
+    );
+
+  transform:
+    translateX(-120%);
+
+  transition:
+    transform 0.8s ease;
+
+  pointer-events: none;
+}
+
+.missed-tests-header:hover::before {
+  transform:
+    translateX(120%);
+}
+
+/* ============================================================
+   HEADER ICON
+============================================================ */
+
+.missed-header-icon {
+  width: 61px;
+  height: 61px;
+
+  border-radius: 20px;
+
+  display: grid;
+  place-items: center;
+
+  color: #8b5a2b;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(171, 115, 57, 0.19),
+      rgba(225, 180, 102, 0.09)
+    );
+
+  border: 1px solid
+    rgba(171, 115, 57, 0.18);
+
+  box-shadow:
+    inset 0 1px 0
+      rgba(255, 255, 255, 0.96),
+    0 13px 28px
+      rgba(137, 89, 40, 0.11);
+
+  flex-shrink: 0;
+
+  transition:
+    transform 0.35s ease,
+    box-shadow 0.35s ease;
+}
+
+.missed-tests-header:hover
+  .missed-header-icon {
+  transform:
+    translateY(-2px)
+    rotate(-3deg);
+
+  box-shadow:
+    inset 0 1px 0
+      rgba(255, 255, 255, 1),
+    0 17px 33px
+      rgba(137, 89, 40, 0.16);
+}
+
+/* ============================================================
+   EYEBROW
+============================================================ */
+
+.missed-eyebrow {
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  margin-bottom: 5px;
+
+  font-size: 10px;
+
+  font-weight: 850;
+
+  letter-spacing: 0.19em;
+
+  color: #a16b34;
+}
+
+.missed-eyebrow::before {
+  content: "";
+
+  width: 23px;
+  height: 2px;
+
+  border-radius: 20px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #8b5a2b,
+      #d59b4d
+    );
+}
+
+/* ============================================================
+   HEADER TITLE
+============================================================ */
+
+.missed-tests-header h1 {
+  margin: 0;
+
+  color: #3c281b;
+
+  font-size: clamp(
+    28px,
+    3vw,
+    38px
+  );
+
+  line-height: 1.04;
+
+  font-weight: 850;
+
+  letter-spacing: -0.045em;
+}
+
+.missed-tests-header p {
+  margin: 9px 0 0;
+
+  max-width: 690px;
+
+  color: #806c5d;
+
+  font-size: 13px;
+
+  line-height: 1.65;
+}
+
+/* ============================================================
+   REFRESH BUTTON
+============================================================ */
+
+.missed-refresh-btn {
+  position: relative;
+
+  min-width: 128px;
+
+  height: 46px;
+
+  padding: 0 18px;
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 9px;
+
+  border-radius: 14px;
+
+  border: 1px solid
+    rgba(145, 94, 40, 0.18);
+
+  color: #74471f;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.92),
+      rgba(247, 235, 218, 0.78)
+    );
+
+  box-shadow:
+    0 11px 26px
+      rgba(101, 63, 32, 0.08),
+    inset 0 1px 0
+      rgba(255, 255, 255, 0.96);
+
+  font-family: inherit;
+
+  font-size: 11px;
+
+  font-weight: 800;
+
+  cursor: pointer;
+
+  overflow: hidden;
+
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.missed-refresh-btn::before {
+  content: "";
+
+  position: absolute;
+
+  inset: 0;
+
+  background:
+    linear-gradient(
+      110deg,
+      transparent 25%,
+      rgba(255, 239, 204, 0.7) 50%,
+      transparent 75%
+    );
+
+  transform:
+    translateX(-120%);
+
+  transition:
+    transform 0.55s ease;
+}
+
+.missed-refresh-btn:hover {
+  transform:
+    translateY(-2px);
+
+  border-color:
+    rgba(177, 119, 54, 0.32);
+
+  box-shadow:
+    0 16px 32px
+      rgba(101, 63, 32, 0.12),
+    inset 0 1px 0
+      rgba(255, 255, 255, 1);
+}
+
+.missed-refresh-btn:hover::before {
+  transform:
+    translateX(120%);
+}
+
+.missed-refresh-btn:active {
+  transform:
+    translateY(0)
+    scale(0.97);
+}
+
+.missed-refresh-btn:focus-visible {
+  outline: 3px solid
+    rgba(183, 129, 62, 0.18);
+
+  outline-offset: 3px;
+}
+
+.missed-refresh-btn:disabled {
+  opacity: 0.58;
+
+  cursor: not-allowed;
+
+  transform: none;
+}
+
+/* ============================================================
+   LOADING ICON
+============================================================ */
+
+.loading-icon {
+  animation:
+    missed-spin 0.85s linear infinite;
+}
+
+@keyframes missed-spin {
+  from {
+    transform:
+      rotate(0deg);
+  }
+
+  to {
+    transform:
+      rotate(360deg);
+  }
+}
+
+/* ============================================================
+   REFRESH / ERROR MESSAGE
+============================================================ */
+
+.missed-refresh-message {
+  position: relative;
+
+  z-index: 2;
+
+  width: fit-content;
+
+  max-width: 100%;
+
+  min-height: 42px;
+
+  margin-top: 18px;
+
+  padding: 9px 13px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 11px;
+
+  border-radius: 13px;
+
+  border: 1px solid
+    rgba(169, 128, 91, 0.14);
+
+  background:
+    rgba(255, 251, 246, 0.75);
+
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+
+  box-shadow:
+    0 10px 25px
+      rgba(91, 58, 30, 0.05);
+
+  color: #796757;
+
+  font-size: 12px;
+
+  animation:
+    missed-fade-up 0.35s ease;
+}
+
+.missed-refresh-message button {
+  border: none;
+
+  padding: 5px 8px;
+
+  border-radius: 7px;
+
+  background: transparent;
+
+  color: #9a6228;
+
+  font-family: inherit;
+
+  font-size: 12px;
+
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.missed-refresh-message button:hover {
+  color: #70431d;
+
+  background:
+    rgba(191, 129, 55, 0.09);
+}
+
+/* ============================================================
+   GRID
+============================================================ */
+
+.missed-tests-grid {
+  position: relative;
+
+  z-index: 2;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      auto-fit,
+      minmax(
+        300px,
+        1fr
+      )
+    );
+
+  gap: 22px;
+
+  margin-top: 25px;
+}
+
+/* ============================================================
+   CARD
+============================================================ */
+
+.missed-test-card {
+  position: relative;
+
+  display: flex;
+
+  flex-direction: column;
+
+  min-height: 275px;
+
+  padding: 21px;
+
+  border-radius: 25px;
+
+  border: 1px solid
+    rgba(255, 255, 255, 0.92);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.91),
+      rgba(250, 244, 236, 0.72)
+    );
+
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+
+  box-shadow:
+    0 19px 46px
+      rgba(88, 54, 29, 0.075),
+    inset 0 1px 0
+      rgba(255, 255, 255, 0.98);
+
+  overflow: hidden;
+
+  transition:
+    transform 0.35s cubic-bezier(
+      0.2,
+      0.75,
+      0.25,
+      1
+    ),
+    box-shadow 0.35s ease,
+    border-color 0.35s ease;
+}
+
+.missed-test-card::before {
+  content: "";
+
+  position: absolute;
+
+  width: 235px;
+  height: 235px;
+
+  right: -110px;
+  top: -110px;
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(211, 151, 75, 0.12),
+      transparent 70%
+    );
+
+  pointer-events: none;
+
+  transition:
+    transform 0.45s ease;
+}
+
+.missed-test-card::after {
+  content: "";
+
+  position: absolute;
+
+  left: 0;
+  right: 0;
+  top: 0;
+
+  height: 2px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(152, 96, 43, 0.6),
+      rgba(224, 170, 87, 0.65),
+      rgba(221, 130, 58, 0.5),
+      transparent
+    );
+
+  opacity: 0.82;
+}
+
+.missed-test-card:hover {
+  transform:
+    translateY(-7px);
+
+  border-color:
+    rgba(171, 116, 57, 0.22);
+
+  box-shadow:
+    0 27px 58px
+      rgba(88, 54, 29, 0.12),
+    0 9px 20px
+      rgba(191, 129, 55, 0.055),
+    inset 0 1px 0
+      rgba(255, 255, 255, 1);
+}
+
+.missed-test-card:hover::before {
+  transform:
+    scale(1.2);
+}
+
+/* ============================================================
+   CARD TOP
+============================================================ */
+
+.missed-card-top {
+  position: relative;
+
+  z-index: 2;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 12px;
+}
+
+/* ============================================================
+   CARD ICON
+============================================================ */
+
+.missed-card-icon {
+  width: 48px;
+  height: 48px;
+
+  border-radius: 16px;
+
+  display: grid;
+  place-items: center;
+
+  color: #96602b;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(179, 122, 57, 0.17),
+      rgba(235, 187, 108, 0.08)
+    );
+
+  border: 1px solid
+    rgba(177, 119, 54, 0.15);
+
+  box-shadow:
+    inset 0 1px 0
+      rgba(255, 255, 255, 0.96),
+    0 9px 21px
+      rgba(126, 78, 34, 0.09);
+
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.missed-test-card:hover
+  .missed-card-icon {
+  transform:
+    translateY(-2px)
+    rotate(3deg);
+
+  box-shadow:
+    inset 0 1px 0
+      rgba(255, 255, 255, 1),
+    0 12px 26px
+      rgba(126, 78, 34, 0.13);
+}
+
+/* ============================================================
+   MISSED BADGE
+============================================================ */
+
+.missed-badge {
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  min-height: 28px;
+
+  padding: 0 11px;
+
+  border-radius: 999px;
+
+  color: #9a4e20;
+
+  border: 1px solid
+    rgba(211, 118, 51, 0.2);
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 238, 217, 0.9),
+      rgba(255, 247, 237, 0.68)
+    );
+
+  box-shadow:
+    inset 0 1px 0
+      rgba(255, 255, 255, 0.95);
+
+  font-size: 9px;
+
+  font-weight: 850;
+
+  letter-spacing: 0.14em;
+}
+
+/* ============================================================
+   CARD BODY
+============================================================ */
+
+.missed-card-body {
+  position: relative;
+
+  z-index: 2;
+
+  flex: 1;
+
+  padding-top: 23px;
+}
+
+/* ============================================================
+   SUBJECT
+============================================================ */
+
+.missed-subject {
+  display: inline-flex;
+
+  align-items: center;
+
+  min-height: 24px;
+
+  padding: 0 9px;
+
+  border-radius: 8px;
+
+  color: #90602f;
+
+  background:
+    rgba(183, 127, 59, 0.08);
+
+  border: 1px solid
+    rgba(183, 127, 59, 0.07);
+
+  font-size: 9px;
+
+  font-weight: 850;
+
+  letter-spacing: 0.12em;
+
+  text-transform: uppercase;
+}
+
+/* ============================================================
+   TITLE
+============================================================ */
+
+.missed-card-body h2 {
+  margin:
+    12px 0 9px;
+
+  color: #3d2a1d;
+
+  font-size: 19px;
+
+  line-height: 1.25;
+
+  font-weight: 830;
+
+  letter-spacing: -0.027em;
+}
+
+/* ============================================================
+   INFO
+============================================================ */
+
+.missed-info {
+  display: flex;
+
+  flex-wrap: wrap;
+
+  gap: 9px;
+
+  margin-top: 14px;
+}
+
+.missed-info > div {
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 7px;
+
+  min-height: 32px;
+
+  padding: 0 10px;
+
+  border-radius: 10px;
+
+  color: #7d6a5b;
+
+  border: 1px solid
+    rgba(173, 141, 111, 0.13);
+
+  background:
+    rgba(255, 252, 247, 0.73);
+
+  font-size: 10px;
+
+  font-weight: 650;
+
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease,
+    transform 0.25s ease;
+}
+
+.missed-info > div svg {
+  color: #bd7b35;
+
+  flex-shrink: 0;
+}
+
+.missed-test-card:hover
+  .missed-info > div {
+  border-color:
+    rgba(177, 119, 54, 0.16);
+
+  background:
+    rgba(255, 248, 238, 0.78);
+}
+
+/* ============================================================
+   CARD FOOTER
+============================================================ */
+
+.missed-card-footer {
+  position: relative;
+
+  z-index: 3;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 15px;
+
+  margin-top: 20px;
+
+  padding-top: 17px;
+
+  border-top: 1px solid
+    rgba(166, 132, 100, 0.13);
+}
+
+.missed-card-footer > span {
+  color: #9a8878;
+
+  font-size: 10px;
+
+  font-weight: 700;
+
+  white-space: nowrap;
+}
+
+/* ============================================================
+   START EXAM
+============================================================ */
+
+.reattempt-btn {
+  position: relative;
+
+  min-width: 128px;
+
+  height: 43px;
+
+  padding: 0 16px;
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  border-radius: 13px;
+
+  border: 1px solid
+    rgba(116, 69, 29, 0.35);
+
+  color: #fffaf3;
+
+  background:
+    linear-gradient(
+      135deg,
+      #71411f 0%,
+      #8f5728 38%,
+      #b77a38 72%,
+      #d09245 100%
+    );
+
+  box-shadow:
+    0 11px 25px
+      rgba(110, 64, 27, 0.22),
+    inset 0 1px 0
+      rgba(255, 232, 191, 0.28),
+    inset 0 -1px 0
+      rgba(77, 40, 15, 0.2);
+
+  font-family: inherit;
+
+  font-size: 11px;
+
+  font-weight: 820;
+
+  letter-spacing: 0.01em;
+
+  cursor: pointer;
+
+  overflow: hidden;
+
+  isolation: isolate;
+
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    filter 0.25s ease;
+}
+
+.reattempt-btn::before {
+  content: "";
+
+  position: absolute;
+
+  inset: 0;
+
+  background:
+    linear-gradient(
+      115deg,
+      transparent 20%,
+      rgba(255, 236, 195, 0.42) 47%,
+      transparent 70%
+    );
+
+  transform:
+    translateX(-120%);
+
+  transition:
+    transform 0.55s ease;
+
+  pointer-events: none;
+}
+
+.reattempt-btn:hover {
+  transform:
+    translateY(-2px);
+
+  filter:
+    brightness(1.05);
+
+  box-shadow:
+    0 16px 31px
+      rgba(110, 64, 27, 0.3),
+    0 4px 11px
+      rgba(193, 126, 54, 0.13),
+    inset 0 1px 0
+      rgba(255, 242, 210, 0.34);
+}
+
+.reattempt-btn:hover::before {
+  transform:
+    translateX(120%);
+}
+
+.reattempt-btn:active {
+  transform:
+    translateY(0)
+    scale(0.96);
+
+  box-shadow:
+    0 7px 17px
+      rgba(110, 64, 27, 0.22);
+}
+
+.reattempt-btn:focus-visible {
+  outline: 3px solid
+    rgba(193, 126, 54, 0.2);
+
+  outline-offset: 3px;
+}
+
+.reattempt-btn:disabled {
+  opacity: 0.45;
+
+  cursor: not-allowed;
+
+  transform: none;
+
+  filter:
+    grayscale(0.15);
+}
+
+/* ============================================================
+   BUTTON ICON
+============================================================ */
+
+.reattempt-btn svg {
+  transition:
+    transform 0.25s ease;
+}
+
+.reattempt-btn:hover svg {
+  transform:
+    translate(2px, -2px);
+}
+
+/* ============================================================
+   EMPTY STATE
+============================================================ */
+
+.no-missed-tests {
+  position: relative;
+
+  z-index: 2;
+
+  width:
+    min(
+      610px,
+      100%
+    );
+
+  margin:
+    48px auto 0;
+
+  padding:
+    52px 32px;
+
+  box-sizing: border-box;
+
+  text-align: center;
+
+  border-radius: 28px;
+
+  border: 1px solid
+    rgba(255, 255, 255, 0.94);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.91),
+      rgba(250, 244, 236, 0.72)
+    );
+
+  backdrop-filter: blur(26px);
+  -webkit-backdrop-filter: blur(26px);
+
+  box-shadow:
+    0 25px 65px
+      rgba(88, 54, 29, 0.08),
+    inset 0 1px 0
+      rgba(255, 255, 255, 0.98);
+
+  animation:
+    missed-fade-up
+    0.45s ease;
+}
+
+/* ============================================================
+   EMPTY ICON
+============================================================ */
+
+.empty-icon {
+  width: 72px;
+  height: 72px;
+
+  margin:
+    0 auto 19px;
+
+  display: grid;
+  place-items: center;
+
+  color: #95612f;
+
+  border-radius: 22px;
+
+  border: 1px solid
+    rgba(177, 119, 54, 0.14);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(188, 130, 58, 0.13),
+      rgba(235, 183, 94, 0.07)
+    );
+
+  box-shadow:
+    inset 0 1px 0
+      rgba(255, 255, 255, 0.98),
+    0 14px 32px
+      rgba(126, 78, 34, 0.08);
+
+  animation:
+    missed-float
+    3s ease-in-out infinite;
+}
+
+/* ============================================================
+   EMPTY TEXT
+============================================================ */
+
+.no-missed-tests h2 {
+  margin: 0;
+
+  color: #3e2a1d;
+
+  font-size: 22px;
+
+  font-weight: 830;
+
+  letter-spacing: -0.03em;
+}
+
+.no-missed-tests p {
+  max-width: 430px;
+
+  margin:
+    10px auto 0;
+
+  color: #806f60;
+
+  font-size: 12px;
+
+  line-height: 1.65;
+}
+
+/* ============================================================
+   BACK DASHBOARD
+============================================================ */
+
+.back-dashboard-btn {
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  margin-top: 23px;
+
+  min-height: 42px;
+
+  padding: 0 17px;
+
+  border-radius: 13px;
+
+  text-decoration: none;
+
+  color: #76491f;
+
+  border: 1px solid
+    rgba(167, 112, 51, 0.18);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.84),
+      rgba(247, 233, 214, 0.69)
+    );
+
+  font-size: 11px;
+
+  font-weight: 800;
+
+  box-shadow:
+    inset 0 1px 0
+      rgba(255, 255, 255, 0.98);
+
+  transition:
+    transform 0.25s ease,
+    background 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.back-dashboard-btn:hover {
+  transform:
+    translateY(-2px);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.95),
+      rgba(245, 225, 198, 0.8)
+    );
+
+  box-shadow:
+    0 11px 23px
+      rgba(126, 78, 34, 0.1);
+}
+
+.back-dashboard-btn:active {
+  transform:
+    scale(0.97);
+}
+
+.back-dashboard-btn svg {
+  transition:
+    transform 0.25s ease;
+}
+
+.back-dashboard-btn:hover svg {
+  transform:
+    translate(2px, -2px);
+}
+
+/* ============================================================
+   ANIMATIONS
+============================================================ */
+
+@keyframes missed-fade-up {
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0);
+  }
+}
+
+@keyframes missed-float {
+  0%,
+  100% {
+    transform:
+      translateY(0);
+  }
+
+  50% {
+    transform:
+      translateY(-5px);
+  }
+}
+
+/* ============================================================
+   CARD ENTRY
+============================================================ */
+
+.missed-test-card {
+  animation:
+    missed-fade-up
+    0.5s
+    ease
+    both;
+}
+
+.missed-test-card:nth-child(1) {
+  animation-delay:
+    0.04s;
+}
+
+.missed-test-card:nth-child(2) {
+  animation-delay:
+    0.08s;
+}
+
+.missed-test-card:nth-child(3) {
+  animation-delay:
+    0.12s;
+}
+
+.missed-test-card:nth-child(4) {
+  animation-delay:
+    0.16s;
+}
+
+.missed-test-card:nth-child(5) {
+  animation-delay:
+    0.2s;
+}
+
+.missed-test-card:nth-child(6) {
+  animation-delay:
+    0.24s;
+}
+
+/* ============================================================
+   TABLET
+============================================================ */
+
+@media (max-width: 900px) {
+  .missed-tests-page {
+    padding:
+      25px 21px 45px;
+  }
+
+  .missed-tests-header {
+    grid-template-columns:
+      auto minmax(0, 1fr);
+
+    padding: 21px;
+
+    gap: 17px;
+  }
+
+  .missed-refresh-btn {
+    grid-column:
+      1 / -1;
+
+    width: 100%;
+  }
+
+  .missed-tests-grid {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(
+          0,
+          1fr
+        )
+      );
+
+    gap: 18px;
+  }
+
+  .missed-test-card {
+    min-height: 275px;
+  }
+}
+
+/* ============================================================
+   MOBILE
+============================================================ */
+
+@media (max-width: 640px) {
+  .missed-tests-page {
+    padding:
+      17px 13px 34px;
+  }
+
+  .missed-tests-header {
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: stretch;
+
+    padding: 19px;
+
+    border-radius: 22px;
+  }
+
+  .missed-header-icon {
+    width: 52px;
+    height: 52px;
+
+    border-radius: 16px;
+  }
+
+  .missed-tests-header h1 {
+    font-size: 28px;
+  }
+
+  .missed-tests-header p {
+    font-size: 11px;
+
+    line-height:
+      1.6;
+  }
+
+  .missed-refresh-btn {
+    width: 100%;
+
+    height: 44px;
+  }
+
+  .missed-tests-grid {
+    grid-template-columns:
+      1fr;
+
+    gap: 15px;
+
+    margin-top: 18px;
+  }
+
+  .missed-test-card {
+    padding: 18px;
+
+    min-height: 255px;
+
+    border-radius: 21px;
+  }
+
+  .missed-card-body {
+    padding-top: 19px;
+  }
+
+  .missed-card-body h2 {
+    font-size: 18px;
+  }
+
+  .missed-card-footer {
+    align-items: stretch;
+
+    flex-direction: column;
+
+    gap: 12px;
+  }
+
+  .missed-card-footer > span {
+    white-space: normal;
+  }
+
+  .reattempt-btn {
+    width: 100%;
+
+    min-width: 0;
+
+    height: 45px;
+  }
+
+  .no-missed-tests {
+    margin-top: 28px;
+
+    padding:
+      40px 21px;
+
+    border-radius: 23px;
+  }
+}
+
+/* ============================================================
+   SMALL MOBILE
+============================================================ */
+
+@media (max-width: 380px) {
+  .missed-tests-page {
+    padding:
+      13px 10px 25px;
+  }
+
+  .missed-tests-header {
+    padding: 16px;
+  }
+
+  .missed-tests-header h1 {
+    font-size: 25px;
+  }
+
+  .missed-test-card {
+    padding: 16px;
+  }
+
+  .missed-card-top {
+    gap: 8px;
+  }
+
+  .missed-card-icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .missed-badge {
+    font-size: 8px;
+  }
+}
+
+/* ============================================================
+   REDUCED MOTION
+============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .missed-test-card,
+  .no-missed-tests,
+  .empty-icon {
+    animation: none;
+  }
+
+  .missed-test-card,
+  .reattempt-btn,
+  .missed-refresh-btn,
+  .back-dashboard-btn,
+  .missed-card-icon {
+    transition: none;
+  }
+}
+
+
+
+
+
+/* ============================================================
+   RESPONSIVE DEVICE ALIGNMENT
+   Mobile • Tablet • Laptop • Desktop
+============================================================ */
+
+/* ============================================================
+   LARGE DESKTOP
+   1440px+
+============================================================ */
+
+@media (min-width: 1440px) {
+  .missed-tests-page {
+    padding-left: 5vw;
+    padding-right: 5vw;
+  }
+
+  .missed-tests-header {
+    max-width: 1500px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .missed-tests-grid {
+    max-width: 1500px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+/* ============================================================
+   LAPTOP
+   1025px - 1439px
+============================================================ */
+
+@media (min-width: 1025px) and (max-width: 1439px) {
+  .missed-tests-page {
+    padding:
+      30px
+      28px
+      50px;
+  }
+
+  .missed-tests-grid {
+    grid-template-columns:
+      repeat(
+        3,
+        minmax(
+          0,
+          1fr
+        )
+      );
+
+    gap: 20px;
+  }
+
+  .missed-test-card {
+    min-width: 0;
+  }
+}
+
+/* ============================================================
+   TABLET LANDSCAPE
+   769px - 1024px
+============================================================ */
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .missed-tests-page {
+    padding:
+      24px
+      20px
+      45px;
+  }
+
+  .missed-tests-header {
+    grid-template-columns:
+      auto
+      minmax(0, 1fr)
+      auto;
+
+    gap: 16px;
+
+    padding:
+      21px;
+  }
+
+  .missed-tests-header h1 {
+    font-size: 31px;
+  }
+
+  .missed-tests-header p {
+    max-width: 560px;
+    font-size: 12px;
+  }
+
+  .missed-refresh-btn {
+    min-width: 112px;
+  }
+
+  .missed-tests-grid {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(
+          0,
+          1fr
+        )
+      );
+
+    gap: 18px;
+  }
+
+  .missed-test-card {
+    min-width: 0;
+  }
+
+  .missed-card-footer {
+    flex-wrap: wrap;
+  }
+
+  .missed-card-footer > span {
+    white-space: normal;
+  }
+}
+
+/* ============================================================
+   TABLET PORTRAIT
+   600px - 768px
+============================================================ */
+
+@media (min-width: 600px) and (max-width: 768px) {
+  .missed-tests-page {
+    padding:
+      20px
+      17px
+      40px;
+  }
+
+  .missed-tests-header {
+    display: grid;
+
+    grid-template-columns:
+      auto
+      minmax(0, 1fr);
+
+    gap: 15px;
+
+    padding:
+      19px;
+
+    border-radius: 21px;
+  }
+
+  .missed-header-icon {
+    width: 54px;
+    height: 54px;
+
+    border-radius: 17px;
+  }
+
+  .missed-tests-header h1 {
+    font-size: 29px;
+  }
+
+  .missed-tests-header p {
+    font-size: 11px;
+  }
+
+  .missed-refresh-btn {
+    grid-column:
+      1 / -1;
+
+    width: 100%;
+  }
+
+  .missed-tests-grid {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(
+          0,
+          1fr
+        )
+      );
+
+    gap: 15px;
+  }
+
+  .missed-test-card {
+    min-height: 270px;
+
+    min-width: 0;
+
+    padding: 17px;
+
+    border-radius: 21px;
+  }
+
+  .missed-card-body h2 {
+    font-size: 17px;
+  }
+
+  .missed-card-footer {
+    align-items: stretch;
+
+    flex-direction: column;
+
+    gap: 11px;
+  }
+
+  .missed-card-footer > span {
+    white-space: normal;
+  }
+
+  .reattempt-btn {
+    width: 100%;
+  }
+}
+
+/* ============================================================
+   MOBILE
+   481px - 599px
+============================================================ */
+
+@media (min-width: 481px) and (max-width: 599px) {
+  .missed-tests-page {
+    padding:
+      16px
+      14px
+      32px;
+  }
+
+  .missed-tests-header {
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: stretch;
+
+    gap: 13px;
+
+    padding:
+      17px;
+
+    border-radius: 20px;
+  }
+
+  .missed-header-icon {
+    width: 51px;
+    height: 51px;
+
+    border-radius: 16px;
+  }
+
+  .missed-tests-header h1 {
+    font-size: 27px;
+  }
+
+  .missed-tests-header p {
+    margin-top: 8px;
+
+    font-size: 11px;
+
+    line-height: 1.6;
+  }
+
+  .missed-refresh-btn {
+    width: 100%;
+
+    height: 44px;
+  }
+
+  .missed-tests-grid {
+    grid-template-columns:
+      1fr;
+
+    gap: 14px;
+
+    margin-top: 17px;
+  }
+
+  .missed-test-card {
+    width: 100%;
+
+    min-width: 0;
+
+    min-height: 250px;
+
+    padding: 17px;
+
+    box-sizing: border-box;
+
+    border-radius: 20px;
+  }
+
+  .missed-card-body {
+    min-width: 0;
+
+    padding-top: 18px;
+  }
+
+  .missed-card-body h2 {
+    font-size: 18px;
+
+    line-height: 1.3;
+
+    overflow-wrap: anywhere;
+  }
+
+  .missed-info {
+    flex-direction: row;
+
+    align-items: stretch;
+  }
+
+  .missed-info > div {
+    flex: 1 1 auto;
+
+    min-width: 0;
+
+    justify-content: flex-start;
+  }
+
+  .missed-card-footer {
+    flex-direction: column;
+
+    align-items: stretch;
+
+    gap: 10px;
+  }
+
+  .missed-card-footer > span {
+    white-space: normal;
+
+    line-height: 1.4;
+  }
+
+  .reattempt-btn {
+    width: 100%;
+
+    height: 44px;
+  }
+
+  .no-missed-tests {
+    width: 100%;
+
+    margin-top: 25px;
+
+    padding:
+      38px 20px;
+
+    box-sizing: border-box;
+
+    border-radius: 21px;
+  }
+}
+
+/* ============================================================
+   MOBILE
+   376px - 480px
+============================================================ */
+
+@media (min-width: 376px) and (max-width: 480px) {
+  .missed-tests-page {
+    width: 100%;
+
+    padding:
+      14px 12px 30px;
+  }
+
+  .missed-tests-header {
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: stretch;
+
+    gap: 12px;
+
+    padding:
+      16px;
+
+    border-radius: 19px;
+  }
+
+  .missed-header-icon {
+    width: 49px;
+    height: 49px;
+
+    border-radius: 15px;
+  }
+
+  .missed-eyebrow {
+    font-size: 9px;
+
+    letter-spacing: 0.16em;
+  }
+
+  .missed-tests-header h1 {
+    font-size: 25px;
+
+    line-height: 1.1;
+  }
+
+  .missed-tests-header p {
+    margin-top: 8px;
+
+    font-size: 10.5px;
+
+    line-height: 1.6;
+  }
+
+  .missed-refresh-btn {
+    width: 100%;
+
+    min-width: 0;
+
+    height: 43px;
+  }
+
+  .missed-tests-grid {
+    width: 100%;
+
+    grid-template-columns:
+      1fr;
+
+    gap: 13px;
+
+    margin-top: 15px;
+  }
+
+  .missed-test-card {
+    width: 100%;
+
+    min-width: 0;
+
+    min-height: 245px;
+
+    padding: 16px;
+
+    box-sizing: border-box;
+
+    border-radius: 19px;
+  }
+
+  .missed-card-top {
+    width: 100%;
+  }
+
+  .missed-card-icon {
+    width: 45px;
+    height: 45px;
+
+    border-radius: 14px;
+  }
+
+  .missed-badge {
+    min-height: 25px;
+
+    padding:
+      0 9px;
+
+    font-size: 8px;
+  }
+
+  .missed-card-body {
+    width: 100%;
+
+    min-width: 0;
+
+    padding-top: 17px;
+  }
+
+  .missed-subject {
+    max-width: 100%;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+  }
+
+  .missed-card-body h2 {
+    width: 100%;
+
+    margin:
+      11px 0 8px;
+
+    font-size: 17px;
+
+    line-height: 1.28;
+
+    overflow-wrap: anywhere;
+  }
+
+  .missed-info {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 7px;
+
+    width: 100%;
+  }
+
+  .missed-info > div {
+    width: 100%;
+
+    box-sizing: border-box;
+
+    min-width: 0;
+  }
+
+  .missed-card-footer {
+    width: 100%;
+
+    flex-direction: column;
+
+    align-items: stretch;
+
+    gap: 10px;
+  }
+
+  .missed-card-footer > span {
+    white-space: normal;
+
+    font-size: 9.5px;
+
+    line-height: 1.45;
+  }
+
+  .reattempt-btn {
+    width: 100%;
+
+    min-width: 0;
+
+    height: 43px;
+  }
+
+  .no-missed-tests {
+    width: 100%;
+
+    margin-top: 23px;
+
+    padding:
+      35px 17px;
+
+    box-sizing: border-box;
+
+    border-radius: 20px;
+  }
+
+  .empty-icon {
+    width: 63px;
+    height: 63px;
+
+    border-radius: 19px;
+  }
+
+  .no-missed-tests h2 {
+    font-size: 20px;
+  }
+
+  .no-missed-tests p {
+    font-size: 11px;
+  }
+
+  .back-dashboard-btn {
+    width: 100%;
+
+    box-sizing: border-box;
+  }
+}
+
+/* ============================================================
+   SMALL MOBILE
+   0px - 375px
+============================================================ */
+
+@media (max-width: 375px) {
+  .missed-tests-page {
+    width: 100%;
+
+    padding:
+      11px 9px 25px;
+
+    box-sizing: border-box;
+  }
+
+  .missed-tests-header {
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: stretch;
+
+    gap: 11px;
+
+    padding:
+      14px;
+
+    border-radius: 18px;
+  }
+
+  .missed-header-icon {
+    width: 46px;
+    height: 46px;
+
+    border-radius: 14px;
+  }
+
+  .missed-eyebrow {
+    font-size: 8px;
+
+    letter-spacing:
+      0.14em;
+  }
+
+  .missed-tests-header h1 {
+    font-size: 23px;
+
+    line-height: 1.1;
+  }
+
+  .missed-tests-header p {
+    margin-top: 7px;
+
+    font-size: 10px;
+
+    line-height: 1.55;
+  }
+
+  .missed-refresh-btn {
+    width: 100%;
+
+    min-width: 0;
+
+    height: 42px;
+
+    padding:
+      0 13px;
+
+    font-size: 10px;
+  }
+
+  .missed-refresh-message {
+    width: 100%;
+
+    box-sizing: border-box;
+
+    margin-top: 12px;
+
+    min-height: 39px;
+
+    padding:
+      8px 10px;
+
+    font-size: 10px;
+
+    flex-wrap: wrap;
+  }
+
+  .missed-tests-grid {
+    width: 100%;
+
+    grid-template-columns:
+      1fr;
+
+    gap: 11px;
+
+    margin-top: 13px;
+  }
+
+  .missed-test-card {
+    width: 100%;
+
+    min-width: 0;
+
+    min-height: 225px;
+
+    padding:
+      14px;
+
+    box-sizing: border-box;
+
+    border-radius: 18px;
+  }
+
+  .missed-card-icon {
+    width: 42px;
+    height: 42px;
+
+    border-radius: 13px;
+  }
+
+  .missed-badge {
+    min-height: 23px;
+
+    padding:
+      0 8px;
+
+    font-size: 7.5px;
+  }
+
+  .missed-card-body {
+    width: 100%;
+
+    padding-top: 15px;
+  }
+
+  .missed-subject {
+    max-width: 100%;
+
+    font-size: 8px;
+  }
+
+  .missed-card-body h2 {
+    margin:
+      10px 0 7px;
+
+    font-size: 16px;
+
+    line-height: 1.28;
+
+    overflow-wrap: anywhere;
+  }
+
+  .missed-info {
+    width: 100%;
+
+    flex-direction: column;
+
+    gap: 6px;
+
+    margin-top: 11px;
+  }
+
+  .missed-info > div {
+    width: 100%;
+
+    min-height: 30px;
+
+    box-sizing: border-box;
+
+    padding:
+      0 9px;
+
+    font-size: 9px;
+  }
+
+  .missed-card-footer {
+    width: 100%;
+
+    flex-direction: column;
+
+    align-items: stretch;
+
+    gap: 9px;
+
+    margin-top: 16px;
+
+    padding-top: 14px;
+  }
+
+  .missed-card-footer > span {
+    white-space: normal;
+
+    font-size: 9px;
+
+    line-height: 1.4;
+  }
+
+  .reattempt-btn {
+    width: 100%;
+
+    min-width: 0;
+
+    height: 42px;
+
+    font-size: 10px;
+  }
+
+  .no-missed-tests {
+    width: 100%;
+
+    margin-top: 20px;
+
+    padding:
+      31px 14px;
+
+    box-sizing: border-box;
+
+    border-radius: 18px;
+  }
+
+  .empty-icon {
+    width: 57px;
+    height: 57px;
+
+    border-radius: 17px;
+  }
+
+  .no-missed-tests h2 {
+    font-size: 18px;
+  }
+
+  .no-missed-tests p {
+    font-size: 10px;
+
+    line-height: 1.55;
+  }
+
+  .back-dashboard-btn {
+    width: 100%;
+
+    min-height: 40px;
+
+    box-sizing: border-box;
+
+    font-size: 10px;
+  }
+}
+
+/* ============================================================
+   VERY NARROW DEVICES
+   320px and below
+============================================================ */
+
+@media (max-width: 320px) {
+  .missed-tests-page {
+    padding:
+      8px 7px 20px;
+  }
+
+  .missed-tests-header {
+    padding:
+      12px;
+  }
+
+  .missed-tests-header h1 {
+    font-size: 21px;
+  }
+
+  .missed-tests-header p {
+    font-size: 9px;
+  }
+
+  .missed-test-card {
+    padding:
+      12px;
+  }
+
+  .missed-card-body h2 {
+    font-size: 15px;
+  }
+
+  .reattempt-btn {
+    height: 40px;
+
+    font-size: 9px;
+  }
+}
+
+
